@@ -1,6 +1,6 @@
 'From Cuis7.9 [latest update: #8113] on 7 August 2026 at 8:51:17 am'!
 'Description tools to debug and improve a little the implementation, add to startup list'!
-!provides: 'MCP-Server' 1 18!
+!provides: 'MCP-Server' 1 19!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: #'MCP-Server'!
@@ -1404,7 +1404,7 @@ readLine
 	
 	! !
 
-!MCPTransportStdio methodsFor: 'reading' stamp: 'HAW 31/Jul/2026, 2:57:37 pm (UTC)'!
+!MCPTransportStdio methodsFor: 'reading' stamp: 'LLM 13/Aug/2026, 12:00:00 pm (UTC)'!
 readMessage
 	"Read a JSON message from stdin"
 	| line |
@@ -1412,19 +1412,47 @@ readMessage
 	line := self readLine.
 	line isNil ifTrue: [ ^ nil ].
 
-	^ Json readFrom: line readStream.! !
+	^ Json readFrom: (self utf8Decode: line) readStream.! !
 
-!MCPTransportStdio methodsFor: 'writing' stamp: 'HAW 31/Jul/2026, 5:54:08 pm (UTC)'!
+!MCPTransportStdio methodsFor: 'writing' stamp: 'LLM 13/Aug/2026, 12:00:00 pm (UTC)'!
 writeMessage: jsonString
 	"Write a JSON message to stdout, ensuring no embedded newlines"
 	| clean |
-	
+
 	stdout closed ifTrue: [ ^self ].
-	
+
 	clean := jsonString copyWithout: Character cr.
 	clean := clean copyWithout: Character lf.
 	stdout
-		nextPutAll: clean;
+		nextPutAll: (self utf8Encode: clean);
 		newLine;
 		flush.! !
+
+!MCPTransportStdio methodsFor: 'encoding' stamp: 'LLM 13/Aug/2026, 12:00:00 pm (UTC)'!
+utf8Decode: aLine
+	"stdin entrega un Character por cada byte leido, asi que aLine no es texto todavia:
+	es la secuencia de bytes UTF-8 del mensaje, con un code point por byte.
+	Sin esto, 'pi' llega como dos Characters (207 y 128) en vez de un solo code point,
+	y todo lo que no sea ASCII termina como mojibake al compilarlo o mostrarlo.
+
+	Ojo con asByteArray: sobre un UnicodeString vuelve a encodear en UTF-8, con lo cual
+	los bytes se duplicarian. Los code points son los bytes, hay que tomarlos tal cual.
+
+	Si la linea es ASCII puro no hay nada que decodificar y la devolvemos como viene."
+
+	| bytes |
+	(aLine anySatisfy: [ :each | each codePoint > 127 ]) ifFalse: [ ^aLine ].
+	(aLine anySatisfy: [ :each | each codePoint > 255 ]) ifTrue: [ ^aLine ].
+	bytes := ByteArray new: aLine size.
+	aLine doWithIndex: [ :each :index | bytes at: index put: each codePoint ].
+	^UnicodeString fromUtf8Bytes: bytes! !
+
+!MCPTransportStdio methodsFor: 'encoding' stamp: 'LLM 13/Aug/2026, 12:00:00 pm (UTC)'!
+utf8Encode: aString
+	"stdout escribe un byte por cada Character, asi que le pasamos los bytes UTF-8
+	de aString como un String de bytes. Para ASCII puro esto es la identidad."
+
+	| bytes |
+	bytes := aString asUtf8Bytes.
+	^(String new: bytes size) replaceFrom: 1 to: bytes size with: bytes startingAt: 1! !
 MCPServer initialize!
