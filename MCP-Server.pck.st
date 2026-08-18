@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8113] on 7 August 2026 at 8:51:17 am'!
-'Description tools to debug and improve a little the implementation, add to startup list'!
-!provides: 'MCP-Server' 1 18!
+'From Cuis7.9 [latest update: #8113] on 16 August 2026 at 8:54:15 pm'!
+'Description Change on the save image tool impl that forks the save because it does not continue after saving'!
+!provides: 'MCP-Server' 1 20!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: #'MCP-Server'!
@@ -884,7 +884,7 @@ toolDefSubclasses
 					yourself);
 		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 31/Jul/2026, 9:07:09 pm (UTC)'!
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 16/Aug/2026, 6:12:15 pm (UTC)'!
 toolDefinitions
 	"Note: saveImage is intentionally excluded from exposed tools"
 	^ {self toolDefEvaluate. 
@@ -906,6 +906,7 @@ toolDefinitions
 	self toolDefDebuggerProceed.
 	self toolDefDebuggerRestart.
 	self toolDefFinishDebugging.
+	self toolDefSaveImage.
 	}.! !
 
 !MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 31/Jul/2026, 9:09:14 pm (UTC)'!
@@ -1219,12 +1220,13 @@ toolMethodSource: args
 	(class includesSelector: selector asSymbol) ifFalse: [ self error: 'Method not found: ' , className , '>>' , selector ].
 	^ (class >> selector asSymbol) sourceCode.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: ''!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 16/Aug/2026, 6:08:40 pm (UTC)'!
 toolSaveImage: args
 	"Save the current image in place.
 	Uses headlessSave which calls snapshotPrimitive directly,
 	skipping the full shutdown/startup cycle that would restart MCP."
-	self class headlessSave.
+	[ Smalltalk saveImage ] fork.
+	(Delay forSeconds: 1) wait.
 	^ 'Image saved: ' , Smalltalk imageName.! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 31/Jul/2026, 10:35:56 pm (UTC)'!
