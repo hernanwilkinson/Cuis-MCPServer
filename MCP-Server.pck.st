@@ -1,88 +1,88 @@
-'From Cuis7.9 [latest update: #8113] on 19 August 2026 at 5:59:35 pm'!
-'Description HTTP support'!
-!provides: 'MCP-Server' 1 22!
+'From Cuis7.9 [latest update: #8134] on 19 August 2026 at 8:00:17 pm'!
+'Description Implementation improvement made by a human being'!
+!provides: 'MCP-Server' 1 23!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
-SystemOrganization addCategory: 'MCP-Server'!
+SystemOrganization addCategory: #'MCP-Server'!
 
 
-!classDefinition: #MCPAuthentication category: 'MCP-Server'!
+!classDefinition: #MCPAuthentication category: #'MCP-Server'!
 Object subclass: #MCPAuthentication
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPAuthentication class' category: 'MCP-Server'!
+!classDefinition: 'MCPAuthentication class' category: #'MCP-Server'!
 MCPAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPBearerTokenAuthentication category: 'MCP-Server'!
+!classDefinition: #MCPBearerTokenAuthentication category: #'MCP-Server'!
 MCPAuthentication subclass: #MCPBearerTokenAuthentication
 	instanceVariableNames: 'token'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPBearerTokenAuthentication class' category: 'MCP-Server'!
+!classDefinition: 'MCPBearerTokenAuthentication class' category: #'MCP-Server'!
 MCPBearerTokenAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPNoAuthentication category: 'MCP-Server'!
+!classDefinition: #MCPNoAuthentication category: #'MCP-Server'!
 MCPAuthentication subclass: #MCPNoAuthentication
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPNoAuthentication class' category: 'MCP-Server'!
+!classDefinition: 'MCPNoAuthentication class' category: #'MCP-Server'!
 MCPNoAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPHttpSession category: 'MCP-Server'!
+!classDefinition: #MCPHttpSession category: #'MCP-Server'!
 Object subclass: #MCPHttpSession
 	instanceVariableNames: 'identifier stream writeMutualExclusion open'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPHttpSession class' category: 'MCP-Server'!
+!classDefinition: 'MCPHttpSession class' category: #'MCP-Server'!
 MCPHttpSession class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPServer category: 'MCP-Server'!
+!classDefinition: #MCPServer category: #'MCP-Server'!
 Object subclass: #MCPServer
 	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages'
-	classVariableNames: 'LastAnswered LastReceived RunningInstance'
+	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPServer class' category: 'MCP-Server'!
+!classDefinition: 'MCPServer class' category: #'MCP-Server'!
 MCPServer class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransport category: 'MCP-Server'!
+!classDefinition: #MCPTransport category: #'MCP-Server'!
 Object subclass: #MCPTransport
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPTransport class' category: 'MCP-Server'!
+!classDefinition: 'MCPTransport class' category: #'MCP-Server'!
 MCPTransport class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransportHttp category: 'MCP-Server'!
+!classDefinition: #MCPTransportHttp category: #'MCP-Server'!
 MCPTransport subclass: #MCPTransportHttp
 	instanceVariableNames: 'portNumber interfaceAddress webServer mcpServer sessions sessionCounter authentication'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPTransportHttp class' category: 'MCP-Server'!
+!classDefinition: 'MCPTransportHttp class' category: #'MCP-Server'!
 MCPTransportHttp class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransportStdio category: 'MCP-Server'!
+!classDefinition: #MCPTransportStdio category: #'MCP-Server'!
 MCPTransport subclass: #MCPTransportStdio
 	instanceVariableNames: 'stdin stdout'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCP-Server'!
-!classDefinition: 'MCPTransportStdio class' category: 'MCP-Server'!
+!classDefinition: 'MCPTransportStdio class' category: #'MCP-Server'!
 MCPTransportStdio class
 	instanceVariableNames: ''!
 
@@ -124,6 +124,7 @@ I publish two entry points on a WebServer:
 Every request goes through my authentication before it is served, and one that it turns down is answered 401. I listen on the interface I was created with, the loopback one by default, so the endpoint is reachable only from this machine. Configure a client with the url http://127.0.0.1:2358/mcp!
 
 !MCPAuthentication methodsFor: 'authorizing' stamp: ''!
+!methodProperties: {}!
 authorizes: aWebRequest
 
 	"Answer whether aWebRequest may be served."
@@ -131,11 +132,13 @@ authorizes: aWebRequest
 	self subclassResponsibility! !
 
 !MCPBearerTokenAuthentication methodsFor: 'initialization' stamp: ''!
+!methodProperties: {}!
 initializeRequiringToken: aToken
 
 	token := aToken! !
 
 !MCPBearerTokenAuthentication methodsFor: 'authorizing' stamp: ''!
+!methodProperties: {}!
 authorizes: aWebRequest
 
 	"Answer whether aWebRequest carries my token. A request without an authorization
@@ -144,6 +147,7 @@ authorizes: aWebRequest
 	^(aWebRequest headerAt: self class authorizationHeaderName) = self expectedAuthorizationHeader! !
 
 !MCPBearerTokenAuthentication methodsFor: 'authorizing' stamp: ''!
+!methodProperties: {}!
 expectedAuthorizationHeader
 
 	"Answer the authorization header a request has to carry to be served."
@@ -151,6 +155,7 @@ expectedAuthorizationHeader
 	^self class bearerScheme, token! !
 
 !MCPBearerTokenAuthentication class methodsFor: 'instance creation' stamp: ''!
+!methodProperties: {}!
 requiringToken: aToken
 
 	self assertIsValidToken: aToken.
@@ -158,22 +163,26 @@ requiringToken: aToken
 	^self new initializeRequiringToken: aToken! !
 
 !MCPBearerTokenAuthentication class methodsFor: 'preconditions' stamp: ''!
+!methodProperties: {}!
 assertIsValidToken: aToken
 
 	(aToken isString and: [ aToken notEmpty ])
 		ifFalse: [ self error: self invalidTokenErrorDescription ]! !
 
 !MCPBearerTokenAuthentication class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 invalidTokenErrorDescription
 
 	^'The bearer token has to be a non empty String'! !
 
 !MCPBearerTokenAuthentication class methodsFor: 'constants' stamp: ''!
+!methodProperties: {}!
 authorizationHeaderName
 
 	^'authorization'! !
 
 !MCPBearerTokenAuthentication class methodsFor: 'constants' stamp: ''!
+!methodProperties: {}!
 bearerScheme
 
 	"Answer the authorization scheme that names a token, with its separating space."
@@ -181,6 +190,7 @@ bearerScheme
 	^'Bearer '! !
 
 !MCPNoAuthentication methodsFor: 'authorizing' stamp: ''!
+!methodProperties: {}!
 authorizes: aWebRequest
 
 	"Every request is served: the endpoint asks for no credentials."
@@ -188,6 +198,7 @@ authorizes: aWebRequest
 	^true! !
 
 !MCPHttpSession methodsFor: 'initialization' stamp: ''!
+!methodProperties: {}!
 initializeIdentifiedAs: anIdentifier writingTo: aStream
 
 	identifier := anIdentifier.
@@ -196,16 +207,19 @@ initializeIdentifiedAs: anIdentifier writingTo: aStream
 	writeMutualExclusion := Semaphore forMutualExclusion! !
 
 !MCPHttpSession methodsFor: 'accessing' stamp: ''!
+!methodProperties: {}!
 identifier
 
 	^identifier! !
 
 !MCPHttpSession methodsFor: 'accessing' stamp: ''!
+!methodProperties: {}!
 stream
 
 	^stream! !
 
 !MCPHttpSession methodsFor: 'opening and closing' stamp: ''!
+!methodProperties: {}!
 close
 
 	"Stop writing events to this session. Can be sent to an already closed session."
@@ -213,6 +227,7 @@ close
 	open := false! !
 
 !MCPHttpSession methodsFor: 'opening and closing' stamp: ''!
+!methodProperties: {}!
 isOpen
 
 	"Answer whether events can still be written to this session."
@@ -220,6 +235,7 @@ isOpen
 	^open! !
 
 !MCPHttpSession methodsFor: 'sending events' stamp: ''!
+!methodProperties: {}!
 sendEndpointEvent: anEndpointUrl
 
 	"Tell the client where it has to post the messages of this session."
@@ -227,12 +243,14 @@ sendEndpointEvent: anEndpointUrl
 	self sendEvent: 'endpoint' data: anEndpointUrl! !
 
 !MCPHttpSession methodsFor: 'sending events' stamp: ''!
+!methodProperties: {}!
 sendEvent: anEventName data: aDataString
 
 	self sendFrame: 'event: ', anEventName, String crlfString,
 		'data: ', aDataString, String crlfString, String crlfString! !
 
 !MCPHttpSession methodsFor: 'sending events' stamp: ''!
+!methodProperties: {}!
 sendFrame: aFrame
 
 	"Write one frame as UTF-8 bytes, one writer at a time. A write that fails closes
@@ -246,6 +264,7 @@ sendFrame: aFrame
 				do: [ :aWriteError | self close ] ] ]! !
 
 !MCPHttpSession methodsFor: 'sending events' stamp: ''!
+!methodProperties: {}!
 sendKeepAlive
 
 	"Send a comment frame, so clients and proxies see the connection alive."
@@ -253,42 +272,21 @@ sendKeepAlive
 	self sendFrame: ': keep-alive', String crlfString, String crlfString! !
 
 !MCPHttpSession methodsFor: 'sending events' stamp: ''!
+!methodProperties: {}!
 sendMessageEvent: aJsonString
 
 	"Send one JSON-RPC answer as a message event."
 
 	self sendEvent: 'message' data: aJsonString! !
 
-!MCPHttpSession class methodsFor: 'instance creation' stamp: ''!
+!MCPHttpSession class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 10:55:26 pm (UTC)'!
+!methodProperties: {}!
 identifiedAs: anIdentifier writingTo: aStream
-
-	self assertIsValidIdentifier: anIdentifier.
-	self assertIsValidStream: aStream.
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
 
-!MCPHttpSession class methodsFor: 'preconditions' stamp: ''!
-assertIsValidIdentifier: anIdentifier
-
-	(anIdentifier isString and: [ anIdentifier notEmpty ])
-		ifFalse: [ self error: self invalidIdentifierErrorDescription ]! !
-
-!MCPHttpSession class methodsFor: 'preconditions' stamp: ''!
-assertIsValidStream: aStream
-
-	aStream isNil ifTrue: [ self error: self streamIsRequiredErrorDescription ]! !
-
-!MCPHttpSession class methodsFor: 'error descriptions' stamp: ''!
-invalidIdentifierErrorDescription
-
-	^'The session identifier has to be a non empty String'! !
-
-!MCPHttpSession class methodsFor: 'error descriptions' stamp: ''!
-streamIsRequiredErrorDescription
-
-	^'A session needs a stream to write its events to'! !
-
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 19/Aug/2026, 8:32:14 pm (UTC)'!
+!methodProperties: {}!
 initializeServingOver: aTransport
 
 	transport := aTransport.
@@ -296,11 +294,13 @@ initializeServingOver: aTransport
 	self doNotLogMessages ! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
+!methodProperties: {}!
 doNotLogMessages
 
 	shouldLogMessages := false! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
 logAnswered: response receivedAt: receivedTime
 
 	shouldLogMessages ifTrue: [
@@ -317,11 +317,13 @@ logAnswered: response receivedAt: receivedTime
 	! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
 logMessages
 
 	shouldLogMessages := true! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
 logReceived: request
 	
 	| receivedTime |
@@ -339,6 +341,7 @@ logReceived: request
 	! !
 
 !MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
 isRunning
 
 	"Answer whether I am still serving requests."
@@ -346,6 +349,7 @@ isRunning
 	^running! !
 
 !MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
 run
 
 	"Serve MCP requests over my transport until stopped. Whether this blocks the calling
@@ -356,14 +360,16 @@ run
 	transport serveRequestsFor: self! !
 
 !MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
 stop
 
 	running := false.
 	transport stopServingRequests.
 	RunningInstance := nil! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:56:22 pm (UTC)'!
-dispatch: aMethod params: aParams ifNone: aNoneBlock
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:05:34 pm (UTC)'!
+!methodProperties: {}!
+dispatch: aMethod with: aParams ifNone: aNoneBlock
 
 	aMethod = 'initialize' ifTrue: [ ^ self handleInitialize: aParams ].
 	aMethod = 'tools/list' ifTrue: [ ^ self handleToolsList: aParams ].
@@ -372,29 +378,33 @@ dispatch: aMethod params: aParams ifNone: aNoneBlock
 	
 	^aNoneBlock value! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:55:54 pm (UTC)'!
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:59 pm (UTC)'!
+!methodProperties: {}!
 handleMethod: aMethod with: aParams identifiedAs: anId 
 
 	^[ | methodResult |
 		methodResult := self 
 			dispatch: aMethod 
-			params: aParams 
-			ifNone: [ ^self errorResponse: anId code: -32601 message: 'Unknown method: ' , aMethod].
-		self successResponse: anId result: methodResult ]
+			with: aParams 
+			ifNone: [ ^self methodNotFoundResponseFor: anId on: aMethod].
+		self successResponseFor: anId result: methodResult ]
 		on: Error
-		do: [ :ex | self errorResponse: anId code: -32603 message: ex printString ].
+		do: [ :anError | self internalErrorResponseFor: anId withError: anError ].
 	! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:57:28 pm (UTC)'!
-handleNotification: method with: params
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:02:12 pm (UTC)'!
+!methodProperties: {}!
+handleNotification: aMethod with: aParams
 	
 	"Right now it does nothing. Change to support  cancellation - Hernan"
-	method = 'notifications/initialized' ifTrue: [ ^ nil ].
-	method = 'notifications/cancelled' ifTrue: [ ^ nil ].
+	
+	aMethod = 'notifications/initialized' ifTrue: [ ^ nil ].
+	aMethod = 'notifications/cancelled' ifTrue: [ ^ nil ].
 	
 	^nil! !
 
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:57:28 pm (UTC)'!
+!methodProperties: {}!
 handleRequest: aRequest
 	
 	| method id params |
@@ -407,98 +417,160 @@ handleRequest: aRequest
 		ifNil: [ self handleNotification: method with: params ]
 		ifNotNil: [ self handleMethod: method with: params identifiedAs: id ]! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-errorResponse: id code: code message: message
-	"Build a JSON-RPC error response"
-	^ OrderedDictionary new
-		
-			at: 'jsonrpc'
-			put: '2.0';
-		
-			at: 'id'
-			put: id;
-		
-			at: 'error'
-			put:
-				(OrderedDictionary new
-					
-						at: 'code'
-						put: code;
-					
-						at: 'message'
-						put: message;
-					yourself);
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:07 pm (UTC)'!
+!methodProperties: {}!
+jsonInternalErrorFor: anError
+
+	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+jsonParseError
+
+	^Json render: (self errorResponseFor: nil code: -32700 message: self class parseErrorDescription)! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:43 pm (UTC)'!
+!methodProperties: {}!
+jsonResponseTo: aJsonString
+
+	| request |
+
+	request := [ Json readFrom: aJsonString readStream ]
+		on: Error
+		do: [ :aParseError | ^self jsonParseError ].
+
+	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:15:10 pm (UTC)'!
+!methodProperties: {}!
+process: aRequest
+
+	aRequest
+		ifNil: [ self stop ]
+		ifNotNil: [ :request |
+			(self responseTo: request) ifNotNil: [ :response |
+				transport writeMessage: (Json render: response) ] ]! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:13:30 pm (UTC)'!
+!methodProperties: {}!
+responseTo: aRequest
+
+	| receivedTime response |
+
+	receivedTime := self logReceived: aRequest.
+	response := self handleRequest: aRequest.
+	response ifNotNil: [ :anAnswer |
+		self logAnswered: anAnswer receivedAt: receivedTime ].
+
+	^response! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
+!methodProperties: {}!
+errorFor: aCode with: aMessage
+
+	^OrderedDictionary new
+		at: 'code' put: aCode;
+		at: 'message' put: aMessage;
+		yourself! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:12:07 pm (UTC)'!
+!methodProperties: {}!
+errorResponseFor: anId code: aCode message: aMessage
+	
+	^ (self responseFor: anId)
+		at: 'error' put: (self errorFor: aCode with: aMessage);
 		yourself.! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-successResponse: id result: result
-	"Build a JSON-RPC success response"
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+internalErrorResponseFor: anId withError: anError
+
+	^ self errorResponseFor: anId code: -32603 message: anError printString! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+methodNotFoundResponseFor: anId on: aMethod
+
+	^ self errorResponseFor: anId code: -32601 message: 'Unknown method: ' , aMethod! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:42 pm (UTC)'!
+!methodProperties: {}!
+responseFor: anId
+
 	^ OrderedDictionary new
-		
-			at: 'jsonrpc'
-			put: '2.0';
-		
-			at: 'id'
-			put: id;
-		
-			at: 'result'
-			put: result;
+		at: 'jsonrpc' put: '2.0';
+		at: 'id' put: anId! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:35 pm (UTC)'!
+!methodProperties: {}!
+successResponseFor: anId result: aResult
+	
+	^ (self responseFor: anId)
+		at: 'result' put: aResult;
 		yourself.! !
 
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-handleInitialize: params
-	"Handle MCP initialize request"
-	^ OrderedDictionary new
-		
-			at: 'protocolVersion'
-			put: '2024-11-05';
-		
-			at: 'capabilities'
-			put:
-				(OrderedDictionary new
-					
-						at: 'tools'
-						put: Dictionary new;
-					yourself);
-		
-			at: 'serverInfo'
-			put:
-				(OrderedDictionary new
-					
-						at: 'name'
-						put: 'cuis-smalltalk';
-					
-						at: 'version'
-						put: '1.0.0';
-					yourself);
-		yourself.! !
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:21 pm (UTC)'!
+!methodProperties: {}!
+capabilities
 
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-handleToolsCall: params
-	"Handle MCP tools/call request"
-	| name arguments resultText |
-	name := params at: 'name'.
-	arguments := params at: 'arguments' ifAbsent: [ Dictionary new ].
-	resultText := self executeTool: name arguments: arguments.
-	^ (Dictionary new)
-		at: 'content' put: {
-			(Dictionary new)
+	^ OrderedDictionary new
+		at: 'tools' put: Dictionary new;
+		yourself
+					
+					! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:19:49 pm (UTC)'!
+!methodProperties: {}!
+contentFor: resultText
+
+	^ Dictionary new
 				at: 'type' put: 'text';
 				at: 'text' put: resultText;
-				yourself
-		};
+				yourself! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:39 pm (UTC)'!
+!methodProperties: {}!
+handleInitialize: aParams
+	
+	^ OrderedDictionary new
+		at: 'protocolVersion' put: '2024-11-05';
+		at: 'capabilities' put: self capabilities;
+		at: 'serverInfo' put: self serverInfo;
 		yourself.! !
 
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-handleToolsList: params
-	"Handle MCP tools/list request"
-	^ OrderedDictionary new
-		
-			at: 'tools'
-			put: self toolDefinitions;
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:19:59 pm (UTC)'!
+!methodProperties: {}!
+handleToolsCall: aParams
+
+	| name arguments resultText |
+
+	name := aParams at: 'name' ifAbsent: [ '' ].
+	arguments := aParams at: 'arguments' ifAbsent: [ Dictionary new ].
+	resultText := self executeTool: name arguments: arguments.
+	
+	^ Dictionary new
+		at: 'content' put: { self contentFor: resultText };
 		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:20:20 pm (UTC)'!
+!methodProperties: {}!
+handleToolsList: params
+
+	^ OrderedDictionary new
+		at: 'tools' put: self toolDefinitions;
+		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:52 pm (UTC)'!
+!methodProperties: {}!
+serverInfo
+	
+	^OrderedDictionary new
+		at: 'name' put: 'cuis-smalltalk';
+		at: 'version' put: '1.0.0';
+		yourself! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefBrowse
 	^ OrderedDictionary new
 		
@@ -537,6 +609,7 @@ toolDefBrowse
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefClassesInCategory
 	^ OrderedDictionary new
 		
@@ -575,6 +648,7 @@ toolDefClassesInCategory
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDebuggerProceed
 	^ OrderedDictionary new
 		
@@ -593,6 +667,7 @@ toolDefDebuggerProceed
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDebuggerRestart
 	^ OrderedDictionary new
 		
@@ -611,6 +686,7 @@ toolDefDebuggerRestart
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDebuggerStepInto
 	^ OrderedDictionary new
 		
@@ -628,6 +704,7 @@ toolDefDebuggerStepInto
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDebuggerStepOver
 	^ OrderedDictionary new
 		
@@ -646,6 +723,7 @@ toolDefDebuggerStepOver
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDebuggerThrough
 	^ OrderedDictionary new
 		
@@ -664,6 +742,7 @@ toolDefDebuggerThrough
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDefineClass
 	^ OrderedDictionary new
 		
@@ -702,6 +781,7 @@ toolDefDefineClass
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDefineMethod
 	^ OrderedDictionary new
 		
@@ -751,6 +831,7 @@ toolDefDefineMethod
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDeleteClass
 	^ OrderedDictionary new
 		
@@ -789,6 +870,7 @@ toolDefDeleteClass
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefDeleteMethod
 	^ OrderedDictionary new
 		
@@ -838,6 +920,7 @@ toolDefDeleteMethod
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefEvaluate
 	^ OrderedDictionary new
 		
@@ -876,6 +959,7 @@ toolDefEvaluate
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefEvaluateToDebugOnError
 	^ OrderedDictionary new
 		
@@ -914,6 +998,7 @@ toolDefEvaluateToDebugOnError
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefFinishDebugging
 	^ OrderedDictionary new
 		
@@ -932,6 +1017,7 @@ toolDefFinishDebugging
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefHierarchy
 	^ OrderedDictionary new
 		
@@ -970,6 +1056,7 @@ toolDefHierarchy
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefListCategories
 	^ OrderedDictionary new
 		
@@ -992,6 +1079,7 @@ toolDefListCategories
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefListClasses
 	^ OrderedDictionary new
 		
@@ -1027,6 +1115,7 @@ toolDefListClasses
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefMethodSource
 	^ OrderedDictionary new
 		
@@ -1076,6 +1165,7 @@ toolDefMethodSource
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefSaveImage
 	^ OrderedDictionary new
 		
@@ -1098,6 +1188,7 @@ toolDefSaveImage
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefSubclasses
 	^ OrderedDictionary new
 		
@@ -1136,6 +1227,7 @@ toolDefSubclasses
 		yourself.! !
 
 !MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 toolDefinitions
 	"Note: saveImage is intentionally excluded from exposed tools"
 	^ {self toolDefEvaluate. 
@@ -1160,9 +1252,10 @@ toolDefinitions
 	self toolDefSaveImage.
 	}.! !
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 19/Aug/2026, 9:21:01 pm (UTC)'!
+!methodProperties: {}!
 executeTool: name arguments: args
-	"Dispatch tool call to implementation"
+
 	name = 'smalltalk_evaluate' ifTrue: [ ^ self toolEvaluate: args ].
 	name = 'smalltalk_browse' ifTrue: [ ^ self toolBrowse: args ].
 	name = 'smalltalk_method_source' ifTrue: [ ^ self toolMethodSource: args ].
@@ -1187,21 +1280,49 @@ executeTool: name arguments: args
 
 	self error: 'Unknown tool: ' , name.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
-classFor: className 
+!MCPServer methodsFor: 'request arguments' stamp: 'HAW 19/Aug/2026, 9:44:45 pm (UTC)'!
+!methodProperties: {}!
+classFrom: args
 	
-	^(className endsWith: ' class')
-		ifTrue: [ 
-			(Smalltalk
-				at: (className copyReplaceAll: ' class' with: '') asSymbol
-				ifAbsent: [ self error: 'Class not found: ' , className ]) class ]
-		ifFalse: [	
-			Smalltalk
-				at: className asSymbol
-				ifAbsent: [ self error: 'Class not found: ' , className ]].
+	^args 
+		at: 'className'
+		ifPresent: [ :aClassName | self classNamed: aClassName ] 
+		ifAbsent: [  self signalClassNotFound: '<not provided>'  ].
+! !
+
+!MCPServer methodsFor: 'request arguments' stamp: 'HAW 19/Aug/2026, 9:29:08 pm (UTC)'!
+!methodProperties: {}!
+classNamed: aClassName 
+	
+	^(Smalltalk classNamed: aClassName) ifNil: [ self signalClassNotFound: aClassName ]
 	! !
 
+!MCPServer methodsFor: 'request arguments' stamp: 'HAW 19/Aug/2026, 9:59:15 pm (UTC)'!
+!methodProperties: {}!
+codeFrom: args
+	
+	^args at: 'code' ifAbsent: [ self error: 'No code provided' ].! !
+
+!MCPServer methodsFor: 'request arguments' stamp: 'HAW 19/Aug/2026, 10:09:10 pm (UTC)'!
+!methodProperties: {}!
+selectorFrom: args in: aClass
+	
+	| selector |
+	
+	selector := (args at: 'selector' ifAbsent: [ self error: 'No selector provided' ]) asSymbol.
+	(aClass includesSelector: selector) ifFalse: [ self error: 'Method not found: ' , aClass name , '>>' , selector ].
+	
+	^selector
+	! !
+
+!MCPServer methodsFor: 'request arguments' stamp: 'HAW 19/Aug/2026, 9:23:11 pm (UTC)'!
+!methodProperties: {}!
+signalClassNotFound: className
+
+	self error: 'Class not found: ' , className! !
+
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!methodProperties: {}!
 evaluateToDebugOnError: code
 	
 	| result sem |
@@ -1226,59 +1347,39 @@ evaluateToDebugOnError: code
 		
 	^ result printString.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:47:09 pm (UTC)'!
+!methodProperties: {}!
 toolBrowse: args
-	"Browse a class - return metadata as JSON.
-	 Includes both instance-side and class-side methods."
-	| className class result |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	class := self classFor: className.
+	
+	| class result |
+	
+	class := self classFrom: args.
 	result := OrderedDictionary new.
 	result
-		at: 'name'
-		put: class name.
-	result
-		at: 'superclass'
-		put:
-			(class superclass
-				ifNil: [ 'nil' ]
-				ifNotNil: [ :sc |
-					sc name ]).
-	result
-		at: 'category'
-		put: class category.
-	result
-		at: 'instanceVariables'
-		put: class instVarNames asArray.
-	result
-		at: 'classVariables'
-		put: class classVarNames asArray.
-	result
-		at: 'methods'
-		put: class selectors asArray sorted.
-	result
-		at: 'comment'
-		put: (class comment ifNil: [ '' ]).
+		at: 'name' put: class name;
+		at: 'superclass' put: class superclass name; "nil answers to name - Henran" 
+		at: 'category' put: class category;
+		at: 'instanceVariables' put: class instVarNames asArray;
+		at: 'classVariables' put: class classVarNames asArray;
+		at: 'methods' put: class selectors asArray sorted;
+		at: 'comment' put: (class comment ifNil: [ '' ]).
+		
 	^ Json render: result.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:51:28 pm (UTC)'!
+!methodProperties: {}!
 toolClassesInCategory: args
-	"List all classes in a category"
-	| category classes names |
-	category := args
-		at: 'category'
-		ifAbsent: [ '' ].
-	category isEmpty ifTrue: [ self error: 'No category provided' ].
-	classes := Smalltalk allClasses select: [ :c |
-		c category = category asSymbol ].
-	names := (classes collect: [ :c |
-		c name ]) asArray sorted.
-	^ Json render: names.! !
+
+	| category classes classNames |
+
+	category := args at: 'category' ifAbsent: [ self error: 'No category provided' ].
+	classes := SystemOrganization classesAt: category.
+	classNames := (classes collect: [ :aClass | aClass name ]) asArray sorted.
+	
+	^ Json render: classNames.! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolDebuggerProceed: args
 
 	debugger ifNil: [ ^'Error: no debugger to proceed' ].
@@ -1287,6 +1388,7 @@ toolDebuggerProceed: args
 	^ ''! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolDebuggerRestart: args
 
 	debugger ifNil: [ ^'Error: no debugger to restart' ].
@@ -1295,6 +1397,7 @@ toolDebuggerRestart: args
 	^ debugger contextStackList first printString! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolDebuggerStepInto: args
 
 	debugger ifNil:  [ ^'Error: no debugger to stepInto' ].
@@ -1303,6 +1406,7 @@ toolDebuggerStepInto: args
 	^ debugger contextStackList first printString! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolDebuggerStepOver: args
 
 	debugger ifNil: [ ^'Error: no debugger to stepOver' ].
@@ -1311,6 +1415,7 @@ toolDebuggerStepOver: args
 	^ debugger contextStackList first printString! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolDebuggerThrough: args
 
 	debugger ifNil:  [ ^'Error: no debugger to through' ].
@@ -1318,96 +1423,83 @@ toolDebuggerThrough: args
 	
 	^ debugger contextStackList first printString! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:57:38 pm (UTC)'!
+!methodProperties: {}!
 toolDefineClass: args
-	"Define a new class"
+	
 	| definition |
-	definition := args
-		at: 'definition'
-		ifAbsent: [ '' ].
-	definition isEmpty ifTrue: [ self error: 'No definition provided' ].
+	
+	definition := args at: 'definition' ifAbsent: [ self error: 'No definition provided' ].
+	
 	Compiler evaluate: definition.
+	
 	^ 'Class defined successfully'.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 8:07:00 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:54:38 pm (UTC)'!
+!methodProperties: {}!
 toolDefineMethod: args
-	"Define or modify a method on a class.
-	 In dev mode (SMALLTALK_DEV_MODE=1), uses compile:classified: to write
-	 source to the .changes file. Otherwise uses compileSilently:classified:
-	 to avoid UI dialogs in headless mode."
-	| className source category class |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	source := args
-		at: 'source'
-		ifAbsent: [ '' ].
-	category := args
-		at: 'category'
-		ifAbsent: [ 'as yet unclassified' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	source isEmpty ifTrue: [ self error: 'No source provided' ].
-	class := self classFor: className.
+	
+	| source category class |
+	
+	class := self classFrom: args.
+	source := args at: 'source' ifAbsent: [ self error: 'No source provided' ].
+	category := args at: 'category' ifAbsent: [ ClassOrganizer defaultMethodCategory ].
+	
 	MCPServer isDevMode
 		ifTrue: [ class compile: source classified: category ]
 		ifFalse: [ class compileSilently: source classified: category ].
+	
 	^ 'Method defined successfully'.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:57:32 pm (UTC)'!
+!methodProperties: {}!
 toolDeleteClass: args
-	"Remove a class from the system"
-	| className class |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	class := Smalltalk
-		at: className asSymbol
-		ifAbsent: [ self error: 'Class not found: ' , className ].
+	
+	| class |
+	
+	class := self classFrom: args.
+	
 	class removeFromSystem.
+	
 	^ 'Class deleted successfully'.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:08:37 pm (UTC)'!
+!methodProperties: {}!
 toolDeleteMethod: args
-	"Remove a method from a class"
-	| className selector class |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	selector := args
-		at: 'selector'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	selector isEmpty ifTrue: [ self error: 'No selector provided' ].
-	class := self classFor: className.
-	(class includesSelector: selector asSymbol) ifFalse: [ self error: 'Method not found: ' , className , '>>' , selector ].
-	class removeSelector: selector asSymbol.
+
+	| selector class |
+
+	class := self classFrom: args.
+	selector := self selectorFrom: args in: class.
+	
+	class removeSelector: selector.
+
 	^ 'Method deleted successfully'.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:59:32 pm (UTC)'!
+!methodProperties: {}!
 toolEvaluate: args
-	"Evaluate Smalltalk code and return result"
+	
 	| code result |
-	code := args
-		at: 'code'
-		ifAbsent: [ '' ].
-	code isEmpty ifTrue: [ self error: 'No code provided' ].
+	
+	code := self codeFrom: args.
+	
 	result := Compiler evaluate: code.
+	
 	^ result printString.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:59:07 pm (UTC)'!
+!methodProperties: {}!
 toolEvaluateToDebugOnError: args
 	
 	| code |
 
-	code := args
-		at: 'code'
-		ifAbsent: [ '' ].
-	code isEmpty ifTrue: [ self error: 'No code provided' ].
+	code := self codeFrom: args.
 	
 	^self evaluateToDebugOnError: code! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 toolFinishDebugging: args
 	
 	debuggerMorph ifNotNil: [ :morph | morph delete ].
@@ -1416,146 +1508,83 @@ toolFinishDebugging: args
 	
 	^ ''! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:10:34 pm (UTC)'!
+!methodProperties: {}!
 toolHierarchy: args
-	"Get inheritance hierarchy from Object down to this class"
-	| className class hierarchy |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	class := self classFor: className.
-	hierarchy := OrderedCollection new.
-	[ class notNil ] whileTrue: [
-		hierarchy add: class name.
-		class := class superclass ].
-	^ Json render: hierarchy asArray.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+	| class superclassNames |
+
+	class := self classFrom: args.
+	
+	superclassNames := class withAllSuperclasses collect: [ :aClass | aClass name].
+	
+	^ Json render: superclassNames asArray.! !
+
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:02:09 pm (UTC)'!
+!methodProperties: {}!
 toolListCategories: args
-	"List all system categories"
+
 	| categories |
+
 	categories := SystemOrganization categories asArray sorted.
+
 	^ Json render: categories.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:05:33 pm (UTC)'!
+!methodProperties: {}!
 toolListClasses: args
-	"List all classes, optionally filtered by prefix"
-	| prefix classes names |
-	prefix := args
-		at: 'prefix'
-		ifAbsent: [ '' ].
-	classes := Smalltalk allClasses.
-	prefix isEmpty ifFalse: [
-		classes := classes select: [ :c |
-			c name asString beginsWith: prefix ]].
-	names := (classes collect: [ :c |
-		c name ]) asArray sorted.
-	^ Json render: names.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+	| prefix classNames |
+
+	prefix := args at: 'prefix' ifAbsent: [ '' ].
+	
+	classNames := Smalltalk allClasses 
+		select: [ :aClass | aClass name beginsWith: prefix ]
+		thenCollect: [ :aClass | aClass name ].
+	
+	^ Json render: classNames asArray sorted.
+	! !
+
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:10:04 pm (UTC)'!
+!methodProperties: {}!
 toolMethodSource: args
-	"Get source code of a method. Supports both instance and class side.
-	 Class side can be requested via side='class' parameter or by appending
-	 ' class' to className (e.g. 'MCPServer class')."
-	| className selector class |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	selector := args
-		at: 'selector'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	selector isEmpty ifTrue: [ self error: 'No selector provided' ].
-	class := self classFor: className.
-	(class includesSelector: selector asSymbol) ifFalse: [ self error: 'Method not found: ' , className , '>>' , selector ].
-	^ (class >> selector asSymbol) sourceCode.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+	| selector class |
+
+	class := self classFrom: args.
+	selector := self selectorFrom: args in: class.
+	
+	^ (class compiledMethodAt: selector) sourceCode.! !
+
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:10:19 pm (UTC)'!
+!methodProperties: {}!
 toolSaveImage: args
-	"Save the current image in place.
-	Uses headlessSave which calls snapshotPrimitive directly,
-	skipping the full shutdown/startup cycle that would restart MCP."
+	
 	[ Smalltalk saveImage ] fork.
 	(Delay forSeconds: 1) wait.
+	
 	^ 'Image saved: ' , Smalltalk imageName.! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 10:11:44 pm (UTC)'!
+!methodProperties: {}!
 toolSubclasses: args
-	"Get direct subclasses of a class"
-	| className class names |
-	className := args
-		at: 'className'
-		ifAbsent: [ '' ].
-	className isEmpty ifTrue: [ self error: 'No className provided' ].
-	class := self classFor: className.
-	names := (class subclasses collect: [ :c |
-		c name ]) asArray sorted.
-	^ Json render: names.! !
+	
+	| class subclassNames |
+	
+	class := self classFrom: args.
+	
+	subclassNames := class subclasses collect: [ :aClass | aClass name].
 
-!MCPServer methodsFor: 'handling requests' stamp: ''!
-jsonInternalErrorFor: anError
-
-	"Answer a rendered JSON-RPC internal error, for transports that have to answer something
-	when no request could be handled."
-
-	^Json render: (self errorResponse: nil code: -32603 message: anError description)! !
-
-!MCPServer methodsFor: 'handling requests' stamp: ''!
-jsonParseError
-
-	^Json render: (self errorResponse: nil code: -32700 message: self class parseErrorDescription)! !
-
-!MCPServer methodsFor: 'handling requests' stamp: ''!
-jsonResponseTo: aJsonString
-
-	"Answer the rendered JSON-RPC response for the message in aJsonString, or nil when the
-	message is a notification. A message that cannot be parsed is answered with the parse
-	error the JSON-RPC specification defines."
-
-	| request |
-
-	request := [ Json readFrom: aJsonString readStream ]
-		on: Error
-		do: [ :aParseError | ^self jsonParseError ].
-
-	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
-
-!MCPServer methodsFor: 'handling requests' stamp: ''!
-process: aRequest
-
-	"Handle one message read from a streaming transport, writing its answer back on it.
-	A nil message means the stream closed, which stops the server."
-
-	aRequest
-		ifNil: [ running := false ]
-		ifNotNil: [ :request |
-			(self responseTo: request) ifNotNil: [ :response |
-				transport writeMessage: (Json render: response) ] ]! !
-
-!MCPServer methodsFor: 'handling requests' stamp: ''!
-responseTo: aRequest
-
-	"Answer the JSON-RPC response for aRequest, or nil when aRequest is a notification and
-	expects no answer."
-
-	| receivedTime response |
-
-	LastReceived := aRequest.
-	receivedTime := self logReceived: aRequest.
-	response := self handleRequest: aRequest.
-	response ifNotNil: [ :anAnswer |
-		LastAnswered := anAnswer.
-		self logAnswered: anAnswer receivedAt: receivedTime ].
-
-	^response! !
+	^ Json render: subclassNames asArray sorted.! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:18:55 pm (UTC)'!
+!methodProperties: {}!
 servingOver: aTransport
 
 	^self new initializeServingOver: aTransport! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: ''!
+!methodProperties: {}!
 servingOverHttpAtPort: aPortNumber
 
 	"Answer a server that answers the requests posted to the MCP endpoint on aPortNumber,
@@ -1564,11 +1593,13 @@ servingOverHttpAtPort: aPortNumber
 	^self servingOverHttpAtPort: aPortNumber authenticatingWith: self httpAuthentication! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:07:14 pm (UTC)'!
+!methodProperties: {}!
 servingOverHttpAtPort: aPortNumber authenticatingWith: anAuthentication
 
 	^self servingOver: (MCPTransportHttp listeningAtPort: aPortNumber authenticatingWith: anAuthentication)! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:07:20 pm (UTC)'!
+!methodProperties: {}!
 servingOverStandardInputOutput
 
 	"Answer a server that reads its requests from standard input and answers on standard output."
@@ -1576,21 +1607,25 @@ servingOverStandardInputOutput
 	^self servingOver: MCPTransportStdio new! !
 
 !MCPServer class methodsFor: 'development mode' stamp: 'HAW 19/Aug/2026, 8:13:06 pm (UTC)'!
+!methodProperties: {}!
 isDevMode
 
 	^Smalltalk startUpArguments includes: '--devMode' ! !
 
 !MCPServer class methodsFor: 'class initialization' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
 initialize
 
 	Smalltalk addToStartUpList: self! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 parseErrorDescription
 
 	^'Parse error'! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:06:48 pm (UTC)'!
+!methodProperties: {}!
 authenticationRequiring: aToken
 
 	"Answer the authentication for aToken, reading an empty variable as no token at all."
@@ -1600,6 +1635,7 @@ authenticationRequiring: aToken
 		ifNotEmpty: [ MCPBearerTokenAuthentication requiringToken: aToken ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
 httpArgument
 
 	"Answer the command line argument that asks for the HTTP transport on the default port."
@@ -1607,6 +1643,7 @@ httpArgument
 	^'--mcpHttp'! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:17:12 pm (UTC)'!
+!methodProperties: {}!
 httpAuthentication
 
 	"Answer who will decide which requests the endpoint serves. A token in the environment
@@ -1617,6 +1654,7 @@ httpAuthentication
 		ifNotNil: [ :aToken | self authenticationRequiring: aToken ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
 httpPortArgumentPrefix
 
 	"Answer the start of the command line argument that asks for the HTTP transport on a
@@ -1625,6 +1663,7 @@ httpPortArgumentPrefix
 	^'--mcpHttpPort='! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:23:51 pm (UTC)'!
+!methodProperties: {}!
 httpPortNumberFromArguments
 
 	"Answer the port named on the command line, or the default one when none is named."
@@ -1636,6 +1675,7 @@ httpPortNumberFromArguments
 ! !
 
 !MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
 httpTokenEnvironmentVariableName
 
 	"Answer the environment variable that carries the bearer token the endpoint requires.
@@ -1645,11 +1685,13 @@ httpTokenEnvironmentVariableName
 	^'SMALLTALK_MCP_TOKEN'! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:10 pm (UTC)'!
+!methodProperties: {}!
 isHttpArgument: anArgument
 
 	^anArgument = self httpArgument or: [ anArgument beginsWith: self httpPortArgumentPrefix ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:57 pm (UTC)'!
+!methodProperties: {}!
 isHttpRequested
 
 	"Answer whether the image was launched to serve MCP over HTTP, with or without naming
@@ -1658,16 +1700,19 @@ isHttpRequested
 	^Smalltalk startUpArguments anySatisfy: [ :anArgument | self isHttpArgument: anArgument ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
 isStandardInputOutputRequested
 
 	^Smalltalk startUpArguments includes: self standardInputOutputArgument! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:05 pm (UTC)'!
+!methodProperties: {}!
 portNumberFrom: portArgument 
 
 	^Integer readFrom: (portArgument allButFirst: self httpPortArgumentPrefix size) readStream! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:49 pm (UTC)'!
+!methodProperties: {}!
 standardInputOutputArgument
 
 	"Answer the command line argument that asks for the standard streams transport."
@@ -1675,6 +1720,7 @@ standardInputOutputArgument
 	^'--mcpStdIO'! !
 
 !MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:19:51 pm (UTC)'!
+!methodProperties: {}!
 startHttpServer
 
 	"Serve MCP over HTTP. The web server listens in processes of its own, so running the
@@ -1685,6 +1731,7 @@ startHttpServer
 		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'! !
 
 !MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:56 pm (UTC)'!
+!methodProperties: {}!
 startStdIOServer
 
 	"Serve MCP over the standard streams in a background process, so the graphical interface
@@ -1695,6 +1742,7 @@ startStdIOServer
 		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'! !
 
 !MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:32 pm (UTC)'!
+!methodProperties: {}!
 startUp: isResuming
 
 	"Start the server the image was launched for. A server left running by the previous
@@ -1710,8 +1758,9 @@ startUp: isResuming
 		show: 'No MCP Server started. Check image arguments'; 
 		newLine! !
 
-!MCPTransport methodsFor: 'serving' stamp: ''!
-serveRequestsFor: anMCPServerCopy
+!MCPTransport methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:18:07 pm (UTC)'!
+!methodProperties: {}!
+serveRequestsFor: anMCPServer
 
 	"Start serving MCP requests for anMCPServerCopy. Whether this blocks the calling
 	process is up to each transport."
@@ -1719,6 +1768,7 @@ serveRequestsFor: anMCPServerCopy
 	self subclassResponsibility! !
 
 !MCPTransport methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 stopServingRequests
 
 	"Stop serving and release whatever is held open. Can be sent to a transport that
@@ -1726,29 +1776,20 @@ stopServingRequests
 
 	self subclassResponsibility! !
 
-!MCPTransport methodsFor: 'encoding' stamp: ''!
+!MCPTransport methodsFor: 'encoding' stamp: 'HAW 19/Aug/2026, 10:30:26 pm (UTC)'!
+!methodProperties: {}!
 utf8Decode: aLine
 
-	"stdin entrega un Character por cada byte leido, asi que aLine no es texto todavia:
-	es la secuencia de bytes UTF-8 del mensaje, con un code point por byte.
-	Sin esto, pi llega como dos Characters (207 y 128) en vez de un solo code point,
-	y todo lo que no sea ASCII termina como mojibake al compilarlo o mostrarlo.
-
-	Ojo con asByteArray: sobre un UnicodeString vuelve a encodear en UTF-8, con lo cual
-	los bytes se duplicarian. Los code points son los bytes, hay que tomarlos tal cual.
-
-	Si la linea es ASCII puro no hay nada que decodificar y la devolvemos como viene."
-
-	| bytes |
-
-	(aLine anySatisfy: [ :eachCharacter | eachCharacter codePoint > 127 ]) ifFalse: [ ^aLine ].
-	(aLine anySatisfy: [ :eachCharacter | eachCharacter codePoint > 255 ]) ifTrue: [ ^aLine ].
-	bytes := ByteArray new: aLine size.
-	aLine doWithIndex: [ :eachCharacter :index | bytes at: index put: eachCharacter codePoint ].
-
-	^UnicodeString fromUtf8Bytes: bytes! !
+	| bytesOrString |
+ 
+	bytesOrString := aLine asUtf8BytesOrByteString.
+	
+	^(bytesOrString is: #String) 
+		ifTrue: [ bytesOrString ]
+		ifFalse: [ UnicodeString fromUtf8Bytes: bytesOrString ]! !
 
 !MCPTransportHttp methodsFor: 'initialization' stamp: ''!
+!methodProperties: {}!
 initializeListeningAtPort: aPortNumber onInterface: anInterfaceAddress authenticatingWith: anAuthentication
 
 	portNumber := aPortNumber.
@@ -1757,38 +1798,8 @@ initializeListeningAtPort: aPortNumber onInterface: anInterfaceAddress authentic
 	sessions := Dictionary new.
 	sessionCounter := 0! !
 
-!MCPTransportHttp methodsFor: 'accessing' stamp: ''!
-authentication
-
-	"Answer who decides which requests I serve."
-
-	^authentication! !
-
-!MCPTransportHttp methodsFor: 'accessing' stamp: ''!
-interfaceAddress
-
-	^interfaceAddress! !
-
-!MCPTransportHttp methodsFor: 'accessing' stamp: ''!
-isServing
-
-	"Answer whether the endpoint is listening."
-
-	^webServer notNil! !
-
-!MCPTransportHttp methodsFor: 'accessing' stamp: ''!
-portNumber
-
-	^portNumber! !
-
-!MCPTransportHttp methodsFor: 'accessing' stamp: ''!
-sessions
-
-	"Answer the open event streams, indexed by session identifier."
-
-	^sessions! !
-
 !MCPTransportHttp methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 addServicesTo: aWebServer
 
 	"Publish the entry points the MCP HTTP transports need, answering JSON-RPC errors
@@ -1805,37 +1816,41 @@ addServicesTo: aWebServer
 	aWebServer errorHandler: [ :anError :aWebRequest | self respondWithServerError: anError to: aWebRequest ]! !
 
 !MCPTransportHttp methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 interfaceAddressBytes
 
 	"Answer my interface address as the four byte IPv4 address the socket primitive expects."
 
 	^((interfaceAddress findTokens: '.') collect: [ :eachPart | Integer readFrom: eachPart readStream ]) asByteArray! !
 
-!MCPTransportHttp methodsFor: 'serving' stamp: ''!
+!MCPTransportHttp methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:48:01 pm (UTC)'!
+!methodProperties: {}!
 newListeningWebServer
 
 	"Answer a web server already listening on my port and interface."
 
-	| aWebServer |
+	| newWebServer |
 
 	Socket initializeNetwork.
-	aWebServer := WebServer new.
-	aWebServer listenOn: portNumber interface: self interfaceAddressBytes.
+	newWebServer := WebServer new.
+	newWebServer listenOn: portNumber interface: self interfaceAddressBytes.
 
-	^aWebServer! !
+	^newWebServer! !
 
-!MCPTransportHttp methodsFor: 'serving' stamp: ''!
-serveRequestsFor: anMCPServerCopy
+!MCPTransportHttp methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:48:17 pm (UTC)'!
+!methodProperties: {}!
+serveRequestsFor: anMCPServer
 
 	"Start listening for the requests anMCPServerCopy has to answer. Answers as soon as
 	the listener is up, because the web server serves each connection in a process of its own."
 
-	mcpServer := anMCPServerCopy.
+	mcpServer := anMCPServer.
 	self stopServingRequests.
 	webServer := self newListeningWebServer.
 	self addServicesTo: webServer! !
 
 !MCPTransportHttp methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 shutDown: aWebServer
 
 	aWebServer stopListener.
@@ -1843,6 +1858,7 @@ shutDown: aWebServer
 	aWebServer listenerSocket ifNotNil: [ :aListenerSocket | aListenerSocket destroy ]! !
 
 !MCPTransportHttp methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 stopServingRequests
 
 	"Stop listening and drop every open event stream."
@@ -1852,11 +1868,13 @@ stopServingRequests
 	webServer := nil! !
 
 !MCPTransportHttp methodsFor: 'endpoints' stamp: ''!
+!methodProperties: {}!
 endpointHttpMethods
 
 	^#('POST' 'GET' 'DELETE')! !
 
 !MCPTransportHttp methodsFor: 'endpoints' stamp: ''!
+!methodProperties: {}!
 endpointPath
 
 	"Answer the path where the MCP endpoint answers."
@@ -1864,6 +1882,7 @@ endpointPath
 	^'/mcp'! !
 
 !MCPTransportHttp methodsFor: 'endpoints' stamp: ''!
+!methodProperties: {}!
 messagesEndpointFor: aSessionIdentifier
 
 	"Answer the url an event stream client has to post the messages of its session to."
@@ -1871,11 +1890,13 @@ messagesEndpointFor: aSessionIdentifier
 	^self messagesPath, '?sessionId=', aSessionIdentifier! !
 
 !MCPTransportHttp methodsFor: 'endpoints' stamp: ''!
+!methodProperties: {}!
 messagesHttpMethods
 
 	^#('POST')! !
 
 !MCPTransportHttp methodsFor: 'endpoints' stamp: ''!
+!methodProperties: {}!
 messagesPath
 
 	"Answer the path where a client of the event stream transport posts its messages."
@@ -1883,6 +1904,7 @@ messagesPath
 	^'/messages'! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 acknowledge: aWebRequest
 
 	"Answer an empty 202: the message was accepted and there is nothing to send back."
@@ -1890,6 +1912,7 @@ acknowledge: aWebRequest
 	^aWebRequest sendResponseCode: 202 content: '' type: self plainTextContentType close: false! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 bodyOf: aWebRequest
 
 	"Answer the request body as text. A byte oriented body arrives with one Character per
@@ -1898,6 +1921,7 @@ bodyOf: aWebRequest
 	^self utf8Decode: (aWebRequest content ifNil: [ '' ]) asString! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 endpointResponders
 
 	"Answer the message that responds to each HTTP method that is not a plain JSON-RPC post."
@@ -1907,16 +1931,19 @@ endpointResponders
 		'DELETE'. #closeEventStreamFor: }! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 jsonContentType
 
 	^'application/json; charset=utf-8'! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 plainTextContentType
 
 	^'text/plain; charset=utf-8'! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 pushAnswerTo: aWebRequest over: aSession
 
 	"Send the answer to the message in the request body as a message event on aSession."
@@ -1929,6 +1956,7 @@ pushAnswerTo: aWebRequest over: aSession
 	response ifNotNil: [ :aJsonString | aSession sendMessageEvent: aJsonString ]! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 respondToEndpointRequest: aWebRequest
 
 	"POST carries one JSON-RPC message and is answered with its response. GET opens an
@@ -1940,6 +1968,7 @@ respondToEndpointRequest: aWebRequest
 	^self perform: (self responderFor: aWebRequest method) with: aWebRequest! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 respondToJsonRpcRequest: aWebRequest
 
 	"Answer the JSON-RPC response for the message in the request body. A notification has
@@ -1951,6 +1980,7 @@ respondToJsonRpcRequest: aWebRequest
 			aWebRequest send200Response: aJsonString asUtf8Bytes contentType: self jsonContentType ]! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 respondToMessagesRequest: aWebRequest
 
 	"Dispatch the message in the body and push its answer over the event stream the request
@@ -1966,6 +1996,7 @@ respondToMessagesRequest: aWebRequest
 	^self acknowledge: aWebRequest! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 respondWithServerError: anError to: aWebRequest
 
 	"Answer a JSON-RPC internal error instead of the web server default error page."
@@ -1977,6 +2008,7 @@ respondWithServerError: anError to: aWebRequest
 		close: false! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: 'HAW 19/Aug/2026, 7:27:54 pm (UTC)'!
+!methodProperties: {}!
 respondWithUnauthorizedTo: aWebRequest
 
 	"Answer 401 to a request that did not authenticate, and let the connection go, so a
@@ -1991,6 +2023,7 @@ respondWithUnauthorizedTo: aWebRequest
 		close: true! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 respondWithUnknownSessionTo: aWebRequest
 
 	^aWebRequest
@@ -2000,34 +2033,13 @@ respondWithUnknownSessionTo: aWebRequest
 		close: false! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!methodProperties: {}!
 responderFor: anHttpMethod
 
 	^self endpointResponders at: anHttpMethod ifAbsent: [ #respondToJsonRpcRequest: ]! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
-closeAllSessions
-
-	"Close every open event stream and forget them all."
-
-	sessions do: [ :eachSession | eachSession close ].
-	sessions := Dictionary new! !
-
-!MCPTransportHttp methodsFor: 'event streams' stamp: ''!
-closeEventStreamFor: aWebRequest
-
-	"End the event stream the request names, when it is still open, and acknowledge."
-
-	(self sessionFor: aWebRequest) ifNotNil: [ :aSession | self closeSession: aSession ].
-
-	^self acknowledge: aWebRequest! !
-
-!MCPTransportHttp methodsFor: 'event streams' stamp: ''!
-closeSession: aSession
-
-	aSession close.
-	sessions removeKey: aSession identifier ifAbsent: [ nil ]! !
-
-!MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 eventStreamHandshake
 
 	"Answer the HTTP headers that open a Server-Sent Events stream."
@@ -2039,11 +2051,13 @@ eventStreamHandshake
 		String crlfString! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 keepAliveDelay
 
 	^Delay forSeconds: 15! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 keepAliveWhileOpen: aSession
 
 	"Hold the connection with a comment frame now and then, so clients and proxies see it
@@ -2054,6 +2068,7 @@ keepAliveWhileOpen: aSession
 		self keepAliveDelay wait ]! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 newSessionIdentifier
 
 	sessionCounter := sessionCounter + 1.
@@ -2061,6 +2076,7 @@ newSessionIdentifier
 	^'mcp-', sessionCounter printString! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: 'HAW 19/Aug/2026, 8:06:54 pm (UTC)'!
+!methodProperties: {}!
 newSessionWritingTo: aStream
 
 	| session |
@@ -2071,6 +2087,7 @@ newSessionWritingTo: aStream
 	^session! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 openEventStreamFor: aWebRequest
 
 	"Open an event stream on this connection: write the handshake, announce where the client
@@ -2087,6 +2104,7 @@ openEventStreamFor: aWebRequest
 	^session! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 sessionFor: aWebRequest
 
 	"Answer the session the request names in its sessionId parameter, or nil when it names
@@ -2099,6 +2117,7 @@ sessionFor: aWebRequest
 	^sessions at: requestedIdentifier ifAbsent: [ nil ]! !
 
 !MCPTransportHttp methodsFor: 'event streams' stamp: ''!
+!methodProperties: {}!
 writeHandshakeTo: aSession
 
 	"Write the headers that turn the connection into an event stream and announce the
@@ -2110,12 +2129,23 @@ writeHandshakeTo: aSession
 		on: Error
 		do: [ :aWriteError | aSession close ]! !
 
-!MCPTransportHttp methodsFor: 'as yet unclassified' stamp: 'HAW 19/Aug/2026, 7:28:07 pm (UTC)'!
+!MCPTransportHttp methodsFor: 'closing' stamp: ''!
+!methodProperties: {}!
+closeAllSessions
+
+	"Close every open event stream and forget them all."
+
+	sessions do: [ :eachSession | eachSession close ].
+	sessions := Dictionary new! !
+
+!MCPTransportHttp methodsFor: 'closing' stamp: 'HAW 19/Aug/2026, 7:28:07 pm (UTC)'!
+!methodProperties: {}!
 closeConnectionHeaderValue
 
 	^'close'! !
 
-!MCPTransportHttp methodsFor: 'as yet unclassified' stamp: 'HAW 19/Aug/2026, 7:28:00 pm (UTC)'!
+!MCPTransportHttp methodsFor: 'closing' stamp: 'HAW 19/Aug/2026, 7:28:00 pm (UTC)'!
+!methodProperties: {}!
 closeConnectionOf: aWebRequest
 
 	"Ask the web server not to keep this connection alive. The header has to be set on the
@@ -2124,12 +2154,31 @@ closeConnectionOf: aWebRequest
 
 	aWebRequest headerAt: self connectionHeaderName put: self closeConnectionHeaderValue! !
 
-!MCPTransportHttp methodsFor: 'as yet unclassified' stamp: 'HAW 19/Aug/2026, 7:28:05 pm (UTC)'!
+!MCPTransportHttp methodsFor: 'closing' stamp: ''!
+!methodProperties: {}!
+closeEventStreamFor: aWebRequest
+
+	"End the event stream the request names, when it is still open, and acknowledge."
+
+	(self sessionFor: aWebRequest) ifNotNil: [ :aSession | self closeSession: aSession ].
+
+	^self acknowledge: aWebRequest! !
+
+!MCPTransportHttp methodsFor: 'closing' stamp: ''!
+!methodProperties: {}!
+closeSession: aSession
+
+	aSession close.
+	sessions removeKey: aSession identifier ifAbsent: [ nil ]! !
+
+!MCPTransportHttp methodsFor: 'closing' stamp: 'HAW 19/Aug/2026, 7:28:05 pm (UTC)'!
+!methodProperties: {}!
 connectionHeaderName
 
 	^'Connection'! !
 
 !MCPTransportHttp class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:06:48 pm (UTC)'!
+!methodProperties: {}!
 listeningAtPort: aPortNumber
 
 	"Answer a transport that serves any client that can reach the loopback interface."
@@ -2137,6 +2186,7 @@ listeningAtPort: aPortNumber
 	^self listeningAtPort: aPortNumber authenticatingWith: MCPNoAuthentication new! !
 
 !MCPTransportHttp class methodsFor: 'instance creation' stamp: ''!
+!methodProperties: {}!
 listeningAtPort: aPortNumber authenticatingWith: anAuthentication
 
 	^self
@@ -2145,6 +2195,7 @@ listeningAtPort: aPortNumber authenticatingWith: anAuthentication
 		authenticatingWith: anAuthentication! !
 
 !MCPTransportHttp class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:06:48 pm (UTC)'!
+!methodProperties: {}!
 listeningAtPort: aPortNumber onInterface: anInterfaceAddress
 
 	^self
@@ -2152,19 +2203,20 @@ listeningAtPort: aPortNumber onInterface: anInterfaceAddress
 		onInterface: anInterfaceAddress
 		authenticatingWith: MCPNoAuthentication new! !
 
-!MCPTransportHttp class methodsFor: 'instance creation' stamp: ''!
+!MCPTransportHttp class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 10:39:05 pm (UTC)'!
+!methodProperties: {}!
 listeningAtPort: aPortNumber onInterface: anInterfaceAddress authenticatingWith: anAuthentication
 
 	self assertIsValidPortNumber: aPortNumber.
 	self assertIsValidInterfaceAddress: anInterfaceAddress.
-	self assertIsValidAuthentication: anAuthentication.
-
+	
 	^self new
 		initializeListeningAtPort: aPortNumber
 		onInterface: anInterfaceAddress
 		authenticatingWith: anAuthentication! !
 
 !MCPTransportHttp class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:06:42 pm (UTC)'!
+!methodProperties: {}!
 listeningAtPort: aPortNumber requiringToken: aToken
 
 	"Answer a transport that serves only the requests carrying aToken."
@@ -2174,6 +2226,7 @@ listeningAtPort: aPortNumber requiringToken: aToken
 		authenticatingWith: (MCPBearerTokenAuthentication requiringToken: aToken)! !
 
 !MCPTransportHttp class methodsFor: 'defaults' stamp: ''!
+!methodProperties: {}!
 defaultInterfaceAddress
 
 	"Answer the loopback address: the endpoint is meant for tools running on this machine."
@@ -2181,6 +2234,7 @@ defaultInterfaceAddress
 	^'127.0.0.1'! !
 
 !MCPTransportHttp class methodsFor: 'defaults' stamp: ''!
+!methodProperties: {}!
 defaultPortNumber
 
 	"Answer the port the MCP endpoint listens on. It sits next to the one RemoteControlMCP
@@ -2188,50 +2242,58 @@ defaultPortNumber
 
 	^2358! !
 
-!MCPTransportHttp class methodsFor: 'preconditions' stamp: 'HAW 19/Aug/2026, 8:06:31 pm (UTC)'!
-assertIsValidAuthentication: anAuthentication
-
-	(anAuthentication isKindOf: MCPAuthentication)
-		ifFalse: [ self error: self invalidAuthenticationErrorDescription ]! !
-
-!MCPTransportHttp class methodsFor: 'preconditions' stamp: ''!
+!MCPTransportHttp class methodsFor: 'preconditions' stamp: 'HAW 19/Aug/2026, 10:40:09 pm (UTC)'!
+!methodProperties: {}!
 assertIsValidInterfaceAddress: anInterfaceAddress
 
 	(anInterfaceAddress isString and: [ anInterfaceAddress notEmpty ])
-		ifFalse: [ self error: self invalidInterfaceAddressErrorDescription ]! !
+		ifFalse: [ self signalInvalidInterfaceAddress ]! !
 
-!MCPTransportHttp class methodsFor: 'preconditions' stamp: ''!
+!MCPTransportHttp class methodsFor: 'preconditions' stamp: 'HAW 19/Aug/2026, 10:39:39 pm (UTC)'!
+!methodProperties: {}!
 assertIsValidPortNumber: aPortNumber
 
 	(aPortNumber isInteger and: [ aPortNumber between: 1 and: 65535 ])
-		ifFalse: [ self error: self invalidPortNumberErrorDescription ]! !
+		ifFalse: [ self signalInvalidPortNumber ]! !
+
+!MCPTransportHttp class methodsFor: 'preconditions' stamp: 'HAW 19/Aug/2026, 10:40:09 pm (UTC)'!
+!methodProperties: {}!
+signalInvalidInterfaceAddress
+
+	^ self error: self invalidInterfaceAddressErrorDescription! !
+
+!MCPTransportHttp class methodsFor: 'preconditions' stamp: 'HAW 19/Aug/2026, 10:39:39 pm (UTC)'!
+!methodProperties: {}!
+signalInvalidPortNumber
+
+	^ self error: self invalidPortNumberErrorDescription! !
 
 !MCPTransportHttp class methodsFor: 'error descriptions' stamp: ''!
-invalidAuthenticationErrorDescription
-
-	^'The authentication has to be an instance of MCPAuthenticationCopy'! !
-
-!MCPTransportHttp class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 invalidInterfaceAddressErrorDescription
 
 	^'The interface address has to be a non empty String, for example 127.0.0.1'! !
 
 !MCPTransportHttp class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 invalidPortNumberErrorDescription
 
 	^'The port number has to be an integer between 1 and 65535'! !
 
 !MCPTransportHttp class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 unauthorizedErrorDescription
 
 	^'Unauthorized'! !
 
 !MCPTransportHttp class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
 unknownSessionErrorDescription
 
 	^'There is no open event stream with that session identifier'! !
 
 !MCPTransportStdio methodsFor: 'initialization' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!methodProperties: {}!
 initialize
 
 	| osProc |
@@ -2242,6 +2304,7 @@ initialize
 	stdout := osProc stdOut.! !
 
 !MCPTransportStdio methodsFor: 'reading' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!methodProperties: {}!
 readLine
 	
 	| char line |
@@ -2258,6 +2321,7 @@ readLine
 	! !
 
 !MCPTransportStdio methodsFor: 'reading' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!methodProperties: {}!
 readMessage
 	"Read a JSON message from stdin"
 	| line |
@@ -2267,7 +2331,8 @@ readMessage
 
 	^ Json readFrom: (self utf8Decode: line) readStream.! !
 
-!MCPTransportStdio methodsFor: 'writing' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!MCPTransportStdio methodsFor: 'writing' stamp: 'HAW 19/Aug/2026, 10:37:21 pm (UTC)'!
+!methodProperties: {}!
 writeMessage: jsonString
 	"Write a JSON message to stdout, ensuring no embedded newlines"
 	| clean |
@@ -2277,28 +2342,21 @@ writeMessage: jsonString
 	clean := jsonString copyWithout: Character cr.
 	clean := clean copyWithout: Character lf.
 	stdout
-		nextPutAll: (self utf8Encode: clean);
+		nextPutAll: clean asUtf8Bytes asString;
 		newLine;
 		flush.! !
 
-!MCPTransportStdio methodsFor: 'encoding' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
-utf8Encode: aString
-	"stdout escribe un byte por cada Character, asi que le pasamos los bytes UTF-8
-	de aString como un String de bytes. Para ASCII puro esto es la identidad."
-
-	| bytes |
-	bytes := aString asUtf8Bytes.
-	^(String new: bytes size) replaceFrom: 1 to: bytes size with: bytes startingAt: 1! !
-
-!MCPTransportStdio methodsFor: 'serving' stamp: ''!
-serveRequestsFor: anMCPServerCopy
+!MCPTransportStdio methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:37:38 pm (UTC)'!
+!methodProperties: {}!
+serveRequestsFor: anMCPServer
 
 	"Read one message at a time from standard input and let anMCPServerCopy answer it on
 	standard output. Blocks the calling process until the server stops running."
 
-	[ anMCPServerCopy isRunning ] whileTrue: [ anMCPServerCopy process: self readMessage ]! !
+	[ anMCPServer isRunning ] whileTrue: [ anMCPServer process: self readMessage ]! !
 
 !MCPTransportStdio methodsFor: 'serving' stamp: ''!
+!methodProperties: {}!
 stopServingRequests
 
 	"Standard input and output belong to the operating system process, so there is
