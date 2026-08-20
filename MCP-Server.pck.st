@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 19 August 2026 at 8:00:17 pm'!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 11:53:17 am'!
 'Description Implementation improvement made by a human being'!
-!provides: 'MCP-Server' 1 23!
+!provides: 'MCP-Server' 1 24!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: #'MCP-Server'!
@@ -493,13 +493,14 @@ methodNotFoundResponseFor: anId on: aMethod
 
 	^ self errorResponseFor: anId code: -32601 message: 'Unknown method: ' , aMethod! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:42 pm (UTC)'!
+!MCPServer methodsFor: 'responses' stamp: 'HAW 20/Aug/2026, 2:40:05 pm (UTC)'!
 !methodProperties: {}!
 responseFor: anId
 
 	^ OrderedDictionary new
 		at: 'jsonrpc' put: '2.0';
-		at: 'id' put: anId! !
+		at: 'id' put: anId;
+		yourself! !
 
 !MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:35 pm (UTC)'!
 !methodProperties: {}!
@@ -1776,17 +1777,14 @@ stopServingRequests
 
 	self subclassResponsibility! !
 
-!MCPTransport methodsFor: 'encoding' stamp: 'HAW 19/Aug/2026, 10:30:26 pm (UTC)'!
+!MCPTransport methodsFor: 'encoding' stamp: 'HAW 20/Aug/2026, 2:51:41 pm (UTC)'!
 !methodProperties: {}!
-utf8Decode: aLine
+utf8Decode: aByteString
 
-	| bytesOrString |
- 
-	bytesOrString := aLine asUtf8BytesOrByteString.
-	
-	^(bytesOrString is: #String) 
-		ifTrue: [ bytesOrString ]
-		ifFalse: [ UnicodeString fromUtf8Bytes: bytesOrString ]! !
+	"Answer the text aByteString carries. A message arrives with one Character per UTF-8
+	byte, so the characters of aByteString are the bytes to decode."
+
+	^UnicodeString fromUtf8Bytes: aByteString asByteArray! !
 
 !MCPTransportHttp methodsFor: 'initialization' stamp: ''!
 !methodProperties: {}!
