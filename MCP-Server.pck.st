@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:01:50 pm'!
-'Description Implementation improvement made by a human being'!
-!provides: 'MCP-Server' 1 27!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:52:18 pm'!
+'Description Advertise the optional method category of smalltalk_define_method'!
+!provides: 'MCP-Server' 1 29!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: #'MCP-Server'!
@@ -781,7 +781,7 @@ toolDefDefineClass
 					yourself);
 		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 8:22:21 pm (UTC)'!
 !methodProperties: {}!
 toolDefDefineMethod
 	^ OrderedDictionary new
@@ -823,6 +823,17 @@ toolDefDefineMethod
 											
 												at: 'description'
 												put: 'Full method source including selector';
+											yourself);
+								
+									at: 'category'
+									put:
+										(OrderedDictionary new
+											
+												at: 'type'
+												put: 'string';
+											
+												at: 'description'
+												put: 'Optional method category. Defaults to as yet unclassified';
 											yourself);
 								yourself);
 					
@@ -1437,7 +1448,7 @@ toolDefineClass: args
 
 	^'Class defined successfully'! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:54:38 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 20/Aug/2026, 8:23:21 pm (UTC)'!
 !methodProperties: {}!
 toolDefineMethod: args
 	

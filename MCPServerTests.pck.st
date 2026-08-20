@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 4:58:16 pm'!
-'Description Some fixes made by a human :-)'!
-!provides: 'MCPServerTests' 1 2!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:52:20 pm'!
+'Description Advertise the optional method category of smalltalk_define_method'!
+!provides: 'MCPServerTests' 1 4!
 SystemOrganization addCategory: 'MCPServerTests'!
 
 
@@ -191,12 +191,12 @@ sendingThrough: aTransport
 
 	^self new initializeSendingThrough: aTransport! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 5:55:53 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 8:44:22 pm (UTC)'!
 !methodProperties: {}!
 removeTestSubjectClasses
 
 	self class testSubjectClassNames do: [ :eachClassName |
-		Smalltalk at: eachClassName ifPresent: [ :aClass | aClass removeFromSystem ] ]! !
+		(Smalltalk classNamed: eachClassName) ifNotNil: [ :aClass | aClass removeFromSystem ] ]! !
 
 !MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 5:53:50 pm (UTC)'!
 !methodProperties: {}!
@@ -236,6 +236,24 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue
 		at: aKey put: aValue;
 		at: anotherKey put: anotherValue;
 		yourself! !
+
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:22:43 pm (UTC)'!
+!methodProperties: {}!
+arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey being: aThirdValue
+
+	^Dictionary new
+		at: aKey put: aValue;
+		at: anotherKey put: anotherValue;
+		at: aThirdKey put: aThirdValue;
+		yourself! !
+
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:44:20 pm (UTC)'!
+!methodProperties: {}!
+createdClassInTest
+
+	"Answer the class the tests create through the server, or nil when it is not in the system."
+
+	^Smalltalk classNamed: #MCPTestSubject! !
 
 !MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:34 pm (UTC)'!
 !methodProperties: {}!
@@ -375,13 +393,13 @@ testDebuggingToolsAreAdvertised
 
 	self assert: (self class debuggingToolNames allSatisfy: [ :eachToolName | advertisedToolNames includes: eachToolName ])! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:56:24 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:05 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassCreatesTheClass
 
 	self defineTestSubjectClass.
 
-	self assert: (Smalltalk includesKey: #MCPTestSubject)! !
+	self assert: self createdClassInTest notNil! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:00:37 pm (UTC)'!
 !methodProperties: {}!
@@ -454,39 +472,61 @@ testDefineClassWithoutADefinitionFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPServer noDefinitionProvidedErrorDescription)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:56:26 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:24 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodAddsTheMethodToTheClass
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
-	self assert: ((Smalltalk at: #MCPTestSubject) includesSelector: #saludo)! !
+	self assert: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:02:41 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:33 pm (UTC)'!
+!methodProperties: {}!
+testDefineMethodFilesTheMethodUnderTheGivenCategory
+
+	self defineTestSubjectClass.
+
+	client callTool: 'smalltalk_define_method' with:
+		(self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'source' being: self subjectMethodSource
+			and: 'category' being: 'saludos').
+
+	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'saludos'! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:35 pm (UTC)'!
+!methodProperties: {}!
+testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+
+	self
+		assert: (self createdClassInTest organization categoryOfElement: #saludo)
+		equals: ClassOrganizer defaultMethodCategory! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:07 pm (UTC)'!
 !methodProperties: {}!
 testDeleteClassRemovesTheClassFromTheSystem
 
 	self defineTestSubjectClass.
 
-	client 
-		callTool: 'smalltalk_delete_class' 
-		with: (self arguments: 'className' being: 'MCPTestSubject').
+	client callTool: 'smalltalk_delete_class' with: (self arguments: 'className' being: 'MCPTestSubject').
 
-	self deny: (Smalltalk includesKey: #MCPTestSubject)! !
+	self assert: self createdClassInTest isNil! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:02:58 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:26 pm (UTC)'!
 !methodProperties: {}!
 testDeleteMethodRemovesTheMethodFromTheClass
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
-	client 
-		callTool: 'smalltalk_delete_method' 
-		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo').
+	client callTool: 'smalltalk_delete_method' with:
+		(self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo').
 
-	self deny: ((Smalltalk at: #MCPTestSubject) includesSelector: #saludo)! !
+	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:15 pm (UTC)'!
 !methodProperties: {}!
