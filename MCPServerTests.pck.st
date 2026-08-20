@@ -1,6 +1,7 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:52:20 pm'!
-'Description Advertise the optional method category of smalltalk_define_method'!
-!provides: 'MCPServerTests' 1 4!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 7:02:10 pm'!
+'Description Base the tests on DynamicallyCodeCreationTest'!
+!provides: 'MCPServerTests' 1 5!
+!requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
 
@@ -25,7 +26,7 @@ MCPMockClient class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPServerToolsTest category: 'MCPServerTests'!
-TestCase subclass: #MCPServerToolsTest
+DynamicallyCodeCreationTest subclass: #MCPServerToolsTest
 	instanceVariableNames: 'client'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -191,34 +192,40 @@ sendingThrough: aTransport
 
 	^self new initializeSendingThrough: aTransport! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 8:44:22 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:35 pm (UTC)'!
 !methodProperties: {}!
-removeTestSubjectClasses
+registerClassCategoryOfTestData
 
-	self class testSubjectClassNames do: [ :eachClassName |
-		(Smalltalk classNamed: eachClassName) ifNotNil: [ :aClass | aClass removeFromSystem ] ]! !
+	"The classes of these tests are created by the server under test instead of by
+	createClassNamed:, so the category has to be registered for tearDown to empty it."
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 5:53:50 pm (UTC)'!
+	classCategories add: self classCategoryOfTestData! !
+
+!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:33 pm (UTC)'!
 !methodProperties: {}!
 setUp
 
-	"Serve a server over a mock transport, so a mock client can send it requests the way a
-	real one does without a socket in between."
+	"Serve a server over a mock transport, so a mock client can send it requests the way a real
+	one does without a socket in between."
 
 	| transport server |
 
+	super setUp.
+	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
 	server := MCPServer servingOver: transport.
 	transport serveRequestsFor: server.
 	client := MCPMockClient sendingThrough: transport! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 6:57:47 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:36 pm (UTC)'!
 !methodProperties: {}!
 tearDown
 
-	self removeTestSubjectClasses.
-	(SystemOrganization categories includes: self class testSubjectCategory)
-		ifTrue: [ SystemOrganization removeSystemCategory: self class testSubjectCategory ]! !
+	"My superclass empties the class category of the test data. The global is not a class, so
+	it is removed here."
+
+	Smalltalk removeKey: self class sideEffectGlobalName ifAbsent: [ nil ].
+	super tearDown! !
 
 !MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:06 pm (UTC)'!
 !methodProperties: {}!
@@ -274,7 +281,20 @@ defineTestSubjectSubclass
 
 	^client callTool: 'smalltalk_define_class' with: (self arguments: 'definition' being: self subjectSubclassDefinition)! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:10:02 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:50 pm (UTC)'!
+!methodProperties: {}!
+definitionOf: aClassName subclassOf: aSuperclassName
+
+	"Answer the definition a client sends to create aClassName in the class category these
+	tests clean up."
+
+	^aSuperclassName, ' subclass: #', aClassName, '
+	instanceVariableNames: ''''
+	classVariableNames: ''''
+	poolDictionaries: ''''
+	category: ''', self classCategoryOfTestData, ''''! !
+
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:56 pm (UTC)'!
 !methodProperties: {}!
 definitionWithANonLiteralClassName
 
@@ -282,7 +302,7 @@ definitionWithANonLiteralClassName
 	instanceVariableNames: ''''
 	classVariableNames: ''''
 	poolDictionaries: ''''
-	category: ''MCPServerTests-Subjects'''! !
+	category: ''', self classCategoryOfTestData, ''''! !
 
 !MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:14 pm (UTC)'!
 !methodProperties: {}!
@@ -313,15 +333,11 @@ serverErrorTextFor: anErrorDescription
 
 	^'Error: ', anErrorDescription! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:09:56 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:52 pm (UTC)'!
 !methodProperties: {}!
 subjectClassDefinition
 
-	^'Object subclass: #MCPTestSubject
-	instanceVariableNames: ''''
-	classVariableNames: ''''
-	poolDictionaries: ''''
-	category: ''MCPServerTests-Subjects'''! !
+	^self definitionOf: 'MCPTestSubject' subclassOf: 'Object'! !
 
 !MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:33 pm (UTC)'!
 !methodProperties: {}!
@@ -336,15 +352,11 @@ subjectMethodSource
 
 	^''¡Hola, Hernán!!'''! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:09:58 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:54 pm (UTC)'!
 !methodProperties: {}!
 subjectSubclassDefinition
 
-	^'MCPTestSubject subclass: #MCPTestSubjectChild
-	instanceVariableNames: ''''
-	classVariableNames: ''''
-	poolDictionaries: ''''
-	category: ''MCPServerTests-Subjects'''! !
+	^self definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:31 pm (UTC)'!
 !methodProperties: {}!
@@ -369,15 +381,16 @@ testCallingAnUnknownToolFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Unknown tool: ', invalidTool)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:26 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 9:41:07 pm (UTC)'!
 !methodProperties: {}!
 testClassesInCategoryAnswersTheClassesOfThatCategory
 
 	self defineTestSubjectClass.
 
 	self
-		assert: (self jsonAnswerOf: 'smalltalk_classes_in_category' with:
-			(self arguments: 'category' being: self class testSubjectCategory)) asArray
+		assert: (self 
+			jsonAnswerOf: 'smalltalk_classes_in_category' 
+			with: (self arguments: 'category' being: self classCategoryOfTestData)) asArray
 		equals: #('MCPTestSubject')! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:58:53 pm (UTC)'!
@@ -699,20 +712,12 @@ sideEffectGlobalName
 
 	^#MCPTestSideEffect! !
 
-!MCPServerToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 6:09:54 pm (UTC)'!
+!MCPServerToolsTest class methodsFor: 'as yet unclassified' stamp: 'HAW 20/Aug/2026, 9:33:12 pm (UTC)'!
 !methodProperties: {}!
-testSubjectCategory
+classCategoryOfTestData
 
-	"Answer the system category the tests create their classes in. It is not the category of
-	the tests themselves, so that saving the package does not pick the subjects up."
+	"Answer the class category the classes created through the server go to. The leading and
+	trailing underscores keep it out of every package, and it carries no hyphen so that Cuis
+	does not register a package for a root category named after part of it."
 
-	^'MCPServerTests-Subjects'! !
-
-!MCPServerToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:55:51 pm (UTC)'!
-!methodProperties: {}!
-testSubjectClassNames
-
-	"Answer the classes the tests create, subclasses first so that removing them never
-	orphans a subclass."
-
-	^#(#MCPTestSubjectChild #MCPTestSubject)! !
+	^'__MCPServerTestData__'! !
