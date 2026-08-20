@@ -1,88 +1,86 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:52:18 pm'!
-'Description Advertise the optional method category of smalltalk_define_method'!
-!provides: 'MCP-Server' 1 29!
-!requires: 'JSON' nil nil nil!
-!requires: 'OSProcess' nil nil nil!
-SystemOrganization addCategory: #'MCP-Server'!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 6:03:24 pm'!
+'Description Rename the MCP-Server category and package to MCPServer'!
+!provides: 'MCPServer' 1 0!
+SystemOrganization addCategory: 'MCPServer'!
 
 
-!classDefinition: #MCPAuthentication category: #'MCP-Server'!
+!classDefinition: #MCPAuthentication category: 'MCPServer'!
 Object subclass: #MCPAuthentication
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPAuthentication class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPAuthentication class' category: 'MCPServer'!
 MCPAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPBearerTokenAuthentication category: #'MCP-Server'!
+!classDefinition: #MCPBearerTokenAuthentication category: 'MCPServer'!
 MCPAuthentication subclass: #MCPBearerTokenAuthentication
 	instanceVariableNames: 'token'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPBearerTokenAuthentication class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPBearerTokenAuthentication class' category: 'MCPServer'!
 MCPBearerTokenAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPNoAuthentication category: #'MCP-Server'!
+!classDefinition: #MCPNoAuthentication category: 'MCPServer'!
 MCPAuthentication subclass: #MCPNoAuthentication
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPNoAuthentication class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPNoAuthentication class' category: 'MCPServer'!
 MCPNoAuthentication class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPHttpSession category: #'MCP-Server'!
+!classDefinition: #MCPHttpSession category: 'MCPServer'!
 Object subclass: #MCPHttpSession
 	instanceVariableNames: 'identifier stream writeMutualExclusion open'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPHttpSession class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPHttpSession class' category: 'MCPServer'!
 MCPHttpSession class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPServer category: #'MCP-Server'!
+!classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
 	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages'
 	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPServer class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPServer class' category: 'MCPServer'!
 MCPServer class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransport category: #'MCP-Server'!
+!classDefinition: #MCPTransport category: 'MCPServer'!
 Object subclass: #MCPTransport
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPTransport class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPTransport class' category: 'MCPServer'!
 MCPTransport class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransportHttp category: #'MCP-Server'!
+!classDefinition: #MCPTransportHttp category: 'MCPServer'!
 MCPTransport subclass: #MCPTransportHttp
 	instanceVariableNames: 'portNumber interfaceAddress webServer mcpServer sessions sessionCounter authentication'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPTransportHttp class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPTransportHttp class' category: 'MCPServer'!
 MCPTransportHttp class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransportStdio category: #'MCP-Server'!
+!classDefinition: #MCPTransportStdio category: 'MCPServer'!
 MCPTransport subclass: #MCPTransportStdio
 	instanceVariableNames: 'stdin stdout'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'MCP-Server'!
-!classDefinition: 'MCPTransportStdio class' category: #'MCP-Server'!
+	category: 'MCPServer'!
+!classDefinition: 'MCPTransportStdio class' category: 'MCPServer'!
 MCPTransportStdio class
 	instanceVariableNames: ''!
 
