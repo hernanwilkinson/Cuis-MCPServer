@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 11:53:17 am'!
+'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 5:01:50 pm'!
 'Description Implementation improvement made by a human being'!
-!provides: 'MCP-Server' 1 24!
+!provides: 'MCP-Server' 1 27!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: #'MCP-Server'!
@@ -1424,17 +1424,18 @@ toolDebuggerThrough: args
 	
 	^ debugger contextStackList first printString! !
 
-!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:57:38 pm (UTC)'!
+!MCPServer methodsFor: 'tool implementations' stamp: 'HAW 20/Aug/2026, 6:44:21 pm (UTC)'!
 !methodProperties: {}!
 toolDefineClass: args
-	
-	| definition |
-	
-	definition := args at: 'definition' ifAbsent: [ self error: 'No definition provided' ].
-	
-	Compiler evaluate: definition.
-	
-	^ 'Class defined successfully'.! !
+
+	| definition expectedClassName createdClass |
+
+	definition := args at: 'definition' ifAbsent: [ self signalNoDefinitionProvided ].
+	expectedClassName := self classNameCreatedIn: definition.
+	createdClass := Compiler evaluate: definition.
+	self assert: createdClass isNamed: expectedClassName.
+
+	^'Class defined successfully'! !
 
 !MCPServer methodsFor: 'tool implementations' stamp: 'HAW 19/Aug/2026, 9:54:38 pm (UTC)'!
 !methodProperties: {}!
@@ -1578,6 +1579,105 @@ toolSubclasses: args
 
 	^ Json render: subclassNames asArray sorted.! !
 
+!MCPServer methodsFor: 'class definitions' stamp: 'HAW 20/Aug/2026, 6:44:21 pm (UTC)'!
+!methodProperties: {}!
+assert: aCreatedClass isNamed: anExpectedClassName
+
+	"Signal unless evaluating the definition really created the class it names."
+
+	aCreatedClass isBehavior ifFalse: [ self signalDidNotCreateAClass: aCreatedClass ].
+	aCreatedClass name = anExpectedClassName
+		ifFalse: [ self signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName ]! !
+
+!MCPServer methodsFor: 'class definitions' stamp: 'HAW 20/Aug/2026, 3:14:30 pm (UTC)'!
+!methodProperties: {}!
+classCreationMessageIn: aDefinition
+
+	"Answer the message node aDefinition sends to create a class, signalling when aDefinition
+	is not a single send of one of the class creation messages."
+
+	| messageNode |
+
+	messageNode := self messageSentIn: aDefinition.
+	(self class classCreationSelectors includes: messageNode selectorSymbol)
+		ifFalse: [ self signalIsNotAClassCreationMessage: messageNode selectorSymbol ].
+
+	^messageNode! !
+
+!MCPServer methodsFor: 'class definitions' stamp: 'HAW 20/Aug/2026, 3:15:59 pm (UTC)'!
+!methodProperties: {}!
+classNameCreatedIn: aDefinition
+
+	"Answer the name of the class aDefinition creates, signalling when aDefinition is not a
+	single send of one of the class creation messages naming its class with a literal."
+
+	^self classNameIn: (self classCreationMessageIn: aDefinition)! !
+
+!MCPServer methodsFor: 'class definitions' stamp: 'HAW 20/Aug/2026, 3:14:35 pm (UTC)'!
+!methodProperties: {}!
+classNameIn: aClassCreationMessage
+
+	"Answer the name aClassCreationMessage gives to the class it creates."
+
+	| nameArgument |
+
+	nameArgument := aClassCreationMessage arguments first.
+	nameArgument isLiteralNode ifFalse: [ self signalClassNameIsNotALiteral ].
+
+	^nameArgument key! !
+
+!MCPServer methodsFor: 'class definitions' stamp: 'HAW 20/Aug/2026, 3:14:28 pm (UTC)'!
+!methodProperties: {}!
+messageSentIn: aDefinition
+
+	"Answer the only message node aDefinition sends, signalling when it does not send exactly one."
+
+	| statements returnedStatement |
+
+	statements := (Parser parse: aDefinition class: UndefinedObject noPattern: true) block statements.
+	statements size = 1 ifFalse: [ self signalIsNotASingleMessageSend ].
+	returnedStatement := statements first.
+	(returnedStatement isReturn and: [ returnedStatement expr isMessageNode ])
+		ifFalse: [ self signalIsNotASingleMessageSend ].
+
+	^returnedStatement expr! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:19 pm (UTC)'!
+!methodProperties: {}!
+signalClassNameIsNotALiteral
+
+	self error: self class classNameIsNotALiteralErrorDescription! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:25 pm (UTC)'!
+!methodProperties: {}!
+signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName
+
+	self error: (self class createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName)! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:24 pm (UTC)'!
+!methodProperties: {}!
+signalDidNotCreateAClass: anObject
+
+	self error: (self class didNotCreateAClassErrorDescriptionFor: anObject)! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:17 pm (UTC)'!
+!methodProperties: {}!
+signalIsNotAClassCreationMessage: aSelector
+
+	self error: (self class isNotAClassCreationMessageErrorDescriptionFor: aSelector)! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:15 pm (UTC)'!
+!methodProperties: {}!
+signalIsNotASingleMessageSend
+
+	self error: self class isNotASingleMessageSendErrorDescription! !
+
+!MCPServer methodsFor: 'errors' stamp: 'HAW 20/Aug/2026, 3:14:13 pm (UTC)'!
+!methodProperties: {}!
+signalNoDefinitionProvided
+
+	self error: self class noDefinitionProvidedErrorDescription! !
+
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:18:55 pm (UTC)'!
 !methodProperties: {}!
 servingOver: aTransport
@@ -1618,6 +1718,42 @@ isDevMode
 initialize
 
 	Smalltalk addToStartUpList: self! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:14:03 pm (UTC)'!
+!methodProperties: {}!
+classNameIsNotALiteralErrorDescription
+
+	^'The name of the class to create has to be a literal symbol'! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:14:06 pm (UTC)'!
+!methodProperties: {}!
+createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName
+
+	^'The class definition created ', aCreatedClass name, ' instead of ', anExpectedClassName! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:14:05 pm (UTC)'!
+!methodProperties: {}!
+didNotCreateAClassErrorDescriptionFor: anObject
+
+	^'The class definition did not create a class, it answered ', anObject printString! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:13:58 pm (UTC)'!
+!methodProperties: {}!
+isNotAClassCreationMessageErrorDescriptionFor: aSelector
+
+	^'The class definition has to send one of the class creation messages, but it sends #', aSelector! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:13:56 pm (UTC)'!
+!methodProperties: {}!
+isNotASingleMessageSendErrorDescription
+
+	^'The class definition has to be a single message send'! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Aug/2026, 3:13:54 pm (UTC)'!
+!methodProperties: {}!
+noDefinitionProvidedErrorDescription
+
+	^'No definition provided'! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: ''!
 !methodProperties: {}!
@@ -1759,6 +1895,14 @@ startUp: isResuming
 		show: 'No MCP Server started. Check image arguments'; 
 		newLine! !
 
+!MCPServer class methodsFor: 'constants' stamp: 'HAW 20/Aug/2026, 3:14:08 pm (UTC)'!
+!methodProperties: {}!
+classCreationSelectors
+
+	"Answer the messages Class understands to create a subclass."
+
+	^Class organization listAtCategoryNamed: 'subclass creation'! !
+
 !MCPTransport methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:18:07 pm (UTC)'!
 !methodProperties: {}!
 serveRequestsFor: anMCPServer
@@ -1777,7 +1921,7 @@ stopServingRequests
 
 	self subclassResponsibility! !
 
-!MCPTransport methodsFor: 'encoding' stamp: 'HAW 20/Aug/2026, 2:51:41 pm (UTC)'!
+!MCPTransport methodsFor: 'encoding' stamp: 'HAW 20/Aug/2026, 6:03:30 pm (UTC)'!
 !methodProperties: {}!
 utf8Decode: aByteString
 
