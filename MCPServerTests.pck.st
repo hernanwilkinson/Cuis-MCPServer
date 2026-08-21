@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 3:09:16 pm'!
-'Description Add an MCPTool hierarchy and serve it from MCPToolBasedServer'!
-!provides: 'MCPServerTests' 1 6!
+'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 3:22:56 pm'!
+'Description Serve the tools from the MCPTool hierarchy'!
+!provides: 'MCPServerTests' 1 7!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -33,26 +33,6 @@ DynamicallyCodeCreationTest subclass: #MCPToolsTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPToolsTest class' category: 'MCPServerTests'!
 MCPToolsTest class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPServerToolsTest category: 'MCPServerTests'!
-MCPToolsTest subclass: #MCPServerToolsTest
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServerTests'!
-!classDefinition: 'MCPServerToolsTest class' category: 'MCPServerTests'!
-MCPServerToolsTest class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPToolBasedServerToolsTest category: 'MCPServerTests'!
-MCPToolsTest subclass: #MCPToolBasedServerToolsTest
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServerTests'!
-!classDefinition: 'MCPToolBasedServerToolsTest class' category: 'MCPServerTests'!
-MCPToolBasedServerToolsTest class
 	instanceVariableNames: ''!
 
 
@@ -221,7 +201,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 21/Aug/2026, 11:07:54 am (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 21/Aug/2026, 6:21:12 pm (UTC)'!
 !methodProperties: {}!
 setUp
 
@@ -233,7 +213,7 @@ setUp
 	super setUp.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
-	server := self serverClass servingOver: transport.
+	server := MCPServer servingOver: transport.
 	transport serveRequestsFor: server.
 	client := MCPMockClient sendingThrough: transport! !
 
@@ -344,15 +324,6 @@ jsonAnswerOf: aToolName with: anArguments
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
-!methodProperties: {}!
-serverClass
-
-	"Answer the server my tests exercise. Every server that offers the same tools has a
-	concrete subclass of mine, so that the same tests verify all of them."
-
-	^self subclassResponsibility! !
-
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:18 pm (UTC)'!
 !methodProperties: {}!
 serverErrorTextFor: anErrorDescription
@@ -443,7 +414,7 @@ testDefineClassCreatesTheClass
 
 	self assert: self createdClassInTest notNil! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:00:37 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:49 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 
@@ -458,10 +429,10 @@ testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 		withExceptionDo: [ :anError |
 			self
 				assert: anError messageText
-				equals: (self serverErrorTextFor: (MCPServer isNotAClassCreationMessageErrorDescriptionFor: #at:put:)).
+				equals: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #at:put:)).
 			self deny: (Smalltalk includesKey: self class sideEffectGlobalName) ]! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:37 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:49 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheClassNameIsNotALiteral
 
@@ -470,9 +441,9 @@ testDefineClassFailsWhenTheClassNameIsNotALiteral
 			callTool: 'smalltalk_define_class' 
 			with: (self arguments: 'definition' being: self definitionWithANonLiteralClassName) ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPServer classNameIsNotALiteralErrorDescription)! !
+		withMessageText: (self serverErrorTextFor: MCPDefineClassTool classNameIsNotALiteralErrorDescription)! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:53 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:48 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 
@@ -481,9 +452,9 @@ testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 			callTool: 'smalltalk_define_class' 
 			with: (self arguments: 'definition' being: '3 + 4') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: (MCPServer isNotAClassCreationMessageErrorDescriptionFor: #+))! !
+		withMessageText: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #+))! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:44 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:49 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 
@@ -492,9 +463,9 @@ testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 			callTool: 'smalltalk_define_class' 
 			with: (self arguments: 'definition' being: self subjectClassDefinition , '. 3 + 4') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPServer isNotASingleMessageSendErrorDescription)! !
+		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:57 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:48 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 
@@ -503,16 +474,16 @@ testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 			callTool: 'smalltalk_define_class' 
 			with: (self arguments: 'definition' being: '3') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPServer isNotASingleMessageSendErrorDescription)! !
+		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:53:25 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:49 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassWithoutADefinitionFails
 
 	self
 		should: [ client callTool: 'smalltalk_define_class' ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPServer noDefinitionProvidedErrorDescription)! !
+		withMessageText: (self serverErrorTextFor: MCPDefineClassTool definitionProperty notProvidedErrorDescription)! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:24 pm (UTC)'!
 !methodProperties: {}!
@@ -741,38 +712,13 @@ sideEffectGlobalName
 
 	^#MCPTestSideEffect! !
 
-!MCPToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
-!methodProperties: {}!
-classCategoryOfTestData
-
-	"Answer the class category the classes created through the server go to. Each of my
-	subclasses answers one of its own, so that they never empty each other's test data."
-
-	^self subclassResponsibility! !
-
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
-!methodProperties: {}!
-serverClass
-
-	^MCPServer! !
-
-!MCPServerToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
+!MCPToolsTest class methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 6:19:24 pm (UTC)'!
 !methodProperties: {}!
 classCategoryOfTestData
 
 	"The leading and trailing underscores keep it out of every package, and it carries no
 	hyphen so that Cuis does not register a package for a root category named after part of it."
 
-	^'__MCPServerTestData__'! !
+	^'__MCPServerTestData__'
 
-!MCPToolBasedServerToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:08:02 am (UTC)'!
-!methodProperties: {}!
-serverClass
-
-	^MCPToolBasedServer! !
-
-!MCPToolBasedServerToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:08:02 am (UTC)'!
-!methodProperties: {}!
-classCategoryOfTestData
-
-	^'__MCPToolBasedServerTestData__'! !
+! !
