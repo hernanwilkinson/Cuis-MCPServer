@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 7:02:10 pm'!
-'Description Base the tests on DynamicallyCodeCreationTest'!
-!provides: 'MCPServerTests' 1 5!
+'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 3:09:16 pm'!
+'Description Add an MCPTool hierarchy and serve it from MCPToolBasedServer'!
+!provides: 'MCPServerTests' 1 6!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -25,14 +25,34 @@ Object subclass: #MCPMockClient
 MCPMockClient class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPServerToolsTest category: 'MCPServerTests'!
-DynamicallyCodeCreationTest subclass: #MCPServerToolsTest
+!classDefinition: #MCPToolsTest category: 'MCPServerTests'!
+DynamicallyCodeCreationTest subclass: #MCPToolsTest
 	instanceVariableNames: 'client'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPToolsTest class' category: 'MCPServerTests'!
+MCPToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPServerToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPServerToolsTest
+	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPServerToolsTest class' category: 'MCPServerTests'!
 MCPServerToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPToolBasedServerToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPToolBasedServerToolsTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPToolBasedServerToolsTest class' category: 'MCPServerTests'!
+MCPToolBasedServerToolsTest class
 	instanceVariableNames: ''!
 
 
@@ -192,7 +212,7 @@ sendingThrough: aTransport
 
 	^self new initializeSendingThrough: aTransport! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:35 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:35 pm (UTC)'!
 !methodProperties: {}!
 registerClassCategoryOfTestData
 
@@ -201,7 +221,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:33 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 21/Aug/2026, 11:07:54 am (UTC)'!
 !methodProperties: {}!
 setUp
 
@@ -213,11 +233,11 @@ setUp
 	super setUp.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
-	server := MCPServer servingOver: transport.
+	server := self serverClass servingOver: transport.
 	transport serveRequestsFor: server.
 	client := MCPMockClient sendingThrough: transport! !
 
-!MCPServerToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:36 pm (UTC)'!
 !methodProperties: {}!
 tearDown
 
@@ -227,7 +247,7 @@ tearDown
 	Smalltalk removeKey: self class sideEffectGlobalName ifAbsent: [ nil ].
 	super tearDown! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:06 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:06 pm (UTC)'!
 !methodProperties: {}!
 arguments: aKey being: aValue
 
@@ -235,7 +255,7 @@ arguments: aKey being: aValue
 		at: aKey put: aValue;
 		yourself! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:12 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:12 pm (UTC)'!
 !methodProperties: {}!
 arguments: aKey being: aValue and: anotherKey being: anotherValue
 
@@ -244,7 +264,7 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue
 		at: anotherKey put: anotherValue;
 		yourself! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:22:43 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:22:43 pm (UTC)'!
 !methodProperties: {}!
 arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey being: aThirdValue
 
@@ -254,7 +274,7 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey
 		at: aThirdKey put: aThirdValue;
 		yourself! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:44:20 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 8:44:20 pm (UTC)'!
 !methodProperties: {}!
 createdClassInTest
 
@@ -262,26 +282,26 @@ createdClassInTest
 
 	^Smalltalk classNamed: #MCPTestSubject! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:34 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:34 pm (UTC)'!
 !methodProperties: {}!
 defineTestSubjectClass
 
 	^client callTool: 'smalltalk_define_class' with: (self arguments: 'definition' being: self subjectClassDefinition)! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:43 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:43 pm (UTC)'!
 !methodProperties: {}!
 defineTestSubjectMethod
 
 	^client callTool: 'smalltalk_define_method' with:
 		(self arguments: 'className' being: 'MCPTestSubject' and: 'source' being: self subjectMethodSource)! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:41 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:41 pm (UTC)'!
 !methodProperties: {}!
 defineTestSubjectSubclass
 
 	^client callTool: 'smalltalk_define_class' with: (self arguments: 'definition' being: self subjectSubclassDefinition)! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:50 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:50 pm (UTC)'!
 !methodProperties: {}!
 definitionOf: aClassName subclassOf: aSuperclassName
 
@@ -294,7 +314,7 @@ definitionOf: aClassName subclassOf: aSuperclassName
 	poolDictionaries: ''''
 	category: ''', self classCategoryOfTestData, ''''! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:56 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:56 pm (UTC)'!
 !methodProperties: {}!
 definitionWithANonLiteralClassName
 
@@ -304,19 +324,19 @@ definitionWithANonLiteralClassName
 	poolDictionaries: ''''
 	category: ''', self classCategoryOfTestData, ''''! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:14 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:14 pm (UTC)'!
 !methodProperties: {}!
 evaluate: aCodeString
 
 	^client callTool: 'smalltalk_evaluate' with: (self arguments: 'code' being: aCodeString)! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:56:04 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:56:04 pm (UTC)'!
 !methodProperties: {}!
 jsonAnswerOf: aToolName
 
 	^self jsonAnswerOf: aToolName with: Dictionary new! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:55:57 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:55:57 pm (UTC)'!
 !methodProperties: {}!
 jsonAnswerOf: aToolName with: anArguments
 
@@ -324,7 +344,16 @@ jsonAnswerOf: aToolName with: anArguments
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:18 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
+!methodProperties: {}!
+serverClass
+
+	"Answer the server my tests exercise. Every server that offers the same tools has a
+	concrete subclass of mine, so that the same tests verify all of them."
+
+	^self subclassResponsibility! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:18 pm (UTC)'!
 !methodProperties: {}!
 serverErrorTextFor: anErrorDescription
 
@@ -333,13 +362,13 @@ serverErrorTextFor: anErrorDescription
 
 	^'Error: ', anErrorDescription! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:52 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:52 pm (UTC)'!
 !methodProperties: {}!
 subjectClassDefinition
 
 	^self definitionOf: 'MCPTestSubject' subclassOf: 'Object'! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:33 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:33 pm (UTC)'!
 !methodProperties: {}!
 subjectMethodSource
 
@@ -352,13 +381,13 @@ subjectMethodSource
 
 	^''¡Hola, Hernán!!'''! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:54 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:54 pm (UTC)'!
 !methodProperties: {}!
 subjectSubclassDefinition
 
 	^self definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:31 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:31 pm (UTC)'!
 !methodProperties: {}!
 testBrowseAnswersTheSuperclassOfTheClass
 
@@ -368,7 +397,7 @@ testBrowseAnswersTheSuperclassOfTheClass
 		assert: ((self jsonAnswerOf: 'smalltalk_browse' with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
 		equals: 'Object'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:52:58 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:52:58 pm (UTC)'!
 !methodProperties: {}!
 testCallingAnUnknownToolFails
 
@@ -381,7 +410,7 @@ testCallingAnUnknownToolFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Unknown tool: ', invalidTool)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 9:41:07 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 9:41:07 pm (UTC)'!
 !methodProperties: {}!
 testClassesInCategoryAnswersTheClassesOfThatCategory
 
@@ -393,7 +422,7 @@ testClassesInCategoryAnswersTheClassesOfThatCategory
 			with: (self arguments: 'category' being: self classCategoryOfTestData)) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:58:53 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:58:53 pm (UTC)'!
 !methodProperties: {}!
 testDebuggingToolsAreAdvertised
 
@@ -406,7 +435,7 @@ testDebuggingToolsAreAdvertised
 
 	self assert: (self class debuggingToolNames allSatisfy: [ :eachToolName | advertisedToolNames includes: eachToolName ])! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:05 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:05 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassCreatesTheClass
 
@@ -414,7 +443,7 @@ testDefineClassCreatesTheClass
 
 	self assert: self createdClassInTest notNil! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:00:37 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:00:37 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 
@@ -432,7 +461,7 @@ testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 				equals: (self serverErrorTextFor: (MCPServer isNotAClassCreationMessageErrorDescriptionFor: #at:put:)).
 			self deny: (Smalltalk includesKey: self class sideEffectGlobalName) ]! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:37 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:37 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheClassNameIsNotALiteral
 
@@ -443,7 +472,7 @@ testDefineClassFailsWhenTheClassNameIsNotALiteral
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPServer classNameIsNotALiteralErrorDescription)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:53 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:58:53 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 
@@ -454,7 +483,7 @@ testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPServer isNotAClassCreationMessageErrorDescriptionFor: #+))! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:44 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:44 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 
@@ -465,7 +494,7 @@ testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPServer isNotASingleMessageSendErrorDescription)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:57 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:01:57 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 
@@ -476,7 +505,7 @@ testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPServer isNotASingleMessageSendErrorDescription)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:53:25 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:53:25 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassWithoutADefinitionFails
 
@@ -485,7 +514,7 @@ testDefineClassWithoutADefinitionFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPServer noDefinitionProvidedErrorDescription)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:24 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:24 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodAddsTheMethodToTheClass
 
@@ -494,7 +523,7 @@ testDefineMethodAddsTheMethodToTheClass
 
 	self assert: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:33 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:33 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodFilesTheMethodUnderTheGivenCategory
 
@@ -508,7 +537,7 @@ testDefineMethodFilesTheMethodUnderTheGivenCategory
 
 	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'saludos'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:35 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:35 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
 
@@ -519,7 +548,7 @@ testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
 		assert: (self createdClassInTest organization categoryOfElement: #saludo)
 		equals: ClassOrganizer defaultMethodCategory! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:07 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:07 pm (UTC)'!
 !methodProperties: {}!
 testDeleteClassRemovesTheClassFromTheSystem
 
@@ -529,7 +558,7 @@ testDeleteClassRemovesTheClassFromTheSystem
 
 	self assert: self createdClassInTest isNil! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:26 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:26 pm (UTC)'!
 !methodProperties: {}!
 testDeleteMethodRemovesTheMethodFromTheClass
 
@@ -541,13 +570,13 @@ testDeleteMethodRemovesTheMethodFromTheClass
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:15 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:15 pm (UTC)'!
 !methodProperties: {}!
 testEvaluateAnswersThePrintStringOfTheResult
 
 	self assert: (self evaluate: '3 + 4') equals: '7'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:16 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:16 pm (UTC)'!
 !methodProperties: {}!
 testEvaluateDecodesNonAsciiCharacters
 
@@ -556,7 +585,7 @@ testEvaluateDecodesNonAsciiCharacters
 
 	self assert: (self evaluate: '''é'' size') equals: '1'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:03:43 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:03:43 pm (UTC)'!
 !methodProperties: {}!
 testEveryAdvertisedToolHasADescriptionAndAnInputSchema
 
@@ -564,7 +593,7 @@ testEveryAdvertisedToolHasADescriptionAndAnInputSchema
 		client listTools allSatisfy: [ :eachToolDefinition |
 			(eachToolDefinition includesKey: 'description') and: [ eachToolDefinition includesKey: 'inputSchema' ] ])! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:08 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:08 pm (UTC)'!
 !methodProperties: {}!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
 
@@ -576,19 +605,19 @@ testHierarchyAnswersTheClassAndAllItsSuperclasses
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject' 'Object' 'ProtoObject')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:00 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:00 pm (UTC)'!
 !methodProperties: {}!
 testInitializeAnswersTheProtocolVersion
 
 	self assert: (client initializeConnection at: 'protocolVersion') equals: '2024-11-05'! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:54:41 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:54:41 pm (UTC)'!
 !methodProperties: {}!
 testInitializeAnswersTheServerInformation
 
 	self assert: (client initializeConnection includesKey: 'serverInfo')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:07 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:07 pm (UTC)'!
 !methodProperties: {}!
 testInvalidJsonAnswersAParseError
 
@@ -598,13 +627,13 @@ testInvalidJsonAnswersAParseError
 
 	self assert: ((response at: 'error') at: 'message') equals: MCPServer parseErrorDescription! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:43 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:43 pm (UTC)'!
 !methodProperties: {}!
 testListCategoriesIncludesTheCategoryOfTheServer
 
 	self assert: ((self jsonAnswerOf: 'smalltalk_list_categories') includes: MCPServer category)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:59 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:59 pm (UTC)'!
 !methodProperties: {}!
 testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 
@@ -616,7 +645,7 @@ testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 			with: (self arguments: 'prefix' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:17 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:17 pm (UTC)'!
 !methodProperties: {}!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
@@ -629,7 +658,7 @@ testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo'))
 		equals: self subjectMethodSource! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:37 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:37 pm (UTC)'!
 !methodProperties: {}!
 testMethodSourceOfAnUnknownClassFails
 
@@ -640,7 +669,7 @@ testMethodSourceOfAnUnknownClassFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:54:52 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:54:52 pm (UTC)'!
 !methodProperties: {}!
 testSaveImageIsAdvertised
 
@@ -648,7 +677,7 @@ testSaveImageIsAdvertised
 
 	self assert: (client toolNames includes: 'smalltalk_save_image')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:55 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:55 pm (UTC)'!
 !methodProperties: {}!
 testSubclassesAnswersTheDirectSubclassesOfTheClass
 
@@ -661,13 +690,13 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubjectChild')! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:03 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:03 pm (UTC)'!
 !methodProperties: {}!
 testToolsListAdvertisesTheExpectedTools
 
 	self assert: client toolNames asArray sorted equals: self class expectedToolNames! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:05 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:05 pm (UTC)'!
 !methodProperties: {}!
 testUnknownMethodAnswersAMethodNotFoundError
 
@@ -677,7 +706,7 @@ testUnknownMethodAnswersAMethodNotFoundError
 
 	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
 
-!MCPServerToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:38 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:38 pm (UTC)'!
 !methodProperties: {}!
 debuggingToolNames
 
@@ -689,7 +718,7 @@ debuggingToolNames
 		'smalltalk_debugger_stepover' 'smalltalk_debugger_through'
 		'smalltalk_evaluate_to_debug_on_error' 'smalltalk_finish_debugging')! !
 
-!MCPServerToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:35 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:35 pm (UTC)'!
 !methodProperties: {}!
 expectedToolNames
 
@@ -704,7 +733,7 @@ expectedToolNames
 		'smalltalk_list_categories' 'smalltalk_list_classes' 'smalltalk_method_source'
 		'smalltalk_save_image' 'smalltalk_subclasses')! !
 
-!MCPServerToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:03 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:03 pm (UTC)'!
 !methodProperties: {}!
 sideEffectGlobalName
 
@@ -712,12 +741,38 @@ sideEffectGlobalName
 
 	^#MCPTestSideEffect! !
 
-!MCPServerToolsTest class methodsFor: 'as yet unclassified' stamp: 'HAW 20/Aug/2026, 9:33:12 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
 !methodProperties: {}!
 classCategoryOfTestData
 
-	"Answer the class category the classes created through the server go to. The leading and
-	trailing underscores keep it out of every package, and it carries no hyphen so that Cuis
-	does not register a package for a root category named after part of it."
+	"Answer the class category the classes created through the server go to. Each of my
+	subclasses answers one of its own, so that they never empty each other's test data."
+
+	^self subclassResponsibility! !
+
+!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
+!methodProperties: {}!
+serverClass
+
+	^MCPServer! !
+
+!MCPServerToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:12:25 am (UTC)'!
+!methodProperties: {}!
+classCategoryOfTestData
+
+	"The leading and trailing underscores keep it out of every package, and it carries no
+	hyphen so that Cuis does not register a package for a root category named after part of it."
 
 	^'__MCPServerTestData__'! !
+
+!MCPToolBasedServerToolsTest methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 11:08:02 am (UTC)'!
+!methodProperties: {}!
+serverClass
+
+	^MCPToolBasedServer! !
+
+!MCPToolBasedServerToolsTest class methodsFor: 'test data' stamp: 'HAW 21/Aug/2026, 11:08:02 am (UTC)'!
+!methodProperties: {}!
+classCategoryOfTestData
+
+	^'__MCPToolBasedServerTestData__'! !
