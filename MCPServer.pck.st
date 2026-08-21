@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 20 August 2026 at 6:03:24 pm'!
-'Description Rename the MCP-Server category and package to MCPServer'!
-!provides: 'MCPServer' 1 0!
+'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 7:56:34 am'!
+'Description Format the tool definitions as single line at:put: cascades'!
+!provides: 'MCPServer' 1 1!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -568,679 +568,359 @@ serverInfo
 		at: 'version' put: '1.0.0';
 		yourself! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefBrowse
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_browse';
-		
-			at: 'description'
-			put: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class to browse';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_browse';
+		at: 'description' put: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class to browse';
+					yourself);
+				yourself);
+			at: 'required' put: #('className');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefClassesInCategory
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_classes_in_category';
-		
-			at: 'description'
-			put: 'List all classes in a specific category.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'category'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the category';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('category');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_classes_in_category';
+		at: 'description' put: 'List all classes in a specific category.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'category' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the category';
+					yourself);
+				yourself);
+			at: 'required' put: #('category');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDebuggerProceed
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_debugger_proceed';
-		
-			at: 'description'
-			put: 'It does a proceed on the debugger, that means running the debugging procees to the end';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_debugger_proceed';
+		at: 'description' put: 'It does a proceed on the debugger, that means running the debugging procees to the end';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDebuggerRestart
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_debugger_restart';
-		
-			at: 'description'
-			put: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_debugger_restart';
+		at: 'description' put: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDebuggerStepInto
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_debugger_stepinto';
-		
-			at: 'description'
-			put: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack';
-		
-			at: 'inputSchema'
-			put: (OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_debugger_stepinto';
+		at: 'description' put: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDebuggerStepOver
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_debugger_stepover';
-		
-			at: 'description'
-			put: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_debugger_stepover';
+		at: 'description' put: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDebuggerThrough
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_debugger_through';
-		
-			at: 'description'
-			put: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_debugger_through';
+		at: 'description' put: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDefineClass
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_define_class';
-		
-			at: 'description'
-			put: 'Define a new class or modify an existing class definition.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'definition'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Full class definition expression';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('definition');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 8:22:21 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_define_class';
+		at: 'description' put: 'Define a new class or modify an existing class definition.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'definition' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Full class definition expression';
+					yourself);
+				yourself);
+			at: 'required' put: #('definition');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDefineMethod
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_define_method';
-		
-			at: 'description'
-			put: 'Define or modify a method on a class.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class';
-											yourself);
-								
-									at: 'source'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Full method source including selector';
-											yourself);
-								
-									at: 'category'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Optional method category. Defaults to as yet unclassified';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className' 'source');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_define_method';
+		at: 'description' put: 'Define or modify a method on a class.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class';
+					yourself);
+				at: 'source' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Full method source including selector';
+					yourself);
+				at: 'category' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Optional method category. Defaults to as yet unclassified';
+					yourself);
+				yourself);
+			at: 'required' put: #('className' 'source');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDeleteClass
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_delete_class';
-		
-			at: 'description'
-			put: 'Remove a class from the system.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class to remove';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_delete_class';
+		at: 'description' put: 'Remove a class from the system.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class to remove';
+					yourself);
+				yourself);
+			at: 'required' put: #('className');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefDeleteMethod
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_delete_method';
-		
-			at: 'description'
-			put: 'Remove a method from a class.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class';
-											yourself);
-								
-									at: 'selector'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Selector of the method to remove';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className' 'selector');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_delete_method';
+		at: 'description' put: 'Remove a method from a class.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class';
+					yourself);
+				at: 'selector' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Selector of the method to remove';
+					yourself);
+				yourself);
+			at: 'required' put: #('className' 'selector');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefEvaluate
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_evaluate';
-		
-			at: 'description'
-			put: 'Evaluate arbitrary Smalltalk code and return the result.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'code'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Smalltalk code to evaluate';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('code');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_evaluate';
+		at: 'description' put: 'Evaluate arbitrary Smalltalk code and return the result.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'code' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Smalltalk code to evaluate';
+					yourself);
+				yourself);
+			at: 'required' put: #('code');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 21/Aug/2026, 10:26:32 am (UTC)'!
 !methodProperties: {}!
 toolDefEvaluateToDebugOnError
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_evaluate_to_debug_on_error';
-		
-			at: 'description'
-			put: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging. You can access the debugger evaluating: `Smalltalk at: #DebuggerInstance`';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'code'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Smalltalk code to evaluate';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('code');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_evaluate_to_debug_on_error';
+		at: 'description' put: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'code' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Smalltalk code to evaluate';
+					yourself);
+				yourself);
+			at: 'required' put: #('code');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefFinishDebugging
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_finish_debugging';
-		
-			at: 'description'
-			put: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new		
-					at: 'type' put: 'object';
-					at: 'properties' put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_finish_debugging';
+		at: 'description' put: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefHierarchy
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_hierarchy';
-		
-			at: 'description'
-			put: 'Get the inheritance hierarchy for a class (from Object down to the class).';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_hierarchy';
+		at: 'description' put: 'Get the inheritance hierarchy for a class (from Object down to the class).';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class';
+					yourself);
+				yourself);
+			at: 'required' put: #('className');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefListCategories
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_list_categories';
-		
-			at: 'description'
-			put: 'List all system categories.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_list_categories';
+		at: 'description' put: 'List all system categories.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefListClasses
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_list_classes';
-		
-			at: 'description'
-			put: 'List all classes in the system, optionally filtered by prefix.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'prefix'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Optional prefix to filter class names';
-											yourself);
-								yourself);
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_list_classes';
+		at: 'description' put: 'List all classes in the system, optionally filtered by prefix.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'prefix' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Optional prefix to filter class names';
+					yourself);
+				yourself);
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefMethodSource
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_method_source';
-		
-			at: 'description'
-			put: 'Get the source code of a specific method.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class';
-											yourself);
-								
-									at: 'selector'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Method selector';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className' 'selector');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_method_source';
+		at: 'description' put: 'Get the source code of a specific method.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class';
+					yourself);
+				at: 'selector' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Method selector';
+					yourself);
+				yourself);
+			at: 'required' put: #('className' 'selector');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefSaveImage
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_save_image';
-		
-			at: 'description'
-			put: 'Save the Smalltalk image to disk.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put: Dictionary new;
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_save_image';
+		at: 'description' put: 'Save the Smalltalk image to disk.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: Dictionary new;
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 20/Aug/2026, 10:09:54 pm (UTC)'!
 !methodProperties: {}!
 toolDefSubclasses
-	^ OrderedDictionary new
-		
-			at: 'name'
-			put: 'smalltalk_subclasses';
-		
-			at: 'description'
-			put: 'Get the direct subclasses of a class.';
-		
-			at: 'inputSchema'
-			put:
-				(OrderedDictionary new
-					
-						at: 'type'
-						put: 'object';
-					
-						at: 'properties'
-						put:
-							(OrderedDictionary new
-								
-									at: 'className'
-									put:
-										(OrderedDictionary new
-											
-												at: 'type'
-												put: 'string';
-											
-												at: 'description'
-												put: 'Name of the class';
-											yourself);
-								yourself);
-					
-						at: 'required'
-						put: #('className');
-					yourself);
-		yourself.! !
 
-!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 19/Aug/2026, 12:59:10 pm (UTC)'!
+	^OrderedDictionary new
+		at: 'name' put: 'smalltalk_subclasses';
+		at: 'description' put: 'Get the direct subclasses of a class.';
+		at: 'inputSchema' put: (OrderedDictionary new
+			at: 'type' put: 'object';
+			at: 'properties' put: (OrderedDictionary new
+				at: 'className' put: (OrderedDictionary new
+					at: 'type' put: 'string';
+					at: 'description' put: 'Name of the class';
+					yourself);
+				yourself);
+			at: 'required' put: #('className');
+			yourself);
+		yourself! !
+
+!MCPServer methodsFor: 'tool definitions' stamp: 'HAW 21/Aug/2026, 10:28:23 am (UTC)'!
 !methodProperties: {}!
 toolDefinitions
-	"Note: saveImage is intentionally excluded from exposed tools"
-	^ {self toolDefEvaluate. 
+	
+	^ {
+	self toolDefEvaluate. 
 	self toolDefBrowse. 
 	self toolDefMethodSource. 
 	self toolDefDefineClass. 
