@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:09:45 am'!
-'Description List the classes of the smalltalk the server was given'!
-!provides: 'MCPServer' 1 8!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 12:38:34 pm'!
+'Description Test the debugging tools and fix finishing a session'!
+!provides: 'MCPServer' 1 9!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -56,7 +56,7 @@ MCPNoDebuggingSession class
 
 !classDefinition: #MCPOpenDebuggingSession category: 'MCPServer'!
 MCPDebuggingSession subclass: #MCPOpenDebuggingSession
-	instanceVariableNames: 'debugger debuggerMorph'
+	instanceVariableNames: 'debugger'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -425,18 +425,6 @@ current
 	^Current ifNil: [ Current := MCPNoDebuggingSession new ]
 ! !
 
-!MCPDebuggingSession class methodsFor: 'current session' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
-!methodProperties: {}!
-finish
-
-	| answer |
-
-	answer := self current finish.
-	Current := MCPNoDebuggingSession new.
-
-	^answer
-! !
-
 !MCPDebuggingSession class methodsFor: 'current session' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
 !methodProperties: {}!
 openOnErrorAt: aSignalerContext
@@ -447,11 +435,23 @@ openOnErrorAt: aSignalerContext
 	Current := MCPOpenDebuggingSession debugging: Processor activeProcess at: aSignalerContext
 ! !
 
-!MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPDebuggingSession class methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+finishCurrent
+
+	| answer |
+
+	answer := self current finish.
+	Current := MCPNoDebuggingSession new.
+
+	^answer
+! !
+
+!MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
 !methodProperties: {}!
 finish
 
-	^''
+	^self class noDebuggerErrorDescriptionFor: 'finish'
 ! !
 
 !MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
@@ -496,30 +496,39 @@ noDebuggerErrorDescriptionFor: anActionName
 	^'Error: no debugger to ', anActionName
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 2:13:21 pm (UTC)'!
 !methodProperties: {}!
-initializeDebugger: aDebugger morph: aDebuggerMorph
+initializeDebugger: aDebugger
 
-	debugger := aDebugger.
-	debuggerMorph := aDebuggerMorph
+	debugger := aDebugger
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
 !methodProperties: {}!
 finish
 
-	debuggerMorph delete.
+	"Close the window my debugger is the model of. Telling the debugger its window is closing
+	is what terminates the process it was debugging, and the window is then let go of its
+	model, because closing a debugger window that still has one asks it about code it has
+	just thrown away."
 
-	^''
+	DebuggerWindow
+		debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
+		do: [ :aDebuggerWindow |
+			debugger windowIsClosing.
+			aDebuggerWindow model: nil.
+			aDebuggerWindow delete ].
+
+	^'Finished'
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:32:13 pm (UTC)'!
 !methodProperties: {}!
 proceed
 
 	debugger proceed.
 
-	^''
+	^'Proceeded'
 ! !
 
 !MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
@@ -540,7 +549,7 @@ stepInto
 	^self topOfStackDescription
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:32:11 pm (UTC)'!
 !methodProperties: {}!
 stepOver
 
@@ -572,15 +581,16 @@ debuggerLabel
 	^'Debugged Debugger'
 ! !
 
-!MCPOpenDebuggingSession class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
+!MCPOpenDebuggingSession class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 2:13:21 pm (UTC)'!
 !methodProperties: {}!
 debugging: aProcess at: aSignalerContext
 
 	| debugger |
 
 	debugger := Debugger new process: aProcess context: aSignalerContext.
+	debugger openFullMorphicLabel: self debuggerLabel.
 
-	^self new initializeDebugger: debugger morph: (debugger openFullMorphicLabel: self debuggerLabel)
+	^self new initializeDebugger: debugger
 ! !
 
 !MCPHttpSession methodsFor: 'initialization' stamp: ''!
@@ -1212,7 +1222,7 @@ deleteMethodTool
 			'Method deleted successfully' ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
 !methodProperties: {}!
 finishDebuggingTool
 
@@ -1220,7 +1230,7 @@ finishDebuggingTool
 		named: 'smalltalk_finish_debugging'
 		describedBy: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed'
 		properties: #()
-		executingWith: [ MCPDebuggingSession finish ]
+		executingWith: [ MCPDebuggingSession finishCurrent ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
@@ -1795,7 +1805,7 @@ signalIsNotASingleMessageSend
 	self error: self isNotASingleMessageSendErrorDescription
 ! !
 
-!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:46 am (UTC)'!
+!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
 !methodProperties: {}!
 valueWithArguments: anArguments
 
@@ -1805,7 +1815,7 @@ valueWithArguments: anArguments
 	| code result semaphore |
 
 	code := (self valuesFrom: anArguments) first.
-	MCPDebuggingSession finish.
+	MCPDebuggingSession finishCurrent.
 	semaphore := Semaphore new.
 	[[ result := Compiler evaluate: code.
 	semaphore signal ]

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:03:57 am'!
-'Description Give the server the smalltalk its save tool talks to'!
-!provides: 'MCPServerTests' 1 10!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 12:38:37 pm'!
+'Description Test the debugging tools and fix finishing a session'!
+!provides: 'MCPServerTests' 1 11!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -45,6 +45,16 @@ DynamicallyCodeCreationTest subclass: #MCPToolsTest
 MCPToolsTest class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPDebuggingToolsTest category: 'MCPServerTests'!
+TestCase subclass: #MCPDebuggingToolsTest
+	instanceVariableNames: 'server'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPDebuggingToolsTest class' category: 'MCPServerTests'!
+MCPDebuggingToolsTest class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPSaveImageToolTest category: 'MCPServerTests'!
 TestCase subclass: #MCPSaveImageToolTest
 	instanceVariableNames: 'savedImageCount'
@@ -70,6 +80,13 @@ MCPTransportTextTest class
 I am a stream on text that reports itself closed once it is exhausted.
 
 A stream on a collection answers false to closed forever, while MCPTransportText waits for input until the input says it is closed, the way a non blocking standard input does. Being closed at the end is what lets a script of requests end the serving loop.!
+
+!MCPDebuggingToolsTest commentStamp: '<historical>' prior: 0!
+I test the seven tools that drive a debugger.
+
+Six of my tests ask each tool what it answers when no debugger is open, which is what a client sees when it drives one out of turn. The rest let a real failure leave a real debugger open and drive that, so what they exercise is the debugger the server really opens.
+
+My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
 
 !MCPSaveImageToolTest commentStamp: '<historical>' prior: 0!
 I test that a server saves the image it was given rather than the one it is running in.
@@ -799,6 +816,256 @@ classCategoryOfTestData
 
 	^'__MCPServerTestData__'
 
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+setUp
+
+	server := MCPServer servingOver: MCPTransportMock new
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+tearDown
+
+	"Leave no debugger open behind me, whatever the test did with one."
+
+	MCPDebuggingSession finishCurrent
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+answerOf: aToolName
+
+	^(server toolNamed: aToolName) valueWithArguments: Dictionary new
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+answerOfEvaluatingToDebug: aCodeString
+
+	^(server toolNamed: 'smalltalk_evaluate_to_debug_on_error')
+		valueWithArguments: (Dictionary new at: 'code' put: aCodeString; yourself)
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
+!methodProperties: {}!
+debuggerWindowsOnScreen
+
+	^DebuggerWindow allInstances select: [ :eachWindow |
+		eachWindow world notNil and: [ eachWindow label = MCPOpenDebuggingSession debuggerLabel ] ]
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+failingCode
+
+	^'nil error: ''boom'''
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:51:26 pm (UTC)'!
+!methodProperties: {}!
+openADebugger
+
+	| answer |
+
+	answer := self answerOfEvaluatingToDebug: self failingCode.
+	self waitForTheDebuggerWindow.
+	
+	^answer 
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:23:18 pm (UTC)'!
+!methodProperties: {}!
+waitForTheDebuggerWindow
+
+	"The window is put on screen by the process that draws morphs and not by the one that
+	answered the request, so it is not there the moment the tool answers. Finishing cannot
+	close a window that has not been put up yet, which is why every test that leaves a
+	debugger waits for it before it ends."
+
+	| attempts |
+
+	attempts := 0.
+	[ self debuggerWindowsOnScreen isEmpty and: [ attempts < 200 ] ] whileTrue: [
+		attempts := attempts + 1.
+		(Delay forMilliseconds: 20) wait ]
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testFinishingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_finish_debugging')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'finish')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testGoingThroughWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_through')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'through')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testProceedingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_proceed')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'proceed')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testRestartingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_restart')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'restart')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testSteppingIntoWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepinto')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepInto')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testSteppingOverWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatDoesNotFailAnswersItsResult
+
+	self assert: (self answerOfEvaluatingToDebug: '6 * 7') equals: '42'
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatDoesNotFailLeavesNoDebugger
+
+	self answerOfEvaluatingToDebug: '6 * 7'.
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:52:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatFailsAnswersTheErrorItRaised
+
+	| answer |
+
+	answer := self openADebugger.
+
+	self assert: answer equals: 'Error: boom' printString
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatFailsOpensADebugger
+
+	self openADebugger.
+
+	self assert: self debuggerWindowsOnScreen size equals: 1
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:35:06 pm (UTC)'!
+!methodProperties: {}!
+testFinishingClosesTheDebuggerWindow
+
+	self openADebugger.
+	
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+
+	self assert: self debuggerWindowsOnScreen isEmpty
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testFinishingLeavesNoDebuggerToDrive
+
+	self openADebugger.
+
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testGoingThroughDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_through'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testProceedingRunsTheDebuggedProcessToItsEnd
+
+	self openADebugger.
+
+	self assert: (self answerOf: 'smalltalk_debugger_proceed') equals: 'Proceeded'
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testRestartingDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_restart'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testSteppingIntoDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_stepinto'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testSteppingOverDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_stepover'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
 !MCPSaveImageToolTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
