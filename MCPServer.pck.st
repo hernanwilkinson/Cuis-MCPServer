@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 5:26:34 pm'!
-'Description Add refactoring tools for classes, variables and selectors'!
-!provides: 'MCPServer' 1 11!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 5:41:59 pm'!
+'Description Add refactoring tools for methods and globals'!
+!provides: 'MCPServer' 1 12!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1300,7 +1300,7 @@ addMiscTools
 	self addTool: self saveImageTool
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 6:36:44 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
 !methodProperties: {}!
 addRefactoringTools
 
@@ -1313,9 +1313,16 @@ addRefactoringTools
 	self addTool: self renameClassRefactoringTool.
 	self addTool: self insertSuperclassRefactoringTool.
 	self addTool: self safelyRemoveClassRefactoringTool.
-	self addTool: self renameSelectorRefactoringTool
-
-! !
+	self addTool: self renameGlobalRefactoringTool.
+	self addTool: self renameSelectorRefactoringTool.
+	self addTool: self changeKeywordsOrderRefactoringTool.
+	self addTool: self removeParameterRefactoringTool.
+	self addTool: self addParameterRefactoringTool.
+	self addTool: self pushUpMethodRefactoringTool.
+	self addTool: self pushDownMethodToSubclassesRefactoringTool.
+	self addTool: self pushDownMethodToOneSubclassRefactoringTool.
+	self addTool: self addAsSubclassResponsibilityRefactoringTool.
+	self addTool: self moveToInstanceOrClassMethodRefactoringTool! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
@@ -1372,6 +1379,32 @@ applyToSelector: aSelector refactoringBuiltWith: aBlock
 	^self apply: (aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ]))
 ! !
 
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+methodIn: aClass named: aSelector
+
+	"Answer the compiled method the refactorings work on, which is what an applier holds as
+	the method to transfer."
+
+	MCPTool assert: aSelector isImplementedBy: aClass.
+
+	^aClass compiledMethodAt: aSelector
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+addAsSubclassResponsibilityRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_add_as_subclass_responsibility'
+		describedBy: 'Declare a method of a class as the responsibility of its subclasses, adding it to the superclass as a subclassResponsibility.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements it'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			self apply: (AddAsSubclassResponsibility for: (self methodIn: aClass named: aSelector)) ]
+! !
+
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
 !methodProperties: {}!
 addInstanceVariableRefactoringTool
@@ -1384,6 +1417,53 @@ addInstanceVariableRefactoringTool
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to add' }
 		executingWith: [ :aClass :aVariableName |
 			self apply: (AddInstanceVariable named: aVariableName to: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:29:57 pm (UTC)'!
+!methodProperties: {}!
+addParameterRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_add_parameter'
+		describedBy: 'Add a parameter to a selector, giving every sender the value to pass. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
+		properties: {
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to add the parameter to' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
+			MCPPlainToolProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
+			MCPPlainToolProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
+			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one. Defaults to the first' defaultingTo: '1' }
+		executingWith: [ :aSelector :aParameterName :aParameterValue :aKeyword :aParameterIndex |
+			self applyToSelector: aSelector refactoringBuiltWith: [ :implementors :senders |
+				aSelector isUnary
+					ifTrue: [ AddParameter
+						named: aParameterName
+						initializedWith: aParameterValue
+						toUnarySelector: aSelector
+						implementors: implementors
+						senders: senders ]
+					ifFalse: [ AddParameter
+						named: aParameterName
+						at: aParameterIndex asNumber
+						initializedWith: aParameterValue
+						using: aKeyword
+						toKeywordSelector: aSelector
+						implementors: implementors
+						senders: senders ] ] ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:29:57 pm (UTC)'!
+!methodProperties: {}!
+changeKeywordsOrderRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_change_keywords_order'
+		describedBy: 'Reorder the keywords of a selector, moving the arguments of every sender with them.'
+		properties: {
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to reorder' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector :aNewSelector |
+			self applyToSelector: aSelector refactoringBuiltWith: [ :implementors :senders |
+				ChangeKeywordsSelectorOrder from: aSelector to: aNewSelector implementors: implementors senders: senders ] ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
@@ -1400,6 +1480,20 @@ insertSuperclassRefactoringTool
 			self apply: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]
 ! !
 
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+moveToInstanceOrClassMethodRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_move_to_instance_or_class_method'
+		describedBy: 'Move a method from the instance side of a class to its class side, or back.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements it'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to move' valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			self apply: (MoveToInstanceOrClassMethod for: (self methodIn: aClass named: aSelector)) ]
+! !
+
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
 !methodProperties: {}!
 pushDownInstanceVariableRefactoringTool
@@ -1412,6 +1506,35 @@ pushDownInstanceVariableRefactoringTool
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to push down' }
 		executingWith: [ :aClass :aVariableName |
 			self apply: (PushDownInstanceVariable named: aVariableName from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+pushDownMethodToOneSubclassRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_push_down_method_to_one_subclass'
+		describedBy: 'Move a method down into one subclass of the class that implements it.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements it'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to push down' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPClassToolProperty named: 'subclassName' describedBy: 'Name of the subclass to push it down to' }
+		executingWith: [ :aClass :aSelector :aSubclass |
+			self apply: (PushDownMethodToOneSubclass for: (self methodIn: aClass named: aSelector) to: aSubclass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+pushDownMethodToSubclassesRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_push_down_method_to_subclasses'
+		describedBy: 'Copy a method down into every subclass of the class that implements it.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements it'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to push down' valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			self apply: (PushDownMethodToSubclasses for: (self methodIn: aClass named: aSelector)) ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
@@ -1428,6 +1551,23 @@ pushUpInstanceVariableRefactoringTool
 			self apply: (PushUpInstanceVariable named: aVariableName from: aClass) ]
 ! !
 
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+pushUpMethodRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_push_up_method'
+		describedBy: 'Move a method up to the superclass of the class that implements it.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements it'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to push up' valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			self apply: (PushUpMethod
+				for: (self methodIn: aClass named: aSelector)
+				additionallyRemovingFrom: OrderedCollection new
+				pushingUp: OrderedCollection new) ]
+! !
+
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
 !methodProperties: {}!
 removeInstanceVariableRefactoringTool
@@ -1440,6 +1580,27 @@ removeInstanceVariableRefactoringTool
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to remove' }
 		executingWith: [ :aClass :aVariableName |
 			self apply: (RemoveInstanceVariable named: aVariableName from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:29:57 pm (UTC)'!
+!methodProperties: {}!
+removeParameterRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_remove_parameter'
+		describedBy: 'Remove a parameter from a selector, in every implementor and sender. It is refused when an implementor still uses the parameter.'
+		properties: {
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to remove the parameter from' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
+			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one. Defaults to the first' defaultingTo: '1' }
+		executingWith: [ :aSelector :aParameterName :aParameterIndex |
+			self applyToSelector: aSelector refactoringBuiltWith: [ :implementors :senders |
+				RemoveParameter
+					atIndex: aParameterIndex asNumber
+					named: aParameterName
+					from: aSelector
+					implementors: implementors
+					senders: senders ] ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
@@ -1466,6 +1627,20 @@ renameClassRefactoringTool
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aClass :aNewClassName |
 			self apply: (RenameClass from: aClass to: aNewClassName asSymbol in: Smalltalk undeclared: Undeclared) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!methodProperties: {}!
+renameGlobalRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_rename_global'
+		describedBy: 'Rename a global, in every method that names it.'
+		properties: {
+			MCPPlainToolProperty named: 'globalName' describedBy: 'Name of the global to rename'.
+			MCPPlainToolProperty named: 'newGlobalName' describedBy: 'Name to rename it to' }
+		executingWith: [ :aGlobalName :aNewGlobalName |
+			self apply: (RenameGlobal from: aGlobalName asSymbol to: aNewGlobalName asSymbol in: smalltalk) ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
