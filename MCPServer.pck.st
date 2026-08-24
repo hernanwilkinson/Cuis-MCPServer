@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:00:22 pm'!
-'Description Let the command line turn authentication off'!
-!provides: 'MCPServer' 1 15!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:21:39 pm'!
+'Description Add the two tools for extracting a method'!
+!provides: 'MCPServer' 1 16!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1300,7 +1300,7 @@ addMiscTools
 	self addTool: self saveImageTool
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 9:54:49 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:13:27 pm (UTC)'!
 !methodProperties: {}!
 addRefactoringTools
 
@@ -1328,7 +1328,9 @@ addRefactoringTools
 	self addTool: self renameTemporaryRefactoringTool.
 	self addTool: self extractAsParameterRefactoringTool.
 	self addTool: self inlineMethodRefactoringTool.
-	self addTool: self extractToTemporaryRefactoringTool! !
+	self addTool: self extractToTemporaryRefactoringTool.
+	self addTool: self extractMethodRefactoringTool.
+	self addTool: self extractMethodFromSimilarCodeRefactoringTool! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
@@ -1398,6 +1400,67 @@ applyToSelector: aSelector refactoringBuiltWith: aBlock
 	^self apply: (aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ]))
 ! !
 
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:11:31 pm (UTC)'!
+!methodProperties: {}!
+extractMethodFrom: aMethodReference at: anInterval to: aMessage within: aScope
+
+	"Extract the code the interval covers into a method of its own, the way the applier does
+	once it has been told what to call it: the finder says which pieces the new message
+	replaces, each of them is told the message, and the extraction is made of the new method
+	and of those pieces."
+
+	| trimmedInterval finder replacements |
+
+	trimmedInterval := anInterval trimToMatchExpressionOn: aMethodReference sourceCode.
+	ExtractMethodNewMethod assertCanApplyRefactoringOn: aMethodReference at: trimmedInterval.
+
+	finder := ExtractMethodReplacementsFinder ofCodeIn: trimmedInterval at: aMethodReference.
+	finder value.
+	replacements := self replacementsFoundBy: finder within: aScope.
+	replacements do: [ :eachReplacement | eachReplacement newMessage: aMessage ].
+
+	^self apply: (ExtractMethod
+		newDefinition: (ExtractMethodNewMethod
+			fromInterval: trimmedInterval
+			of: aMethodReference
+			to: aMessage
+			categorizedAs: aMethodReference category
+			withArgumentNames: Dictionary new)
+		replacements: replacements)! !
+
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:13:27 pm (UTC)'!
+!methodProperties: {}!
+extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
+
+	"Extract the code the interval covers into a method of its own and send it wherever code
+	like it is written, whatever differs between them becoming a parameter. The finder says
+	which pieces are alike, and which of the nodes to parameterize it could not account for."
+
+	| trimmedInterval finder notParameterizable |
+
+	trimmedInterval := anInterval trimToMatchExpressionOn: aMethodReference sourceCode.
+	ExtractMethodNewMethod assertCanApplyRefactoringOn: aMethodReference at: trimmedInterval.
+
+	finder := ExtractMethodReplacementsFinder ofCodeIn: trimmedInterval at: aMethodReference.
+	finder value.
+	finder useParameterizedToChangeReplacements.
+
+	notParameterizable := (ExtractMethodParametersDetector
+		valueFor: aMethodReference notOptimizedMethodNode
+		at: trimmedInterval)
+			reject: [ :eachParseNode |
+				finder anyParameterizableNodeIncludes: eachParseNode at: trimmedInterval in: aMethodReference ].
+
+	finder acceptParamReplacementsWithNodesToParameterized: notParameterizable to: aMessage.
+
+	^self apply: (ExtractMethod
+		newDefinition: (self
+			newMethodFor: aMessage
+			using: finder extractedCodeOrAnyParameterizableReplacement
+			notParameterizing: notParameterizable)
+		replacements: finder replacements)
+! !
+
 !MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 9:55:42 pm (UTC)'!
 !methodProperties: {}!
 extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval replacingAll: aBoolean
@@ -1454,6 +1517,19 @@ intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 	^interval
 ! !
 
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:09:39 pm (UTC)'!
+!methodProperties: {}!
+messageNamed: aNewSelector withArgumentNames: someArgumentNames
+
+	"Answer the message the extracted code becomes, named the way a client asked for it."
+
+	^someArgumentNames isEmpty
+		ifTrue: [ Message selector: aNewSelector asSymbol ]
+		ifFalse: [ Message
+			selector: aNewSelector asSymbol
+			arguments: ((someArgumentNames subStrings: ',') collect: [ :eachName | eachName withBlanksTrimmed ]) asArray ]
+! !
+
 !MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 9:05:20 pm (UTC)'!
 !methodProperties: {}!
 messageSendIn: aCompiledMethod at: anInterval
@@ -1488,16 +1564,61 @@ methodIn: aClass named: aSelector
 	^aClass compiledMethodAt: aSelector
 ! !
 
-!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 9:55:42 pm (UTC)'!
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:09:56 pm (UTC)'!
 !methodProperties: {}!
 methodReferenceIn: aClass named: aSelector
 
-	"Answer the method the way ExtractToTemporary asks for it, which is by reference and not
-	by the compiled method, because it asks it for its methodSymbol as well as for its code."
+	"Answer the method the way the refactorings ask for it, which is by reference and not by
+	the compiled method, because they ask it for its methodSymbol and its category as well as
+	for its code. It is made out of the compiled method, the way their tests make it, so that
+	it knows the class it came from."
 
-	MCPTool assert: aSelector isImplementedBy: aClass.
+	^(self methodIn: aClass named: aSelector) asMethodReference! !
 
-	^MethodReference class: aClass selector: aSelector
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:13:27 pm (UTC)'!
+!methodProperties: {}!
+newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: someParseNodes
+
+	"Build the new method the way the applier does for parameterized code. The pieces that
+	vary become its parameters, and the nodes that could not be parameterized are added by
+	the ranges they cover inside the piece being extracted."
+
+	| parameterizableNodes replacementInterval replacementMethod |
+
+	parameterizableNodes := aParameterizableReplacement parameterizableNodesWithInterval.
+	replacementInterval := aParameterizableReplacement intervalToExtract.
+	replacementMethod := aParameterizableReplacement methodToExtractFrom methodReference.
+
+	someParseNodes do: [ :eachParseNode |
+		| sourceRanges |
+		sourceRanges := replacementMethod methodNode completeSourceRangesOf: eachParseNode ifAbsent: [ #() ].
+		parameterizableNodes addAll: (sourceRanges
+			select: [ :eachRange |
+				(replacementInterval includesAllOf: eachRange)
+					and: [ parameterizableNodes noneSatisfy: [ :eachNode | eachNode value includesAllOf: eachRange ] ] ]
+			thenCollect: [ :eachRange | eachParseNode -> eachRange ]) ].
+
+	^ExtractMethodNewMethod
+		fromInterval: replacementInterval
+		of: replacementMethod
+		to: aMessage
+		categorizedAs: replacementMethod category
+		withArgumentNames: Dictionary new
+		withParameterizableNodes: parameterizableNodes
+! !
+
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:09:39 pm (UTC)'!
+!methodProperties: {}!
+replacementsFoundBy: aFinder within: aScope
+
+	"Answer the pieces the extraction replaces: only the one named, every piece in the method
+	that is the same code, or every piece in the class."
+
+	aScope = 'selection' ifTrue: [ ^Array with: aFinder originalSelectionReplacement ].
+	aScope = 'method' ifTrue: [ ^aFinder replacements ].
+	aScope = 'class' ifTrue: [ ^aFinder inClassReplacements ].
+
+	self error: (MCPServer unknownScopeErrorDescriptionFor: aScope)
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
@@ -1599,6 +1720,52 @@ extractAsParameterRefactoringTool
 					at: methodToRefactor
 					implementors: implementors
 					senders: senders ] ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 11:13:27 pm (UTC)'!
+!methodProperties: {}!
+extractMethodFromSimilarCodeRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_extract_method_from_similar_code'
+		describedBy: 'Extract a piece of a method into a method of its own and send it wherever code like it is written, whatever differs between them becoming a parameter of it. Unlike extracting a method, the code it replaces is not the same as the piece named, so the new selector takes one keyword for each part that varies.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to extract from' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'newSelector' describedBy: 'Selector of the method to create, with one keyword for each part that varies between the pieces'.
+			MCPPlainToolProperty named: 'argumentNames' describedBy: 'Names of the parameters of the new method, separated by commas, in the order of its keywords' defaultingTo: ''.
+			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
+			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
+			MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: '' }
+		executingWith: [ :aClass :aSelector :aNewSelector :someArgumentNames :aText :aStart :aStop |
+			self
+				extractMethodFromSimilarCodeIn: (self methodReferenceIn: aClass named: aSelector)
+				at: (self firstIntervalIn: (self methodIn: aClass named: aSelector) matching: aText from: aStart to: aStop)
+				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 11:09:39 pm (UTC)'!
+!methodProperties: {}!
+extractMethodRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_extract_method'
+		describedBy: 'Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to extract from' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'newSelector' describedBy: 'Selector of the method to create, with its keywords, as in totalFor:at:'.
+			MCPPlainToolProperty named: 'argumentNames' describedBy: 'Names of the parameters of the new method, separated by commas, in the order of its keywords' defaultingTo: ''.
+			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
+			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
+			MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
+			MCPPlainToolProperty named: 'scope' describedBy: 'Which pieces are replaced: selection for the one named, method for every piece of that method that is the same code, class for every piece of the class' defaultingTo: 'selection' }
+		executingWith: [ :aClass :aSelector :aNewSelector :someArgumentNames :aText :aStart :aStop :aScope |
+			self
+				extractMethodFrom: (self methodReferenceIn: aClass named: aSelector)
+				at: (self firstIntervalIn: (self methodIn: aClass named: aSelector) matching: aText from: aStart to: aStop)
+				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames)
+				within: aScope ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 9:55:42 pm (UTC)'!
@@ -2134,6 +2301,13 @@ textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod
 textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
 
 	^'Text not found in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector, ': ', aText
+! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:09:37 pm (UTC)'!
+!methodProperties: {}!
+unknownScopeErrorDescriptionFor: aScope
+
+	^'Unknown scope: ', aScope, '. It is one of selection, method or class'
 ! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:00:24 pm'!
-'Description Let the command line turn authentication off'!
-!provides: 'MCPServerTests' 1 18!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:21:42 pm'!
+'Description Add the two tools for extracting a method'!
+!provides: 'MCPServerTests' 1 19!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -1054,6 +1054,84 @@ testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe:' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol)
 		includesSubstring: 'self mcpProbe: 42' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:14:00 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
+
+	"The piece named is sent with 1, and the code like it is sent with 2, so what differs
+	between them is what the new method takes."
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpFoo: aNumber
+
+	^aNumber'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	self mcpFoo: 1.
+	self mcpFoo: 2.
+	^self mcpFoo: 1'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_method_from_similar_code'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted:'
+			and: 'argumentNames' being: 'aNumber')
+				at: 'text' put: 'self mcpFoo: 1';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpExtracted:' asSymbol)
+		includesSubstring: 'self mcpFoo: aNumber' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'self mcpExtracted: 2' caseSensitive: true).
+	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'mcpFoo' caseSensitive: true)! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:09:39 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_method'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted'
+			and: 'text' being: '42').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpExtracted' asSymbol)
+		includesSubstring: '42' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'self mcpExtracted' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:09:40 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^(3 + 4) * (3 + 4)'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_method'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted'
+			and: 'text' being: '3 + 4')
+				at: 'scope' put: 'method';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: '(self mcpExtracted) * (self mcpExtracted)' caseSensitive: true)
+
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:54:49 pm (UTC)'!
