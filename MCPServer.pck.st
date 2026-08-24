@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:13:13 am'!
-'Description Make a tool an object instead of a class'!
-!provides: 'MCPServer' 1 4!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:53:23 am'!
+'Description Give the text transport its streams and test its loop'!
+!provides: 'MCPServer' 1 6!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -194,14 +194,14 @@ MCPTransport subclass: #MCPTransportHttp
 MCPTransportHttp class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTransportStdio category: 'MCPServer'!
-MCPTransport subclass: #MCPTransportStdio
-	instanceVariableNames: 'stdin stdout'
+!classDefinition: #MCPTransportText category: 'MCPServer'!
+MCPTransport subclass: #MCPTransportText
+	instanceVariableNames: 'in out'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPTransportStdio class' category: 'MCPServer'!
-MCPTransportStdio class
+!classDefinition: 'MCPTransportText class' category: 'MCPServer'!
+MCPTransportText class
 	instanceVariableNames: ''!
 
 
@@ -282,9 +282,9 @@ I am a property that turns the value that came in the request into the one the t
 When that block would be long, or would need state of its own, write a subclass of MCPToolProperty instead - MCPClassToolProperty is one.!
 
 !MCPTransport commentStamp: '<historical>' prior: 0!
-I am the way an MCPServerCopy talks to its client. My subclasses know how requests arrive and how answers go back: MCPTransportStdioCopy reads and writes the standard streams of the operating system process, MCPTransportHttpCopy listens on a TCP port and serves the MCP HTTP endpoint.
+I am the way an MCPServer talks to its client.
 
-A server asks me to serveRequestsFor: it, and I answer each message by sending it responseTo: or jsonResponseTo:.!
+My subclasses know how requests arrive and how answers go back: MCPTransportText reads and writes a pair of character streams, one message to a line, which is how the standard streams of the operating system process are served, and MCPTransportHttp listens on a TCP port and serves the MCP HTTP endpoint.!
 
 !MCPTransportHttp commentStamp: '<historical>' prior: 0!
 I serve MCP over TCP, speaking JSON-RPC on top of HTTP the same way RemoteControlMCP does.
@@ -294,6 +294,13 @@ I publish two entry points on a WebServer:
 - my messagesPath (/messages) takes the messages of an event stream client, named by a sessionId parameter, and pushes each answer as a message event on that stream.
 
 Every request goes through my authentication before it is served, and one that it turns down is answered 401. I listen on the interface I was created with, the loopback one by default, so the endpoint is reachable only from this machine. Configure a client with the url http://127.0.0.1:2358/mcp!
+
+!MCPTransportText commentStamp: '<historical>' prior: 0!
+I carry MCP messages over a pair of character streams, one message to a line.
+
+I am created with the streams I read and write, so standard input and output are only one of the pairs I work on: onStandardInputOutput answers me on them, and readingFrom:writingTo: answers me on any other, which is how I am tested.
+
+I read a line at a time and leave its text unparsed, so that a line that is not JSON is answered with a parse error by the server instead of raising here and stopping the loop.!
 
 !MCPAuthentication methodsFor: 'authorizing' stamp: ''!
 !methodProperties: {}!
@@ -862,7 +869,7 @@ jsonInternalErrorWith: anError
 
 	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
 
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 1:50:33 pm (UTC)'!
 !methodProperties: {}!
 jsonParseError
 
@@ -1308,13 +1315,15 @@ servingOverHttpAtPort: aPortNumber authenticatingWith: anAuthentication
 
 	^self servingOver: (MCPTransportHttp listeningAtPort: aPortNumber authenticatingWith: anAuthentication)! !
 
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:07:20 pm (UTC)'!
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
 !methodProperties: {}!
 servingOverStandardInputOutput
 
 	"Answer a server that reads its requests from standard input and answers on standard output."
 
-	^self servingOver: MCPTransportStdio new! !
+	^self servingOver: MCPTransportText onStandardInputOutput
+
+! !
 
 !MCPServer class methodsFor: 'development mode' stamp: 'HAW 19/Aug/2026, 8:13:06 pm (UTC)'!
 !methodProperties: {}!
@@ -2557,57 +2566,62 @@ unknownSessionErrorDescription
 
 	^'There is no open event stream with that session identifier'! !
 
-!MCPTransportStdio methodsFor: 'initialization' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!MCPTransportText methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
 !methodProperties: {}!
-initialize
+initializeReadingFrom: aReadStream writingTo: aWriteStream
 
-	| osProc |
+	in := aReadStream.
+	out := aWriteStream
+! !
 
-	osProc := OSProcess thisOSProcess.
-	stdin := osProc stdIn asAsyncFileReadStream.
-	stdin setNonBlocking.
-	stdout := osProc stdOut.! !
-
-!MCPTransportStdio methodsFor: 'reading' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
+!MCPTransportText methodsFor: 'reading' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
 !methodProperties: {}!
 readLine
-	
-	| char line |
+
+	"Answer the next line of the input, or nil when it will give no more. Input that has
+	nothing to give yet answers nil to next, which is what a non blocking standard input does
+	while it waits, so I wait too and only give up when the input says it is closed."
+
+	| line character |
 
 	line := String new writeStream.
-	[[ stdin closed ifTrue: [ ^nil ].
-	char := stdin next.
-	char isNil ] whileTrue: [ (Delay forMilliseconds: 10) wait ].
-	line nextPut: char.
-	char = Character lf ] whileFalse.
+	[[ in closed ifTrue: [ ^nil ].
+	character := in next.
+	character isNil ] whileTrue: [ (Delay forMilliseconds: 10) wait ].
+	line nextPut: character.
+	character = Character lf ] whileFalse.
 
 	^line contents
-	
-	! !
+! !
 
-!MCPTransportStdio methodsFor: 'writing' stamp: 'HAW 19/Aug/2026, 10:37:21 pm (UTC)'!
+!MCPTransportText methodsFor: 'reading' stamp: 'HAW 24/Aug/2026, 1:22:57 pm (UTC)'!
 !methodProperties: {}!
-writeMessage: jsonString
-	"Write a JSON message to stdout, ensuring no embedded newlines"
-	| clean |
+readMessage
 
-	stdout closed ifTrue: [ ^self ].
+	"Answer the text of the next request, or nil when the input is exhausted. The text is
+	left unparsed so that the server answers a parse error the way it does for every other
+	transport, instead of the error being raised here and stopping the loop."
 
-	clean := jsonString copyWithout: Character cr.
-	clean := clean copyWithout: Character lf.
-	stdout
-		nextPutAll: clean asUtf8Bytes asString;
+	^self readLine ifNotNil: [ :aLine | self utf8Decode: aLine ]
+! !
+
+!MCPTransportText methodsFor: 'writing' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+writeMessage: aJsonString
+
+	"Write aJsonString as one line, because a message is delimited by the line it is on."
+
+	| singleLine |
+
+	out closed ifTrue: [ ^self ].
+	singleLine := (aJsonString copyWithout: Character cr) copyWithout: Character lf.
+	out
+		nextPutAll: singleLine asUtf8Bytes asString;
 		newLine;
-		flush.! !
+		flush
+! !
 
-!MCPTransportStdio methodsFor: 'serving' stamp: ''!
-!methodProperties: {}!
-stopServingRequests
-
-	"Standard input and output belong to the operating system process, so there is
-	nothing to release here."! !
-
-!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:08:50 pm (UTC)'!
+!MCPTransportText methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:08:50 pm (UTC)'!
 !methodProperties: {}!
 dispatch: aJsonRequest using: anMCPServer
 
@@ -2617,7 +2631,7 @@ dispatch: aJsonRequest using: anMCPServer
 	
 	^ jsonResponse ifNotNil: [ self writeMessage: jsonResponse ]! !
 
-!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:07:30 pm (UTC)'!
+!MCPTransportText methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:07:30 pm (UTC)'!
 !methodProperties: {}!
 readAndDispatchNextMessage: anMCPServer
 
@@ -2625,25 +2639,44 @@ readAndDispatchNextMessage: anMCPServer
 		ifNil: [ anMCPServer stop ]
 		ifNotNil: [ :aJsonRequest | self dispatch: aJsonRequest using: anMCPServer ]! !
 
-!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-readMessage
-
-	"Answer the text of the next request on standard input, or nil when it is exhausted.
-	The text is left unparsed so that the server answers a parse error the way it does for
-	every other transport, instead of the error being raised here and stopping the loop."
-
-	^self readLine ifNotNil: [ :aLine | self utf8Decode: aLine ]
-
-! !
-
-!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:06:56 pm (UTC)'!
+!MCPTransportText methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
 !methodProperties: {}!
 serveRequestsFor: anMCPServer
 
-	"Read one message at a time from standard input and write the answer of anMCPServer on
-	standard output. Blocks the calling process until the server stops running."
+	"Read one message at a time and write the answer of anMCPServer out. Blocks the calling
+	process until the server stops running."
 
 	[ anMCPServer isRunning ] whileTrue: [ self readAndDispatchNextMessage: anMCPServer ]
+! !
+
+!MCPTransportText methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+stopServingRequests
+
+	"The input and the output are given to me, so releasing them is not mine to do."
+! !
+
+!MCPTransportText class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+onStandardInputOutput
+
+	"Answer a transport on the standard input and output of the operating system process.
+	Standard input is read without blocking so that waiting for a request does not stop
+	every other process in the image."
+
+	| operatingSystemProcess standardInput |
+
+	operatingSystemProcess := OSProcess thisOSProcess.
+	standardInput := operatingSystemProcess stdIn asAsyncFileReadStream.
+	standardInput setNonBlocking.
+
+	^self readingFrom: standardInput writingTo: operatingSystemProcess stdOut
+! !
+
+!MCPTransportText class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+readingFrom: aReadStream writingTo: aWriteStream
+
+	^self new initializeReadingFrom: aReadStream writingTo: aWriteStream
 ! !
 MCPServer initialize!

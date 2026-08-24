@@ -1,9 +1,19 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:13:14 am'!
-'Description Make a tool an object instead of a class'!
-!provides: 'MCPServerTests' 1 8!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:52:57 am'!
+'Description Give the text transport its streams and test its loop'!
+!provides: 'MCPServerTests' 1 9!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
+
+!classDefinition: #MCPTestInputStream category: 'MCPServerTests'!
+ReadStream subclass: #MCPTestInputStream
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPTestInputStream class' category: 'MCPServerTests'!
+MCPTestInputStream class
+	instanceVariableNames: ''!
 
 !classDefinition: #MCPTransportMock category: 'MCPServerTests'!
 MCPTransport subclass: #MCPTransportMock
@@ -35,6 +45,37 @@ DynamicallyCodeCreationTest subclass: #MCPToolsTest
 MCPToolsTest class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPTransportTextTest category: 'MCPServerTests'!
+TestCase subclass: #MCPTransportTextTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPTransportTextTest class' category: 'MCPServerTests'!
+MCPTransportTextTest class
+	instanceVariableNames: ''!
+
+
+!MCPTestInputStream commentStamp: '<historical>' prior: 0!
+I am a stream on text that reports itself closed once it is exhausted.
+
+A stream on a collection answers false to closed forever, while MCPTransportText waits for input until the input says it is closed, the way a non blocking standard input does. Being closed at the end is what lets a script of requests end the serving loop.!
+
+!MCPTransportTextTest commentStamp: '<historical>' prior: 0!
+I test MCPTransportText by serving it a script of requests and reading what it writes out.
+
+The server, the tools and the JSON are the real ones; only the streams are in memory, so what I exercise is the loop a real standard input would drive.!
+
+!MCPTestInputStream methodsFor: 'testing' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+closed
+
+	"Answer whether there is nothing more to read. A stream on a collection is never closed
+	the way a file is, so reaching the end is the only end it has, and that is the end the
+	transport waits for."
+
+	^self atEnd
+! !
 
 !MCPTransportMock methodsFor: 'serving' stamp: 'HAW 20/Aug/2026, 5:51:53 pm (UTC)'!
 !methodProperties: {}!
@@ -742,5 +783,185 @@ classCategoryOfTestData
 	hyphen so that Cuis does not register a package for a root category named after part of it."
 
 	^'__MCPServerTestData__'
+
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:22:42 pm (UTC)'!
+!methodProperties: {}!
+answersServing: aScript
+
+	"Answer the answers a server writes out while it serves aScript to exhaustion. Every
+	answer is written on a line of its own, so the empty text after the last line end is not
+	one of them."
+
+	| output |
+
+	output := WriteStream on: String new.
+	(self serverReading: aScript writingTo: output) run.
+
+	^output contents lines reject: [ :eachLine | eachLine isEmpty ]
+
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+errorOf: aJsonAnswer
+
+	^(self parsed: aJsonAnswer) at: 'error'
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+evaluateRequestWithIdentifier: anIdentifier code: aCode
+
+	^'{"jsonrpc":"2.0","id":', anIdentifier printString,
+		',"method":"tools/call","params":{"name":"smalltalk_evaluate","arguments":{"code":"', aCode, '"}}}', self lineEnd
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+lineEnd
+
+	^String with: Character lf
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+parsed: aJsonAnswer
+
+	^Json readFrom: aJsonAnswer readStream
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+resultTextOf: aJsonAnswer
+
+	"Answer the text a tool answered, out of the JSON-RPC answer it was wrapped in."
+
+	^(((self parsed: aJsonAnswer) at: 'result') at: 'content') first at: 'text'
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+serverReading: aScript writingTo: aWriteStream
+
+	^MCPServer servingOver: (self transportReading: aScript writingTo: aWriteStream)
+! !
+
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+transportReading: aScript writingTo: aWriteStream
+
+	^MCPTransportText readingFrom: (MCPTestInputStream on: aScript) writingTo: aWriteStream
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+testAnswersAParseErrorForALineThatIsNotJson
+
+	"The text of a request is left unparsed by the transport so that a line that is not JSON
+	is answered instead of raising while it is read and stopping the loop."
+
+	| answers error |
+
+	answers := self answersServing: 'this is not json at all {', self lineEnd.
+
+	self assert: answers size equals: 1.
+	error := self errorOf: answers first.
+	self assert: (error at: 'code') equals: -32700.
+	self assert: (error at: 'message') equals: 'Parse error'
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+testAnswersEveryRequestUntilTheInputIsExhausted
+
+	| answers |
+
+	answers := self answersServing:
+		(self evaluateRequestWithIdentifier: 1 code: '6 * 7') ,
+		(self evaluateRequestWithIdentifier: 2 code: '100 - 1').
+
+	self assert: answers size equals: 2.
+	self assert: (self resultTextOf: answers first) equals: '42'.
+	self assert: (self resultTextOf: answers second) equals: '99'
+
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+testDoesNotAnswerANotification
+
+	| answers |
+
+	answers := self answersServing: '{"jsonrpc":"2.0","method":"notifications/initialized"}', self lineEnd.
+
+	self assert: answers isEmpty
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:50:16 pm (UTC)'!
+!methodProperties: {}!
+testKeepsServingAfterALineThatIsNotJson
+
+	| answers |
+
+	answers := self answersServing:
+		'not json', self lineEnd,
+		(self evaluateRequestWithIdentifier: 1 code: '6 * 7').
+
+	self assert: answers size equals: 2.
+	self assert: ((self errorOf: answers first) at: 'code') equals: -32700.
+	self assert: (self resultTextOf: answers second) equals: '42'
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+testReadMessageAnswersNilWhenTheInputIsExhausted
+
+	| transport |
+
+	transport := self transportReading: '' writingTo: (WriteStream on: String new).
+
+	self assert: transport readMessage isNil
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+testReadsEachLineOfTheInputInTurn
+
+	| transport |
+
+	transport := self
+		transportReading: 'first', self lineEnd, 'second', self lineEnd
+		writingTo: (WriteStream on: String new).
+
+	self assert: transport readMessage equals: 'first', self lineEnd.
+	self assert: transport readMessage equals: 'second', self lineEnd
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+testStopsWhenTheInputIsExhausted
+
+	| server |
+
+	server := self serverReading: '' writingTo: (WriteStream on: String new).
+	server run.
+
+	self deny: server isRunning
+! !
+
+!MCPTransportTextTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+testWriteMessagePutsTheAnswerOnASingleLine
+
+	| output transport |
+
+	output := WriteStream on: String new.
+	transport := self transportReading: '' writingTo: output.
+
+	transport writeMessage: 'one', self lineEnd, 'two'.
+
+	self assert: output contents equals: 'onetwo', self lineEnd
 
 ! !
