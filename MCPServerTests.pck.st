@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 3:22:56 pm'!
-'Description Serve the tools from the MCPTool hierarchy'!
-!provides: 'MCPServerTests' 1 7!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:13:14 am'!
+'Description Make a tool an object instead of a class'!
+!provides: 'MCPServerTests' 1 8!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -27,7 +27,7 @@ MCPMockClient class
 
 !classDefinition: #MCPToolsTest category: 'MCPServerTests'!
 DynamicallyCodeCreationTest subclass: #MCPToolsTest
-	instanceVariableNames: 'client'
+	instanceVariableNames: 'client server'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
@@ -201,21 +201,22 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 21/Aug/2026, 6:21:12 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:51:27 am (UTC)'!
 !methodProperties: {}!
 setUp
 
 	"Serve a server over a mock transport, so a mock client can send it requests the way a real
 	one does without a socket in between."
 
-	| transport server |
+	| transport |
 
 	super setUp.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
-	server := MCPServer servingOver: transport.
+	server := self serverClass servingOver: transport.
 	transport serveRequestsFor: server.
-	client := MCPMockClient sendingThrough: transport! !
+	client := MCPMockClient sendingThrough: transport
+! !
 
 !MCPToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:36 pm (UTC)'!
 !methodProperties: {}!
@@ -323,6 +324,24 @@ jsonAnswerOf: aToolName with: anArguments
 	"Answer the parsed value of a tool that answers JSON."
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:51:27 am (UTC)'!
+!methodProperties: {}!
+propertyNamed: aPropertyName of: aToolName
+
+	"Answer the property the server really reads for aToolName, so a test asserting on the
+	message a missing argument produces asks the object that produces it."
+
+	^(server toolNamed: aToolName) properties
+		detect: [ :eachProperty | eachProperty name = aPropertyName ]
+! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:48:42 am (UTC)'!
+!methodProperties: {}!
+serverClass
+
+	^MCPServer
+! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:18 pm (UTC)'!
 !methodProperties: {}!
@@ -476,14 +495,17 @@ testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 21/Aug/2026, 6:17:49 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:51:27 am (UTC)'!
 !methodProperties: {}!
 testDefineClassWithoutADefinitionFails
 
 	self
 		should: [ client callTool: 'smalltalk_define_class' ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPDefineClassTool definitionProperty notProvidedErrorDescription)! !
+		withMessageText: (self serverErrorTextFor:
+			(self propertyNamed: 'definition' of: 'smalltalk_define_class') notProvidedErrorDescription)
+
+! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:44:24 pm (UTC)'!
 !methodProperties: {}!
@@ -712,7 +734,7 @@ sideEffectGlobalName
 
 	^#MCPTestSideEffect! !
 
-!MCPToolsTest class methodsFor: 'test support' stamp: 'HAW 21/Aug/2026, 6:19:24 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:48:42 am (UTC)'!
 !methodProperties: {}!
 classCategoryOfTestData
 

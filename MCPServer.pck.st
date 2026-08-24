@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 21 August 2026 at 3:22:55 pm'!
-'Description Serve the tools from the MCPTool hierarchy'!
-!provides: 'MCPServer' 1 3!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:13:13 am'!
+'Description Make a tool an object instead of a class'!
+!provides: 'MCPServer' 1 4!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -76,7 +76,7 @@ MCPHttpSession class
 
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages'
+	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools'
 	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -86,7 +86,7 @@ MCPServer class
 
 !classDefinition: #MCPTool category: 'MCPServer'!
 Object subclass: #MCPTool
-	instanceVariableNames: ''
+	instanceVariableNames: 'name description properties'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -94,18 +94,8 @@ Object subclass: #MCPTool
 MCPTool class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPClassTool category: 'MCPServer'!
-MCPTool subclass: #MCPClassTool
-	instanceVariableNames: 'requestedClass'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPClassTool class' category: 'MCPServer'!
-MCPClassTool class
-	instanceVariableNames: ''!
-
 !classDefinition: #MCPBrowseTool category: 'MCPServer'!
-MCPClassTool subclass: #MCPBrowseTool
+MCPTool subclass: #MCPBrowseTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -114,58 +104,18 @@ MCPClassTool subclass: #MCPBrowseTool
 MCPBrowseTool class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPDeleteClassTool category: 'MCPServer'!
-MCPClassTool subclass: #MCPDeleteClassTool
+!classDefinition: #MCPDefineClassTool category: 'MCPServer'!
+MCPTool subclass: #MCPDefineClassTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPDeleteClassTool class' category: 'MCPServer'!
-MCPDeleteClassTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPHierarchyTool category: 'MCPServer'!
-MCPClassTool subclass: #MCPHierarchyTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPHierarchyTool class' category: 'MCPServer'!
-MCPHierarchyTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPSubclassesTool category: 'MCPServer'!
-MCPClassTool subclass: #MCPSubclassesTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPSubclassesTool class' category: 'MCPServer'!
-MCPSubclassesTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPClassesInCategoryTool category: 'MCPServer'!
-MCPTool subclass: #MCPClassesInCategoryTool
-	instanceVariableNames: 'category'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPClassesInCategoryTool class' category: 'MCPServer'!
-MCPClassesInCategoryTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPCodeTool category: 'MCPServer'!
-MCPTool subclass: #MCPCodeTool
-	instanceVariableNames: 'code'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPCodeTool class' category: 'MCPServer'!
-MCPCodeTool class
+!classDefinition: 'MCPDefineClassTool class' category: 'MCPServer'!
+MCPDefineClassTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPEvaluateToDebugOnErrorTool category: 'MCPServer'!
-MCPCodeTool subclass: #MCPEvaluateToDebugOnErrorTool
+MCPTool subclass: #MCPEvaluateToDebugOnErrorTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -174,164 +124,14 @@ MCPCodeTool subclass: #MCPEvaluateToDebugOnErrorTool
 MCPEvaluateToDebugOnErrorTool class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPEvaluateTool category: 'MCPServer'!
-MCPCodeTool subclass: #MCPEvaluateTool
-	instanceVariableNames: ''
+!classDefinition: #MCPPluggableTool category: 'MCPServer'!
+MCPTool subclass: #MCPPluggableTool
+	instanceVariableNames: 'executeBlock'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPEvaluateTool class' category: 'MCPServer'!
-MCPEvaluateTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggingTool category: 'MCPServer'!
-MCPTool subclass: #MCPDebuggingTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggingTool class' category: 'MCPServer'!
-MCPDebuggingTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggerProceedTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPDebuggerProceedTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggerProceedTool class' category: 'MCPServer'!
-MCPDebuggerProceedTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggerRestartTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPDebuggerRestartTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggerRestartTool class' category: 'MCPServer'!
-MCPDebuggerRestartTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggerStepIntoTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPDebuggerStepIntoTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggerStepIntoTool class' category: 'MCPServer'!
-MCPDebuggerStepIntoTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggerStepOverTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPDebuggerStepOverTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggerStepOverTool class' category: 'MCPServer'!
-MCPDebuggerStepOverTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDebuggerThroughTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPDebuggerThroughTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDebuggerThroughTool class' category: 'MCPServer'!
-MCPDebuggerThroughTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPFinishDebuggingTool category: 'MCPServer'!
-MCPDebuggingTool subclass: #MCPFinishDebuggingTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPFinishDebuggingTool class' category: 'MCPServer'!
-MCPFinishDebuggingTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDefineClassTool category: 'MCPServer'!
-MCPTool subclass: #MCPDefineClassTool
-	instanceVariableNames: 'definition expectedClassName'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDefineClassTool class' category: 'MCPServer'!
-MCPDefineClassTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDefineMethodTool category: 'MCPServer'!
-MCPTool subclass: #MCPDefineMethodTool
-	instanceVariableNames: 'requestedClass source methodCategory'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDefineMethodTool class' category: 'MCPServer'!
-MCPDefineMethodTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPListCategoriesTool category: 'MCPServer'!
-MCPTool subclass: #MCPListCategoriesTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPListCategoriesTool class' category: 'MCPServer'!
-MCPListCategoriesTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPListClassesTool category: 'MCPServer'!
-MCPTool subclass: #MCPListClassesTool
-	instanceVariableNames: 'prefix'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPListClassesTool class' category: 'MCPServer'!
-MCPListClassesTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPMethodTool category: 'MCPServer'!
-MCPTool subclass: #MCPMethodTool
-	instanceVariableNames: 'requestedClass selector'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPMethodTool class' category: 'MCPServer'!
-MCPMethodTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPDeleteMethodTool category: 'MCPServer'!
-MCPMethodTool subclass: #MCPDeleteMethodTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPDeleteMethodTool class' category: 'MCPServer'!
-MCPDeleteMethodTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPMethodSourceTool category: 'MCPServer'!
-MCPMethodTool subclass: #MCPMethodSourceTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPMethodSourceTool class' category: 'MCPServer'!
-MCPMethodSourceTool class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPSaveImageTool category: 'MCPServer'!
-MCPTool subclass: #MCPSaveImageTool
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPSaveImageTool class' category: 'MCPServer'!
-MCPSaveImageTool class
+!classDefinition: 'MCPPluggableTool class' category: 'MCPServer'!
+MCPPluggableTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolProperty category: 'MCPServer'!
@@ -433,28 +233,31 @@ I am one open Server-Sent Events stream between an MCPTransportHttpCopy and a cl
 I know my identifier, which the client sends back in the sessionId parameter of every message it posts, and the socket stream my events are written to. Only one writer at a time writes on that stream. A write that fails closes me, and a closed session never writes again.!
 
 !MCPTool commentStamp: '<historical>' prior: 0!
-I am a tool an MCP client can call.
+I am a tool an MCP server offers.
 
-My class side answers what a client is told about me - my toolName, my description and the inputSchema of the arguments I take - and creates one of my instances from the arguments of a request. The instance creation message reads the arguments it needs and validates them, so an instance is complete and valid before it is asked for its value.
+I am created with my name, my description and the properties a request can carry for me, so one class serves many tools. I answer the definition a client is shown, and valueWithArguments: anArguments, which my subclasses implement.
 
-My instance side implements the tool in value.
+MCPPluggableTool covers the tools whose work is an expression; write a subclass of mine when the work is more than a block should hold, as MCPDefineClassTool does.!
 
-A subclass of mine that does not answer a toolName of its own is abstract, and concreteToolClasses leaves it out.!
+!MCPBrowseTool commentStamp: '<historical>' prior: 0!
+I am the tool that describes a class: its superclass, its variables, its selectors and its comment.
 
-!MCPDebuggingTool commentStamp: '<historical>' prior: 0!
-I am a tool that drives the debugger a failed evaluation left open.
+I am a class of my own because what I answer is a dictionary built field by field, which is more than a block should hold.!
 
-A request carries no arguments for me because what I work on is the debugger itself, which is already there.!
+!MCPDefineClassTool commentStamp: '<historical>' prior: 0!
+I am the tool that defines a class.
 
-!MCPDefineMethodTool commentStamp: '<historical>' prior: 0!
-I am the tool that defines or changes a method on a class.
+The definition a request carries is parsed and judged before it is evaluated, so that a request that is not a class definition does not change the image. That is more than a block should hold, which is why I am a class of my own.!
 
-I am not a MCPClassTool: the class a request names is where I put the method, not what I am about.!
+!MCPEvaluateToDebugOnErrorTool commentStamp: '<historical>' prior: 0!
+I am the tool that evaluates code and leaves a debugger open when it fails.
 
-!MCPMethodTool commentStamp: '<historical>' prior: 0!
-I am a tool that works on a method, which a request names by the class that implements it and its selector.
+I am a class of my own because I run the evaluation in a process of its own, so the process answering the request is not the one left suspended at the error.!
 
-I am not a MCPClassTool: knowing a class is something I need to find my method, not something I am.!
+!MCPPluggableTool commentStamp: '<historical>' prior: 0!
+I am a tool whose work is the block I was created with.
+
+I read my properties out of the arguments of a request and evaluate my block with their values, so the block takes one parameter per property, in the order they were given to me. I answer valueWithArguments: the way my block does, which is why the two read alike.!
 
 !MCPToolProperty commentStamp: '<historical>' prior: 0!
 I am a property a client can send to an MCP tool.
@@ -861,13 +664,25 @@ identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 19/Aug/2026, 8:32:14 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
 !methodProperties: {}!
 initializeServingOver: aTransport
 
 	transport := aTransport.
 	running := false.
-	self doNotLogMessages ! !
+	self initializeTools.
+	self doNotLogMessages
+! !
+
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+initializeTools
+
+	tools := Dictionary new.
+	self addDebuggingTools.
+	self addClassTools.
+	self addMiscTools
+! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
 !methodProperties: {}!
@@ -993,18 +808,6 @@ handleRequest: aRequest
 		ifNil: [ self handleNotification: method with: params ]
 		ifNotNil: [ self handleMethod: method with: params identifiedAs: id ]! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:07 pm (UTC)'!
-!methodProperties: {}!
-jsonInternalErrorFor: anError
-
-	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
-!methodProperties: {}!
-jsonParseError
-
-	^Json render: (self errorResponseFor: nil code: -32700 message: self class parseErrorDescription)! !
-
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:43 pm (UTC)'!
 !methodProperties: {}!
 jsonResponseTo: aJsonString
@@ -1016,16 +819,6 @@ jsonResponseTo: aJsonString
 		do: [ :aParseError | ^self jsonParseError ].
 
 	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:15:10 pm (UTC)'!
-!methodProperties: {}!
-process: aRequest
-
-	aRequest
-		ifNil: [ self stop ]
-		ifNotNil: [ :request |
-			(self responseTo: request) ifNotNil: [ :response |
-				transport writeMessage: (Json render: response) ] ]! !
 
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:13:30 pm (UTC)'!
 !methodProperties: {}!
@@ -1040,7 +833,7 @@ responseTo: aRequest
 
 	^response! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
 !methodProperties: {}!
 errorFor: aCode with: aMessage
 
@@ -1049,7 +842,7 @@ errorFor: aCode with: aMessage
 		at: 'message' put: aMessage;
 		yourself! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:12:07 pm (UTC)'!
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:12:07 pm (UTC)'!
 !methodProperties: {}!
 errorResponseFor: anId code: aCode message: aMessage
 	
@@ -1057,13 +850,25 @@ errorResponseFor: anId code: aCode message: aMessage
 		at: 'error' put: (self errorFor: aCode with: aMessage);
 		yourself.! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
 !methodProperties: {}!
 internalErrorResponseFor: anId withError: anError
 
 	^ self errorResponseFor: anId code: -32603 message: anError printString! !
 
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 12:07:52 pm (UTC)'!
+!methodProperties: {}!
+jsonInternalErrorWith: anError
+
+	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+jsonParseError
+
+	^Json render: (self errorResponseFor: nil code: -32700 message: self class parseErrorDescription)! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
 !methodProperties: {}!
 methodNotFoundResponseFor: anId on: aMethod
 
@@ -1096,14 +901,14 @@ capabilities
 					
 					! !
 
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:19:49 pm (UTC)'!
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 12:02:27 pm (UTC)'!
 !methodProperties: {}!
 contentFor: resultText
 
 	^ Dictionary new
-				at: 'type' put: 'text';
-				at: 'text' put: resultText;
-				yourself! !
+		at: 'type' put: 'text';
+		at: 'text' put: resultText;
+		yourself! !
 
 !MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:39 pm (UTC)'!
 !methodProperties: {}!
@@ -1146,34 +951,340 @@ serverInfo
 		at: 'version' put: '1.0.0';
 		yourself! !
 
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
 !methodProperties: {}!
 toolDefinitions
 
-	^MCPTool concreteToolClasses collect: [ :eachToolClass | eachToolClass toolDefinition ]
-
+	^tools values collect: [ :eachTool | eachTool definition ]
 ! !
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:35 pm (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
 !methodProperties: {}!
 executeTool: aToolName arguments: anArguments
 
-	^(self toolClassNamed: aToolName) valueFrom: anArguments! !
+	^(self toolNamed: aToolName) valueWithArguments: anArguments
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
-!methodProperties: {}!
-toolClassNamed: aToolName
-
-	^MCPTool concreteToolClasses
-		detect: [ :eachToolClass | eachToolClass toolName = aToolName ]
-		ifNone: [ self signalUnknownTool: aToolName ]
 ! !
 
-!MCPServer methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
 !methodProperties: {}!
 signalUnknownTool: aToolName
 
 	self error: (self class unknownToolErrorDescriptionFor: aToolName)
+! !
+
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:45:29 am (UTC)'!
+!methodProperties: {}!
+toolNamed: aToolName
+
+	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addClassTools
+
+	self addTool: self browseTool.
+	self addTool: self hierarchyTool.
+	self addTool: self subclassesTool.
+	self addTool: self listClassesTool.
+	self addTool: self listCategoriesTool.
+	self addTool: self classesInCategoryTool.
+	self addTool: self defineClassTool.
+	self addTool: self deleteClassTool.
+	self addTool: self methodSourceTool.
+	self addTool: self defineMethodTool.
+	self addTool: self deleteMethodTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addDebuggingTools
+
+	self addTool: self evaluateToDebugOnErrorTool.
+	self addTool: self debuggerStepIntoTool.
+	self addTool: self debuggerStepOverTool.
+	self addTool: self debuggerThroughTool.
+	self addTool: self debuggerProceedTool.
+	self addTool: self debuggerRestartTool.
+	self addTool: self finishDebuggingTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addMiscTools
+
+	self addTool: self evaluateTool.
+	self addTool: self saveImageTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addTool: aTool
+
+	tools at: aTool name put: aTool
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerProceedTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_proceed'
+		describedBy: 'It does a proceed on the debugger, that means running the debugging procees to the end'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current proceed ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerRestartTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_restart'
+		describedBy: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current restart ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerStepIntoTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_stepinto'
+		describedBy: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current stepInto ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerStepOverTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_stepover'
+		describedBy: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current stepOver ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerThroughTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_through'
+		describedBy: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current through ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+evaluateToDebugOnErrorTool
+
+	^MCPEvaluateToDebugOnErrorTool
+		named: 'smalltalk_evaluate_to_debug_on_error'
+		describedBy: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.'
+		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
+
+! !
+
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+evaluateTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_evaluate'
+		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
+		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
+		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
+! !
+
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+saveImageTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_save_image'
+		describedBy: 'Save the Smalltalk image to disk.'
+		properties: #()
+		executingWith: [
+			[ Smalltalk saveImage ] fork.
+			(Delay forSeconds: 1) wait.
+			'Image saved: ', Smalltalk imageName ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+browseTool
+
+	^MCPBrowseTool
+		named: 'smalltalk_browse'
+		describedBy: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+classesInCategoryTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_classes_in_category'
+		describedBy: 'List all classes in a specific category.'
+		properties: { MCPPlainToolProperty named: 'category' describedBy: 'Name of the category' }
+		executingWith: [ :aCategory |
+			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+defineClassTool
+
+	"The definition a request carries is parsed and judged before it is evaluated, which is more
+	than a block should hold, so this tool is a class of its own."
+
+	^MCPDefineClassTool
+		named: 'smalltalk_define_class'
+		describedBy: 'Define a new class or modify an existing class definition.'
+		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+defineMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_define_method'
+		describedBy: 'Define or modify a method on a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'source' describedBy: 'Full method source including selector'.
+			MCPPlainToolProperty
+				named: 'category'
+				describedBy: 'Optional method category. Defaults to as yet unclassified'
+				defaultingTo: ClassOrganizer defaultMethodCategory }
+		executingWith: [ :aClass :aSource :aMethodCategory |
+			MCPServer isDevMode
+				ifTrue: [ aClass compile: aSource classified: aMethodCategory ]
+				ifFalse: [ aClass compileSilently: aSource classified: aMethodCategory ].
+			'Method defined successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+deleteClassTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_delete_class'
+		describedBy: 'Remove a class from the system.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to remove' }
+		executingWith: [ :aClass |
+			aClass removeFromSystem.
+			'Class deleted successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+deleteMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_delete_method'
+		describedBy: 'Remove a method from a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector of the method to remove'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			MCPTool assert: aSelector isImplementedBy: aClass.
+			aClass removeSelector: aSelector.
+			'Method deleted successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+finishDebuggingTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_finish_debugging'
+		describedBy: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed'
+		properties: #()
+		executingWith: [ MCPDebuggingSession finish ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+hierarchyTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_hierarchy'
+		describedBy: 'Get the inheritance hierarchy for a class (from Object down to the class).'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass |
+			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+listCategoriesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_list_categories'
+		describedBy: 'List all system categories.'
+		properties: #()
+		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+listClassesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_list_classes'
+		describedBy: 'List all classes in the system, optionally filtered by prefix.'
+		properties: {
+			MCPPlainToolProperty
+				named: 'prefix'
+				describedBy: 'Optional prefix to filter class names'
+				defaultingTo: '' }
+		executingWith: [ :aPrefix |
+			Json render: (Smalltalk allClasses
+				select: [ :aClass | aClass name beginsWith: aPrefix ]
+				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+methodSourceTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_method_source'
+		describedBy: 'Get the source code of a specific method.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Method selector'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			MCPTool assert: aSelector isImplementedBy: aClass.
+			(aClass compiledMethodAt: aSelector) sourceCode ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+subclassesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_subclasses'
+		describedBy: 'Get the direct subclasses of a class.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass |
+			Json render: (aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted ]
+
 ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:18:55 pm (UTC)'!
@@ -1372,21 +1483,48 @@ classCreationSelectors
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
 
-!MCPTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
+!MCPTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
-value
+initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 
-	^self subclassResponsibility
+	name := aName.
+	description := aDescription.
+	properties := aCollectionOfProperties
 ! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:01 am (UTC)'!
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 description
 
-	^self subclassResponsibility
+	^description
 ! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 1:13:56 pm (UTC)'!
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+name
+
+	^name
+! !
+
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+properties
+
+	^properties
+! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+definition
+
+	^OrderedDictionary new
+		at: 'name' put: name;
+		at: 'description' put: description;
+		at: 'inputSchema' put: self inputSchema;
+		yourself
+! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 inputSchema
 
@@ -1401,112 +1539,67 @@ inputSchema
 	^schema
 ! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 5:30:51 pm (UTC)'!
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
 !methodProperties: {}!
 propertiesDefinition
 
-	^self toolProperties 
+	^properties 
 		inject: OrderedDictionary new
 		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 5:33:26 pm (UTC)'!
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:31:41 pm (UTC)'!
 !methodProperties: {}!
 requiredPropertyNames
 
-	^self toolProperties 
+	^properties 
 		select: [ :aToolProperty | aToolProperty isRequired ]
 		thenCollect: [ :aToolProperty | aToolProperty name ]
 
 ! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:21:05 am (UTC)'!
+!MCPTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
 !methodProperties: {}!
-toolDefinition
-
-	^OrderedDictionary new
-		at: 'name' put: self toolName;
-		at: 'description' put: self description;
-		at: 'inputSchema' put: self inputSchema;
-		yourself! !
-
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:01 am (UTC)'!
-!methodProperties: {}!
-toolName
+valueWithArguments: anArguments
 
 	^self subclassResponsibility
 ! !
 
-!MCPTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 1:13:56 pm (UTC)'!
+!MCPTool methodsFor: 'executing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
-toolProperties
+valuesFrom: anArguments
 
-	"Answer the properties a client can send me, in the order a client is shown them."
-
-	^self subclassResponsibility
+	^properties collect: [ :eachProperty | eachProperty valueFrom: anArguments ]
 ! !
 
-!MCPTool class methodsFor: 'tool classes' stamp: 'HAW 21/Aug/2026, 5:46:15 pm (UTC)'!
+!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-concreteToolClasses
+assert: aSelector isImplementedBy: aClass
 
-	^((self allSubclasses select: [ :aToolClass | aToolClass isConcrete ])
-		asSortedCollection: [ :left :right | left toolName <= right toolName ]) asArray
+	(aClass includesSelector: aSelector)
+		ifFalse: [ self error: (self methodNotFoundErrorDescriptionFor: aSelector in: aClass) ]
 ! !
 
-!MCPTool class methodsFor: 'tool classes' stamp: 'HAW 21/Aug/2026, 5:45:06 pm (UTC)'!
+!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
-isConcrete
+named: aName describedBy: aDescription properties: aCollectionOfProperties
 
-	^self subclasses isEmpty! !
-
-!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 11:07:01 am (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self subclassResponsibility
+	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 ! !
 
-!MCPTool class methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:01 am (UTC)'!
+!MCPTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-valueFrom: anArguments
+methodNotFoundErrorDescriptionFor: aSelector in: aClass
 
-	^(self newFrom: anArguments) value
+	^'Method not found: ', aClass name, '>>', aSelector
 ! !
 
-!MCPClassTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
+!MCPBrowseTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
 !methodProperties: {}!
-initializeRequestedClass: aClass
+valueWithArguments: anArguments
 
-	requestedClass := aClass
-! !
+	| requestedClass browsedClass |
 
-!MCPClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self classNameProperty }
-! !
-
-!MCPClassTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new initializeRequestedClass: (self classNameProperty valueFrom: anArguments)
-! !
-
-!MCPClassTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class'`
-! !
-
-!MCPBrowseTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	| browsedClass |
-
+	requestedClass := (self valuesFrom: anArguments) first.
 	browsedClass := OrderedDictionary new.
 	browsedClass
 		at: 'name' put: requestedClass name;
@@ -1520,414 +1613,33 @@ value
 	^Json render: browsedClass
 ! !
 
-!MCPBrowseTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
+!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
 !methodProperties: {}!
-description
-
-	^'Browse a class to see its superclass, instance variables, class variables, and method selectors.'! !
-
-!MCPBrowseTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_browse'! !
-
-!MCPBrowseTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse'`
-! !
-
-!MCPDeleteClassTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	requestedClass removeFromSystem.
-
-	^'Class deleted successfully'
-! !
-
-!MCPDeleteClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Remove a class from the system.'! !
-
-!MCPDeleteClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_delete_class'! !
-
-!MCPDeleteClassTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class to remove'`
-! !
-
-!MCPHierarchyTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:13:23 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^Json render: (requestedClass withAllSuperclasses collect: [ :aClass | aClass name ]) asArray
-! !
-
-!MCPHierarchyTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Get the inheritance hierarchy for a class (from Object down to the class).'! !
-
-!MCPHierarchyTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_hierarchy'! !
-
-!MCPSubclassesTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^Json render: (requestedClass subclasses collect: [ :aClass | aClass name ]) asArray sorted
-! !
-
-!MCPSubclassesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Get the direct subclasses of a class.'! !
-
-!MCPSubclassesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_subclasses'! !
-
-!MCPClassesInCategoryTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-initializeCategory: aCategory
-
-	category := aCategory
-! !
-
-!MCPClassesInCategoryTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^Json render: ((SystemOrganization classesAt: category) collect: [ :aClass | aClass name ]) asArray sorted
-
-! !
-
-!MCPClassesInCategoryTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'List all classes in a specific category.'! !
-
-!MCPClassesInCategoryTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_classes_in_category'! !
-
-!MCPClassesInCategoryTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self categoryProperty }
-! !
-
-!MCPClassesInCategoryTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new initializeCategory: (self categoryProperty valueFrom: anArguments)
-
-! !
-
-!MCPClassesInCategoryTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-categoryProperty
-
-	^`MCPPlainToolProperty named: 'category' describedBy: 'Name of the category'`
-! !
-
-!MCPCodeTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-initializeCode: aCode
-
-	code := aCode
-! !
-
-!MCPCodeTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self codeProperty }
-! !
-
-!MCPCodeTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new initializeCode: (self codeProperty valueFrom: anArguments)
-! !
-
-!MCPCodeTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-codeProperty
-
-	^`MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate'`
-! !
-
-!MCPEvaluateToDebugOnErrorTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	"The evaluation runs in a process of its own so that the one answering the request is not
-	the one left suspended at the error for the debugger to drive."
-
-	| result semaphore |
-
-	MCPDebuggingSession finish.
-	semaphore := Semaphore new.
-	[[ result := Compiler evaluate: code.
-	semaphore signal ]
-		on: Error
-		do: [ :anError |
-			result := 'Error: ', anError messageText.
-			MCPDebuggingSession openOnErrorAt: anError signalerContext.
-			semaphore signal.
-			Processor activeProcess suspend ]] fork.
-	semaphore wait.
-
-	^result printString
-
-! !
-
-!MCPEvaluateToDebugOnErrorTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.'! !
-
-!MCPEvaluateToDebugOnErrorTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_evaluate_to_debug_on_error'! !
-
-!MCPEvaluateTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^(Compiler evaluate: code) printString
-! !
-
-!MCPEvaluateTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Evaluate arbitrary Smalltalk code and return the result.'! !
-
-!MCPEvaluateTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_evaluate'! !
-
-!MCPDebuggingTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new
-! !
-
-!MCPDebuggingTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^#()
-! !
-
-!MCPDebuggerProceedTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession current proceed
-! !
-
-!MCPDebuggerProceedTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It does a proceed on the debugger, that means running the debugging procees to the end'! !
-
-!MCPDebuggerProceedTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_debugger_proceed'! !
-
-!MCPDebuggerRestartTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession current restart
-! !
-
-!MCPDebuggerRestartTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It does a restart on the debugger, that means restarting the current execution context, that is thisContext'! !
-
-!MCPDebuggerRestartTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_debugger_restart'! !
-
-!MCPDebuggerStepIntoTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession current stepInto
-! !
-
-!MCPDebuggerStepIntoTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'! !
-
-!MCPDebuggerStepIntoTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_debugger_stepinto'! !
-
-!MCPDebuggerStepOverTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession current stepOver
-! !
-
-!MCPDebuggerStepOverTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'! !
-
-!MCPDebuggerStepOverTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_debugger_stepover'! !
-
-!MCPDebuggerThroughTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession current through
-! !
-
-!MCPDebuggerThroughTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack'! !
-
-!MCPDebuggerThroughTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_debugger_through'! !
-
-!MCPFinishDebuggingTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^MCPDebuggingSession finish
-! !
-
-!MCPFinishDebuggingTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'It clean ups all the debugging session. It should always be sent when no more debugging is needed'! !
-
-!MCPFinishDebuggingTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_finish_debugging'! !
-
-!MCPDefineClassTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-initializeDefinition: aDefinition expectedClassName: anExpectedClassName
-
-	definition := aDefinition.
-	expectedClassName := anExpectedClassName
-! !
-
-!MCPDefineClassTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-assertCreated: aCreatedClass
+assertCreated: aCreatedClass isNamed: aClassName
 
 	"Signal unless evaluating the definition really created the class it names."
 
 	aCreatedClass isBehavior ifFalse: [ self class signalDidNotCreateAClass: aCreatedClass ].
-	aCreatedClass name = expectedClassName
-		ifFalse: [ self class signalCreatedAnotherClass: aCreatedClass insteadOf: expectedClassName ]
+	aCreatedClass name = aClassName
+		ifFalse: [ self class signalCreatedAnotherClass: aCreatedClass insteadOf: aClassName ]
+
 ! !
 
-!MCPDefineClassTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
 !methodProperties: {}!
-value
+valueWithArguments: anArguments
 
-	| createdClass |
+	| definition expectedClassName createdClass |
 
+	definition := (self valuesFrom: anArguments) first.
+	expectedClassName := self class classNameCreatedIn: definition.
 	createdClass := Compiler evaluate: definition.
-	self assertCreated: createdClass.
+	self assertCreated: createdClass isNamed: expectedClassName.
 
 	^'Class defined successfully'
 ! !
 
-!MCPDefineClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Define a new class or modify an existing class definition.'! !
-
-!MCPDefineClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_define_class'! !
-
-!MCPDefineClassTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self definitionProperty }
-! !
-
-!MCPDefineClassTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	| definition |
-
-	definition := self definitionProperty valueFrom: anArguments.
-
-	^self new initializeDefinition: definition expectedClassName: (self classNameCreatedIn: definition)
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 classCreationMessageIn: aDefinition
 
@@ -1943,7 +1655,7 @@ classCreationMessageIn: aDefinition
 	^messageNode
 ! !
 
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 classCreationSelectors
 
@@ -1952,7 +1664,7 @@ classCreationSelectors
 	^Class organization listAtCategoryNamed: 'subclass creation'
 ! !
 
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 classNameCreatedIn: aDefinition
 
@@ -1962,7 +1674,7 @@ classNameCreatedIn: aDefinition
 	^self classNameIn: (self classCreationMessageIn: aDefinition)
 ! !
 
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 classNameIn: aClassCreationMessage
 
@@ -1976,7 +1688,7 @@ classNameIn: aClassCreationMessage
 	^nameArgument key
 ! !
 
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 messageSentIn: aDefinition
 
@@ -1993,392 +1705,125 @@ messageSentIn: aDefinition
 	^returnedStatement expr
 ! !
 
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-signalClassNameIsNotALiteral
-
-	self error: self classNameIsNotALiteralErrorDescription
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName
-
-	self error: (self createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-signalDidNotCreateAClass: anObject
-
-	self error: (self didNotCreateAClassErrorDescriptionFor: anObject)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-signalIsNotAClassCreationMessage: aSelector
-
-	self error: (self isNotAClassCreationMessageErrorDescriptionFor: aSelector)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-signalIsNotASingleMessageSend
-
-	self error: self isNotASingleMessageSendErrorDescription
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 classNameIsNotALiteralErrorDescription
 
 	^'The name of the class to create has to be a literal symbol'
 ! !
 
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName
 
 	^'The class definition created ', aCreatedClass name, ' instead of ', anExpectedClassName
 ! !
 
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 didNotCreateAClassErrorDescriptionFor: anObject
 
 	^'The class definition did not create a class, it answered ', anObject printString
 ! !
 
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 isNotAClassCreationMessageErrorDescriptionFor: aSelector
 
 	^'The class definition has to send one of the class creation messages, but it sends #', aSelector
 ! !
 
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
 isNotASingleMessageSendErrorDescription
 
 	^'The class definition has to be a single message send'
 ! !
 
-!MCPDefineClassTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-definitionProperty
+signalClassNameIsNotALiteral
 
-	^`MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression'`
+	self error: self classNameIsNotALiteralErrorDescription
 ! !
 
-!MCPDefineMethodTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 6:06:12 pm (UTC)'!
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-initializeRequestedClass: aClass source: aSource methodCategory: aMethodCategory
+signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName
 
-	requestedClass := aClass.
-	source := aSource.
-	methodCategory := aMethodCategory! !
-
-!MCPDefineMethodTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-value
-
-	MCPServer isDevMode
-		ifTrue: [ requestedClass compile: source classified: methodCategory ]
-		ifFalse: [ requestedClass compileSilently: source classified: methodCategory ].
-
-	^'Method defined successfully'
+	self error: (self createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName)
 ! !
 
-!MCPDefineMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-description
+signalDidNotCreateAClass: anObject
 
-	^'Define or modify a method on a class.'! !
-
-!MCPDefineMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_define_method'! !
-
-!MCPDefineMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self classNameProperty. self sourceProperty. self categoryProperty }
+	self error: (self didNotCreateAClassErrorDescriptionFor: anObject)
 ! !
 
-!MCPDefineMethodTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
 !methodProperties: {}!
-newFrom: anArguments
+signalIsNotAClassCreationMessage: aSelector
+
+	self error: (self isNotAClassCreationMessageErrorDescriptionFor: aSelector)
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalIsNotASingleMessageSend
+
+	self error: self isNotASingleMessageSendErrorDescription
+! !
+
+!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:46 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	"The evaluation runs in a process of its own so that the one answering the request is not
+	the one left suspended at the error for the debugger to drive."
+
+	| code result semaphore |
+
+	code := (self valuesFrom: anArguments) first.
+	MCPDebuggingSession finish.
+	semaphore := Semaphore new.
+	[[ result := Compiler evaluate: code.
+	semaphore signal ]
+		on: Error
+		do: [ :anError |
+			result := 'Error: ', anError messageText.
+			MCPDebuggingSession openOnErrorAt: anError signalerContext.
+			semaphore signal.
+			Processor activeProcess suspend ]] fork.
+	semaphore wait.
+
+	^result printString
+! !
+
+!MCPPluggableTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
+
+	self initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties.
+	executeBlock := aBlock
+! !
+
+!MCPPluggableTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	^executeBlock valueWithArguments: (self valuesFrom: anArguments)
+! !
+
+!MCPPluggableTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
 
 	^self new
-		initializeRequestedClass: (self classNameProperty valueFrom: anArguments)
-		source: (self sourceProperty valueFrom: anArguments)
-		methodCategory: (self categoryProperty valueFrom: anArguments)
-! !
-
-!MCPDefineMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:15:17 pm (UTC)'!
-!methodProperties: {}!
-categoryProperty
-
-	^`MCPPlainToolProperty
-		named: 'category'
-		describedBy: 'Optional method category. Defaults to as yet unclassified'
-		defaultingTo: ClassOrganizer defaultMethodCategory`
-! !
-
-!MCPDefineMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class'`
-! !
-
-!MCPDefineMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-sourceProperty
-
-	^`MCPPlainToolProperty named: 'source' describedBy: 'Full method source including selector'`
-! !
-
-!MCPListCategoriesTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^Json render: SystemOrganization categories asArray sorted
-! !
-
-!MCPListCategoriesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'List all system categories.'! !
-
-!MCPListCategoriesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_list_categories'! !
-
-!MCPListCategoriesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^#()
-! !
-
-!MCPListCategoriesTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new
-! !
-
-!MCPListClassesTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-initializePrefix: aPrefix
-
-	prefix := aPrefix
-! !
-
-!MCPListClassesTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^Json render: (Smalltalk allClasses
-		select: [ :aClass | aClass name beginsWith: prefix ]
-		thenCollect: [ :aClass | aClass name ]) asArray sorted
-! !
-
-!MCPListClassesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'List all classes in the system, optionally filtered by prefix.'! !
-
-!MCPListClassesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_list_classes'! !
-
-!MCPListClassesTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self prefixProperty }
-! !
-
-!MCPListClassesTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new initializePrefix: (self prefixProperty valueFrom: anArguments)
-! !
-
-!MCPListClassesTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:15:17 pm (UTC)'!
-!methodProperties: {}!
-prefixProperty
-
-	^`MCPPlainToolProperty
-		named: 'prefix'
-		describedBy: 'Optional prefix to filter class names'
-		defaultingTo: ''`
-! !
-
-!MCPMethodTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-initializeRequestedClass: aClass selector: aSelector
-
-	requestedClass := aClass.
-	selector := aSelector
-! !
-
-!MCPMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^{ self classNameProperty. self selectorProperty }
-! !
-
-!MCPMethodTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 1:13:56 pm (UTC)'!
-!methodProperties: {}!
-assert: aSelector isImplementedBy: aClass
-
-	(aClass includesSelector: aSelector)
-		ifFalse: [ self error: (self methodNotFoundErrorDescriptionFor: aSelector in: aClass) ]
-! !
-
-!MCPMethodTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	| requestedClass selector |
-
-	requestedClass := self classNameProperty valueFrom: anArguments.
-	selector := self selectorProperty valueFrom: anArguments.
-	self assert: selector isImplementedBy: requestedClass.
-
-	^self new initializeRequestedClass: requestedClass selector: selector
-! !
-
-!MCPMethodTool class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-methodNotFoundErrorDescriptionFor: aSelector in: aClass
-
-	^'Method not found: ', aClass name, '>>', aSelector
-! !
-
-!MCPMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class'`
-! !
-
-!MCPMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-selectorProperty
-
-	^`MCPPluggableToolProperty
-		named: 'selector'
-		description: 'Method selector'
-		valuedWith: [ :aSelector | aSelector asSymbol ]`
-! !
-
-!MCPDeleteMethodTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-value
-
-	requestedClass removeSelector: selector.
-
-	^'Method deleted successfully'
-! !
-
-!MCPDeleteMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Remove a method from a class.'! !
-
-!MCPDeleteMethodTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_delete_method'! !
-
-!MCPDeleteMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 5:14:59 pm (UTC)'!
-!methodProperties: {}!
-classNameProperty
-
-	^`MCPClassToolProperty named: 'className' describedBy: 'Name of the class'`
-! !
-
-!MCPDeleteMethodTool class methodsFor: 'tool properties' stamp: 'HAW 21/Aug/2026, 4:57:14 pm (UTC)'!
-!methodProperties: {}!
-selectorProperty
-
-	^`MCPPluggableToolProperty
-		named: 'selector'
-		description: 'Selector of the method to remove'
-		valuedWith: [ :aSelector | aSelector asSymbol ]`
-! !
-
-!MCPMethodSourceTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
-!methodProperties: {}!
-value
-
-	^(requestedClass compiledMethodAt: selector) sourceCode
-! !
-
-!MCPMethodSourceTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Get the source code of a specific method.'! !
-
-!MCPMethodSourceTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:31 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_method_source'! !
-
-!MCPSaveImageTool methodsFor: 'evaluating' stamp: 'HAW 21/Aug/2026, 11:07:02 am (UTC)'!
-!methodProperties: {}!
-value
-
-	[ Smalltalk saveImage ] fork.
-	(Delay forSeconds: 1) wait.
-
-	^'Image saved: ', Smalltalk imageName
-! !
-
-!MCPSaveImageTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-description
-
-	^'Save the Smalltalk image to disk.'! !
-
-!MCPSaveImageTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 11:07:32 am (UTC)'!
-!methodProperties: {}!
-toolName
-
-	^'smalltalk_save_image'! !
-
-!MCPSaveImageTool class methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-toolProperties
-
-	^#()
-
-! !
-
-!MCPSaveImageTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:54:25 pm (UTC)'!
-!methodProperties: {}!
-newFrom: anArguments
-
-	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		properties: aCollectionOfProperties
+		executingWith: aBlock
 ! !
 
 !MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
@@ -2569,9 +2014,9 @@ valueFor: aValue
 	^valueBlock value: aValue
 ! !
 
-!MCPPluggableToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:14:19 pm (UTC)'!
+!MCPPluggableToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:29:31 pm (UTC)'!
 !methodProperties: {}!
-named: aName description: aDescription valuedWith: aBlock
+named: aName describedBy: aDescription valuedWith: aBlock
 
 	^self new
 		initializeNamed: aName
@@ -2762,7 +2207,7 @@ plainTextContentType
 
 	^'text/plain; charset=utf-8'! !
 
-!MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!MCPTransportHttp methodsFor: 'responding' stamp: 'HAW 24/Aug/2026, 12:07:52 pm (UTC)'!
 !methodProperties: {}!
 pushAnswerTo: aWebRequest over: aSession
 
@@ -2772,7 +2217,7 @@ pushAnswerTo: aWebRequest over: aSession
 
 	response := [ mcpServer jsonResponseTo: (self bodyOf: aWebRequest) ]
 		on: Error
-		do: [ :anError | mcpServer jsonInternalErrorFor: anError ].
+		do: [ :anError | mcpServer jsonInternalErrorWith: anError ].
 	response ifNotNil: [ :aJsonString | aSession sendMessageEvent: aJsonString ]! !
 
 !MCPTransportHttp methodsFor: 'responding' stamp: ''!
@@ -2815,7 +2260,7 @@ respondToMessagesRequest: aWebRequest
 
 	^self acknowledge: aWebRequest! !
 
-!MCPTransportHttp methodsFor: 'responding' stamp: ''!
+!MCPTransportHttp methodsFor: 'responding' stamp: 'HAW 24/Aug/2026, 12:07:52 pm (UTC)'!
 !methodProperties: {}!
 respondWithServerError: anError to: aWebRequest
 
@@ -2823,7 +2268,7 @@ respondWithServerError: anError to: aWebRequest
 
 	^aWebRequest
 		sendResponseCode: 500
-		content: (mcpServer jsonInternalErrorFor: anError) asUtf8Bytes
+		content: (mcpServer jsonInternalErrorWith: anError) asUtf8Bytes
 		type: self jsonContentType
 		close: false! !
 
@@ -3140,17 +2585,6 @@ readLine
 	
 	! !
 
-!MCPTransportStdio methodsFor: 'reading' stamp: 'HAW 19/Aug/2026, 12:59:16 pm (UTC)'!
-!methodProperties: {}!
-readMessage
-	"Read a JSON message from stdin"
-	| line |
-
-	line := self readLine.
-	line isNil ifTrue: [ ^ nil ].
-
-	^ Json readFrom: (self utf8Decode: line) readStream.! !
-
 !MCPTransportStdio methodsFor: 'writing' stamp: 'HAW 19/Aug/2026, 10:37:21 pm (UTC)'!
 !methodProperties: {}!
 writeMessage: jsonString
@@ -3166,19 +2600,50 @@ writeMessage: jsonString
 		newLine;
 		flush.! !
 
-!MCPTransportStdio methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:37:38 pm (UTC)'!
-!methodProperties: {}!
-serveRequestsFor: anMCPServer
-
-	"Read one message at a time from standard input and let anMCPServerCopy answer it on
-	standard output. Blocks the calling process until the server stops running."
-
-	[ anMCPServer isRunning ] whileTrue: [ anMCPServer process: self readMessage ]! !
-
 !MCPTransportStdio methodsFor: 'serving' stamp: ''!
 !methodProperties: {}!
 stopServingRequests
 
 	"Standard input and output belong to the operating system process, so there is
 	nothing to release here."! !
+
+!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:08:50 pm (UTC)'!
+!methodProperties: {}!
+dispatch: aJsonRequest using: anMCPServer
+
+	| jsonResponse |
+	
+	jsonResponse := anMCPServer jsonResponseTo: aJsonRequest.
+	
+	^ jsonResponse ifNotNil: [ self writeMessage: jsonResponse ]! !
+
+!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:07:30 pm (UTC)'!
+!methodProperties: {}!
+readAndDispatchNextMessage: anMCPServer
+
+	self readMessage
+		ifNil: [ anMCPServer stop ]
+		ifNotNil: [ :aJsonRequest | self dispatch: aJsonRequest using: anMCPServer ]! !
+
+!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+readMessage
+
+	"Answer the text of the next request on standard input, or nil when it is exhausted.
+	The text is left unparsed so that the server answers a parse error the way it does for
+	every other transport, instead of the error being raised here and stopping the loop."
+
+	^self readLine ifNotNil: [ :aLine | self utf8Decode: aLine ]
+
+! !
+
+!MCPTransportStdio methodsFor: 'serving requests' stamp: 'HAW 24/Aug/2026, 1:06:56 pm (UTC)'!
+!methodProperties: {}!
+serveRequestsFor: anMCPServer
+
+	"Read one message at a time from standard input and write the answer of anMCPServer on
+	standard output. Blocks the calling process until the server stops running."
+
+	[ anMCPServer isRunning ] whileTrue: [ self readAndDispatchNextMessage: anMCPServer ]
+! !
 MCPServer initialize!
