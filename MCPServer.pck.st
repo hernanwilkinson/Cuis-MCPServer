@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 1:47:54 pm'!
-'Description Add tools for finding senders, implementors and references'!
-!provides: 'MCPServer' 1 10!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 5:26:34 pm'!
+'Description Add refactoring tools for classes, variables and selectors'!
+!provides: 'MCPServer' 1 11!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -692,7 +692,7 @@ initializeServingOver: aTransport smalltalk: aSmalltalk
 	self doNotLogMessages
 ! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 4:53:59 pm (UTC)'!
 !methodProperties: {}!
 initializeTools
 
@@ -700,6 +700,7 @@ initializeTools
 	self addDebuggingTools.
 	self addClassTools.
 	self addSearchTools.
+	self addRefactoringTools.
 	self addMiscTools
 ! !
 
@@ -999,146 +1000,6 @@ toolNamed: aToolName
 	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addClassTools
-
-	self addTool: self browseTool.
-	self addTool: self hierarchyTool.
-	self addTool: self subclassesTool.
-	self addTool: self listClassesTool.
-	self addTool: self listCategoriesTool.
-	self addTool: self classesInCategoryTool.
-	self addTool: self defineClassTool.
-	self addTool: self deleteClassTool.
-	self addTool: self methodSourceTool.
-	self addTool: self defineMethodTool.
-	self addTool: self deleteMethodTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addDebuggingTools
-
-	self addTool: self evaluateToDebugOnErrorTool.
-	self addTool: self debuggerStepIntoTool.
-	self addTool: self debuggerStepOverTool.
-	self addTool: self debuggerThroughTool.
-	self addTool: self debuggerProceedTool.
-	self addTool: self debuggerRestartTool.
-	self addTool: self finishDebuggingTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addMiscTools
-
-	self addTool: self evaluateTool.
-	self addTool: self saveImageTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addTool: aTool
-
-	tools at: aTool name put: aTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-implementorsOfTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_implementors_of'
-		describedBy: 'List the methods that implement a selector.'
-		properties: {
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Selector the methods implement'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-referencesToClassTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_class'
-		describedBy: 'List the methods that refer to a class.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
-		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-referencesToClassVariableTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_class_variable'
-		describedBy: 'List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the class variable' }
-		executingWith: [ :aClass :aVariableName |
-			| definingClass |
-			definingClass := aClass classThatDefinesClassVariable: aVariableName.
-			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
-			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:11:25 pm (UTC)'!
-!methodProperties: {}!
-referencesToInstanceVariableTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_instance_variable'
-		describedBy: 'List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
-		executingWith: [ :aClass :aVariableName |
-			(aClass allInstVarNames includes: aVariableName)
-				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
-			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-renderReferences: aCollectionOfMethodReferences
-
-	"Answer the methods a search found, each named the way a browser names it."
-
-	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
-
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-searchSourceTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_search_source'
-		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
-		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
-		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-sendersOfTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_senders_of'
-		describedBy: 'List the methods that send a selector.'
-		properties: {
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Selector the methods send'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
-! !
-
 !MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
 !methodProperties: {}!
 debuggerProceedTool
@@ -1401,7 +1262,62 @@ subclassesTool
 
 ! !
 
-!MCPServer methodsFor: 'tools' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addClassTools
+
+	self addTool: self browseTool.
+	self addTool: self hierarchyTool.
+	self addTool: self subclassesTool.
+	self addTool: self listClassesTool.
+	self addTool: self listCategoriesTool.
+	self addTool: self classesInCategoryTool.
+	self addTool: self defineClassTool.
+	self addTool: self deleteClassTool.
+	self addTool: self methodSourceTool.
+	self addTool: self defineMethodTool.
+	self addTool: self deleteMethodTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addDebuggingTools
+
+	self addTool: self evaluateToDebugOnErrorTool.
+	self addTool: self debuggerStepIntoTool.
+	self addTool: self debuggerStepOverTool.
+	self addTool: self debuggerThroughTool.
+	self addTool: self debuggerProceedTool.
+	self addTool: self debuggerRestartTool.
+	self addTool: self finishDebuggingTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addMiscTools
+
+	self addTool: self evaluateTool.
+	self addTool: self saveImageTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 6:36:44 pm (UTC)'!
+!methodProperties: {}!
+addRefactoringTools
+
+	self addTool: self addInstanceVariableRefactoringTool.
+	self addTool: self removeInstanceVariableRefactoringTool.
+	self addTool: self renameInstanceVariableRefactoringTool.
+	self addTool: self pushUpInstanceVariableRefactoringTool.
+	self addTool: self pushDownInstanceVariableRefactoringTool.
+	self addTool: self removeUnreferencedInstanceVariablesRefactoringTool.
+	self addTool: self renameClassRefactoringTool.
+	self addTool: self insertSuperclassRefactoringTool.
+	self addTool: self safelyRemoveClassRefactoringTool.
+	self addTool: self renameSelectorRefactoringTool
+
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
 addSearchTools
 
@@ -1411,6 +1327,290 @@ addSearchTools
 	self addTool: self referencesToInstanceVariableTool.
 	self addTool: self referencesToClassVariableTool.
 	self addTool: self searchSourceTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addTool: aTool
+
+	tools at: aTool name put: aTool
+! !
+
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+apply: aRefactoring
+
+	"Apply a refactoring the way a RefactoringApplier does once it has one, which is by
+	sending it apply. What a client is told is that it worked, because a refactoring that
+	could not be made signals instead of answering."
+
+	aRefactoring apply.
+
+	^'Refactoring applied'
+! !
+
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 6:36:44 pm (UTC)'!
+!methodProperties: {}!
+applyToSelector: aSelector refactoringBuiltWith: aBlock
+
+	"Gather the implementors and the senders of aSelector in the whole system, the way a
+	ScopedRefactoringApplier gathers them for its widest scope, and build the refactoring with
+	them. The senders are answered as method references, and are handed over as the compiled
+	methods they name, because a refactoring asks each of them hasLiteral:, which a reference
+	answers about itself rather than about its method."
+
+	| implementors senders |
+
+	implementors := OrderedCollection new.
+	senders := OrderedCollection new.
+	ScopedRefactoring
+		addImplementorsOf: aSelector
+		to: implementors
+		andSendersTo: senders
+		inSystem: smalltalk.
+
+	^self apply: (aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ]))
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+addInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_add_instance_variable'
+		describedBy: 'Add an instance variable to a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to add' }
+		executingWith: [ :aClass :aVariableName |
+			self apply: (AddInstanceVariable named: aVariableName to: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+insertSuperclassRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_insert_superclass'
+		describedBy: 'Insert a new class between a class and its superclass.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class to insert above it' }
+		executingWith: [ :aClass :aNewClassName |
+			self apply: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+pushDownInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_push_down_instance_variable'
+		describedBy: 'Move an instance variable of a class down to its subclasses.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to push down' }
+		executingWith: [ :aClass :aVariableName |
+			self apply: (PushDownInstanceVariable named: aVariableName from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+pushUpInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_push_up_instance_variable'
+		describedBy: 'Move an instance variable of a class up to its superclass.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to push up' }
+		executingWith: [ :aClass :aVariableName |
+			self apply: (PushUpInstanceVariable named: aVariableName from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+removeInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_remove_instance_variable'
+		describedBy: 'Remove an instance variable from a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to remove' }
+		executingWith: [ :aClass :aVariableName |
+			self apply: (RemoveInstanceVariable named: aVariableName from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+removeUnreferencedInstanceVariablesRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_remove_unreferenced_instance_variables'
+		describedBy: 'Remove every instance variable of a class that no method reads or writes.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass |
+			self apply: (RemoveAllUnreferencedInstanceVariables from: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+renameClassRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_rename_class'
+		describedBy: 'Rename a class, in every method that names it.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name to rename it to' }
+		executingWith: [ :aClass :aNewClassName |
+			self apply: (RenameClass from: aClass to: aNewClassName asSymbol in: Smalltalk undeclared: Undeclared) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+renameInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_rename_instance_variable'
+		describedBy: 'Rename an instance variable of a class, in every method that uses it.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to rename'.
+			MCPPlainToolProperty named: 'newVariableName' describedBy: 'Name to rename it to' }
+		executingWith: [ :aClass :aVariableName :aNewVariableName |
+			self apply: (RenameInstanceVariable from: aVariableName to: aNewVariableName in: aClass) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 6:36:44 pm (UTC)'!
+!methodProperties: {}!
+renameSelectorRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_rename_selector'
+		describedBy: 'Rename a selector, in every class that implements it and every method that sends it.'
+		properties: {
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector to rename'
+				valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPluggableToolProperty
+				named: 'newSelector'
+				describedBy: 'Selector to rename it to'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector :aNewSelector |
+			self
+				applyToSelector: aSelector
+				refactoringBuiltWith: [ :implementors :senders |
+					RenameSelector from: aSelector to: aNewSelector implementors: implementors senders: senders ] ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
+!methodProperties: {}!
+safelyRemoveClassRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_safely_remove_class'
+		describedBy: 'Remove a class, refusing when something still refers to it.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass | self apply: (SafelyRemoveClass of: aClass) ]
+
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+implementorsOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_implementors_of'
+		describedBy: 'List the methods that implement a selector.'
+		properties: {
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector the methods implement'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+referencesToClassTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_class'
+		describedBy: 'List the methods that refer to a class.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+referencesToClassVariableTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_class_variable'
+		describedBy: 'List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the class variable' }
+		executingWith: [ :aClass :aVariableName |
+			| definingClass |
+			definingClass := aClass classThatDefinesClassVariable: aVariableName.
+			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
+			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:11:25 pm (UTC)'!
+!methodProperties: {}!
+referencesToInstanceVariableTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_instance_variable'
+		describedBy: 'List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
+		executingWith: [ :aClass :aVariableName |
+			(aClass allInstVarNames includes: aVariableName)
+				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
+			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+renderReferences: aCollectionOfMethodReferences
+
+	"Answer the methods a search found, each named the way a browser names it."
+
+	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
+
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+searchSourceTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_search_source'
+		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
+		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
+		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+sendersOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_senders_of'
+		describedBy: 'List the methods that send a selector.'
+		properties: {
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector the methods send'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
 ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
