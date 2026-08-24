@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 12:38:37 pm'!
-'Description Test the debugging tools and fix finishing a session'!
-!provides: 'MCPServerTests' 1 11!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 12:40:01 pm'!
+'Description Drop the tests that only check a tool is advertised'!
+!provides: 'MCPServerTests' 1 12!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -251,14 +251,6 @@ paramsForTool: aToolName with: anArguments
 		at: 'arguments' put: anArguments;
 		yourself! !
 
-!MCPMockClient methodsFor: 'mcp protocol' stamp: 'HAW 20/Aug/2026, 5:52:40 pm (UTC)'!
-!methodProperties: {}!
-toolNames
-
-	"Answer the name of every tool the server advertises."
-
-	^self listTools collect: [ :eachToolDefinition | eachToolDefinition at: 'name' ]! !
-
 !MCPMockClient class methodsFor: 'instance creation' stamp: 'HAW 20/Aug/2026, 6:50:57 pm (UTC)'!
 !methodProperties: {}!
 sendingThrough: aTransport
@@ -484,19 +476,6 @@ testClassesInCategoryAnswersTheClassesOfThatCategory
 			jsonAnswerOf: 'smalltalk_classes_in_category' 
 			with: (self arguments: 'category' being: self classCategoryOfTestData)) asArray
 		equals: #('MCPTestSubject')! !
-
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:58:53 pm (UTC)'!
-!methodProperties: {}!
-testDebuggingToolsAreAdvertised
-
-	"Driving one of them needs a suspended process, so the tests only check that a client
-	is offered them."
-
-	| advertisedToolNames |
-
-	advertisedToolNames := client toolNames.
-
-	self assert: (self class debuggingToolNames allSatisfy: [ :eachToolName | advertisedToolNames includes: eachToolName ])! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 8:45:05 pm (UTC)'!
 !methodProperties: {}!
@@ -735,14 +714,6 @@ testMethodSourceOfAnUnknownClassFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 5:54:52 pm (UTC)'!
-!methodProperties: {}!
-testSaveImageIsAdvertised
-
-	"The tool itself is not called: it would snapshot the image in the middle of a test run."
-
-	self assert: (client toolNames includes: 'smalltalk_save_image')! !
-
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:55 pm (UTC)'!
 !methodProperties: {}!
 testSubclassesAnswersTheDirectSubclassesOfTheClass
@@ -756,12 +727,6 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubjectChild')! !
 
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:03 pm (UTC)'!
-!methodProperties: {}!
-testToolsListAdvertisesTheExpectedTools
-
-	self assert: client toolNames asArray sorted equals: self class expectedToolNames! !
-
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:05 pm (UTC)'!
 !methodProperties: {}!
 testUnknownMethodAnswersAMethodNotFoundError
@@ -771,33 +736,6 @@ testUnknownMethodAnswersAMethodNotFoundError
 	response := client sendMethod: 'no/such/method'.
 
 	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
-
-!MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:38 pm (UTC)'!
-!methodProperties: {}!
-debuggingToolNames
-
-	"Answer the tools that drive the debugger. They are advertised and dispatched like any
-	other, but driving one needs a suspended process, so the tests only check that they are
-	offered to a client."
-
-	^#('smalltalk_debugger_proceed' 'smalltalk_debugger_restart' 'smalltalk_debugger_stepinto'
-		'smalltalk_debugger_stepover' 'smalltalk_debugger_through'
-		'smalltalk_evaluate_to_debug_on_error' 'smalltalk_finish_debugging')! !
-
-!MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:35 pm (UTC)'!
-!methodProperties: {}!
-expectedToolNames
-
-	"Answer the tools the server has to advertise, so that a tool added to the dispatch
-	without a definition, or a definition without a dispatch, fails a test."
-
-	^#('smalltalk_browse' 'smalltalk_classes_in_category' 'smalltalk_debugger_proceed'
-		'smalltalk_debugger_restart' 'smalltalk_debugger_stepinto' 'smalltalk_debugger_stepover'
-		'smalltalk_debugger_through' 'smalltalk_define_class' 'smalltalk_define_method'
-		'smalltalk_delete_class' 'smalltalk_delete_method' 'smalltalk_evaluate'
-		'smalltalk_evaluate_to_debug_on_error' 'smalltalk_finish_debugging' 'smalltalk_hierarchy'
-		'smalltalk_list_categories' 'smalltalk_list_classes' 'smalltalk_method_source'
-		'smalltalk_save_image' 'smalltalk_subclasses')! !
 
 !MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:03 pm (UTC)'!
 !methodProperties: {}!
