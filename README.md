@@ -54,6 +54,7 @@ line options below.
 | `--mcpStdIO` | Serve MCP over standard input/output |
 | `--mcpHttp` | Serve MCP over HTTP on port 2358 |
 | `--mcpHttpPort=<port>` | Serve MCP over HTTP on `<port>` |
+| `--noAuthentication` | Serve every client, whatever `SMALLTALK_MCP_TOKEN` says |
 | `--devMode` | Compile through the normal tools, so changes show up in open browsers |
 
 `--mcpStdIO` and `--mcpHttp` are mutually exclusive: the image serves one transport.
@@ -166,6 +167,16 @@ Every request then has to carry it:
 Requests without the right token are answered with `401`. Leaving the variable unset or empty
 serves every client that reaches the port. The token is read from the environment rather than
 from the command line so that `ps` does not show it.
+
+`--noAuthentication` turns the token off without unsetting it, which is useful while working
+locally:
+
+```bash
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --devMode --noAuthentication
+```
+
+The endpoint then serves every client that reaches it, so leave it off anywhere the port is not
+yours alone.
 
 If you write the token into `.mcp.json` instead of `${SMALLTALK_MCP_TOKEN}`, keep that file out
 of version control.

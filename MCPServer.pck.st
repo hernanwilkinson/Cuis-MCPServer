@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 7:16:44 pm'!
-'Description Add tools for extracting, inlining and renaming inside a method'!
-!provides: 'MCPServer' 1 14!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:00:22 pm'!
+'Description Let the command line turn authentication off'!
+!provides: 'MCPServer' 1 15!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2161,16 +2161,32 @@ httpArgument
 
 	^'--mcpHttp'! !
 
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:17:12 pm (UTC)'!
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:32 pm (UTC)'!
 !methodProperties: {}!
 httpAuthentication
 
-	"Answer who will decide which requests the endpoint serves. A token in the environment
-	turns authentication on, and without one the endpoint serves any client that reaches it."
+	"Answer who will decide which requests the endpoint serves, out of the command line the
+	image was launched with and the token its environment carries."
 
-	^(OSProcess accessor environmentAt: self httpTokenEnvironmentVariableName)
-		ifNil: [ MCPNoAuthentication new ]
-		ifNotNil: [ :aToken | self authenticationRequiring: aToken ]! !
+	^self
+		httpAuthenticationFor: Smalltalk startUpArguments
+		token: (OSProcess accessor environmentAt: self httpTokenEnvironmentVariableName)
+
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
+!methodProperties: {}!
+httpAuthenticationFor: someArguments token: aToken
+
+	"Answer who decides which requests the endpoint serves. The command line can turn
+	authentication off whatever the environment carries, which is what makes it useful: the
+	token can be left in place and ignored for a while. Otherwise a token turns authentication
+	on, and without one the endpoint serves any client that reaches it."
+
+	^(self shouldNot: aToken beAuthenticated: someArguments)
+		ifTrue: [ MCPNoAuthentication new ]
+		ifFalse: [ self authenticationRequiring: aToken ]
+! !
 
 !MCPServer class methodsFor: 'command line' stamp: ''!
 !methodProperties: {}!
@@ -2224,11 +2240,27 @@ isStandardInputOutputRequested
 
 	^Smalltalk startUpArguments includes: self standardInputOutputArgument! !
 
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:30 pm (UTC)'!
+!methodProperties: {}!
+noAuthenticationArgument
+
+	"Answer the command line argument that asks the endpoint to serve every client, whatever
+	the environment says."
+
+	^'--noAuthentication'
+! !
+
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:05 pm (UTC)'!
 !methodProperties: {}!
 portNumberFrom: portArgument 
 
 	^Integer readFrom: (portArgument allButFirst: self httpPortArgumentPrefix size) readStream! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
+!methodProperties: {}!
+shouldNot: aToken beAuthenticated: someArguments
+
+	^ aToken isNil or: [ someArguments includes: self noAuthenticationArgument ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:49 pm (UTC)'!
 !methodProperties: {}!

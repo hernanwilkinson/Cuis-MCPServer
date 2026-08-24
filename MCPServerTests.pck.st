@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 7:16:47 pm'!
-'Description Add tools for extracting, inlining and renaming inside a method'!
-!provides: 'MCPServerTests' 1 17!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:00:24 pm'!
+'Description Let the command line turn authentication off'!
+!provides: 'MCPServerTests' 1 18!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -43,6 +43,16 @@ DynamicallyCodeCreationTest subclass: #MCPToolsTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPToolsTest class' category: 'MCPServerTests'!
 MCPToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPAuthenticationTest category: 'MCPServerTests'!
+TestCase subclass: #MCPAuthenticationTest
+	instanceVariableNames: 'headers'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPAuthenticationTest class' category: 'MCPServerTests'!
+MCPAuthenticationTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPDebuggingToolsTest category: 'MCPServerTests'!
@@ -1494,6 +1504,84 @@ classCategoryOfTestData
 
 	^'__MCPServerTestData__'
 
+! !
+
+!MCPAuthenticationTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+setUp
+
+	headers := Dictionary new
+! !
+
+!MCPAuthenticationTest methodsFor: 'being the request' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+headerAt: aHeaderName
+
+	"I am the request the authentication is asked about. A request that carries no such
+	header carries an empty one."
+
+	^headers at: aHeaderName ifAbsent: [ '' ]
+! !
+
+!MCPAuthenticationTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+carryingTheToken: aToken
+
+	headers at: MCPBearerTokenAuthentication authorizationHeaderName put: MCPBearerTokenAuthentication bearerScheme , aToken
+! !
+
+!MCPAuthenticationTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 10:59:05 pm (UTC)'!
+!methodProperties: {}!
+testARequestCarryingNoTokenIsNotServedWhenTheEnvironmentCarriesOne
+
+	| authentication |
+
+	authentication := MCPServer httpAuthenticationFor: #() token: 'a-secret-token'.
+
+	self deny: (authentication authorizes: self)! !
+
+!MCPAuthenticationTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 10:59:05 pm (UTC)'!
+!methodProperties: {}!
+testARequestCarryingTheTokenOfTheEnvironmentIsServed
+
+	| authentication |
+
+	authentication := MCPServer httpAuthenticationFor: #() token: 'a-secret-token'.
+	self carryingTheToken: 'a-secret-token'.
+
+	self assert: (authentication authorizes: self)! !
+
+!MCPAuthenticationTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+testAWrongTokenIsNotServed
+
+	| authentication |
+
+	authentication := MCPServer httpAuthenticationFor: #() token: 'a-secret-token'.
+	self carryingTheToken: 'another-token'.
+
+	self deny: (authentication authorizes: self)
+
+! !
+
+!MCPAuthenticationTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+testEveryClientIsServedWhenTheEnvironmentCarriesNoToken
+
+	self assert: ((MCPServer httpAuthenticationFor: #() token: nil) authorizes: self)
+! !
+
+!MCPAuthenticationTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
+!methodProperties: {}!
+testTheCommandLineCanTurnAuthenticationOffWhateverTheEnvironmentSays
+
+	| authentication |
+
+	authentication := MCPServer
+		httpAuthenticationFor: (Array with: MCPServer noAuthenticationArgument)
+		token: 'a-secret-token'.
+
+	self assert: (authentication authorizes: self)
 ! !
 
 !MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
