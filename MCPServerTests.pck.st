@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:25:13 pm'!
-'Description Show a method to a client as a class and a selector'!
-!provides: 'MCPServerTests' 1 20!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:27:59 pm'!
+'Description Move the refactoring tools out of the server'!
+!provides: 'MCPServerTests' 1 21!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -1218,7 +1218,7 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 ! !
 
-!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:27:21 pm (UTC)'!
 !methodProperties: {}!
 testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
 
@@ -1238,7 +1238,7 @@ testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
 				and: 'variableName' being: 'aTemporary'
 				and: 'text' being: 'aTemporary') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: (MCPServer
+		withMessageText: (self serverErrorTextFor: (MCPRefactoringTools
 			textFoundMoreThanOnceErrorDescriptionFor: 'aTemporary'
 			in: (self createdClassInTest compiledMethodAt: 'mcpProbe' asSymbol)))
 
