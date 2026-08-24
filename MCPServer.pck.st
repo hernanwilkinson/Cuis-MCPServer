@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:03:55 am'!
-'Description Give the server the smalltalk its save tool talks to'!
-!provides: 'MCPServer' 1 7!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:09:45 am'!
+'Description List the classes of the smalltalk the server was given'!
+!provides: 'MCPServer' 1 8!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1246,7 +1246,7 @@ listCategoriesTool
 		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 2:05:48 pm (UTC)'!
 !methodProperties: {}!
 listClassesTool
 
@@ -1259,7 +1259,7 @@ listClassesTool
 				describedBy: 'Optional prefix to filter class names'
 				defaultingTo: '' }
 		executingWith: [ :aPrefix |
-			Json render: (Smalltalk allClasses
+			Json render: (smalltalk allClasses
 				select: [ :aClass | aClass name beginsWith: aPrefix ]
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
