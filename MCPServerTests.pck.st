@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:52:57 am'!
-'Description Give the text transport its streams and test its loop'!
-!provides: 'MCPServerTests' 1 9!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:03:57 am'!
+'Description Give the server the smalltalk its save tool talks to'!
+!provides: 'MCPServerTests' 1 10!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -45,6 +45,16 @@ DynamicallyCodeCreationTest subclass: #MCPToolsTest
 MCPToolsTest class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPSaveImageToolTest category: 'MCPServerTests'!
+TestCase subclass: #MCPSaveImageToolTest
+	instanceVariableNames: 'savedImageCount'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPSaveImageToolTest class' category: 'MCPServerTests'!
+MCPSaveImageToolTest class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPTransportTextTest category: 'MCPServerTests'!
 TestCase subclass: #MCPTransportTextTest
 	instanceVariableNames: ''
@@ -60,6 +70,11 @@ MCPTransportTextTest class
 I am a stream on text that reports itself closed once it is exhausted.
 
 A stream on a collection answers false to closed forever, while MCPTransportText waits for input until the input says it is closed, the way a non blocking standard input does. Being closed at the end is what lets a script of requests end the serving loop.!
+
+!MCPSaveImageToolTest commentStamp: '<historical>' prior: 0!
+I test that a server saves the image it was given rather than the one it is running in.
+
+I am that image myself: I answer saveImage and imageName, and the server under test is created with me as its smalltalk, so no class is needed to stand in for one.!
 
 !MCPTransportTextTest commentStamp: '<historical>' prior: 0!
 I test MCPTransportText by serving it a script of requests and reading what it writes out.
@@ -784,6 +799,58 @@ classCategoryOfTestData
 
 	^'__MCPServerTestData__'
 
+! !
+
+!MCPSaveImageToolTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+setUp
+
+	savedImageCount := 0
+! !
+
+!MCPSaveImageToolTest methodsFor: 'smalltalk protocol' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+imageName
+
+	^'/somewhere/Cuis-UnderTest.image'
+! !
+
+!MCPSaveImageToolTest methodsFor: 'smalltalk protocol' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+saveImage
+
+	savedImageCount := savedImageCount + 1
+! !
+
+!MCPSaveImageToolTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
+!methodProperties: {}!
+executeSaveImageTool
+
+	^(self server toolNamed: 'smalltalk_save_image') valueWithArguments: Dictionary new
+! !
+
+!MCPSaveImageToolTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:00:01 pm (UTC)'!
+!methodProperties: {}!
+server
+
+	^MCPServer servingOver: MCPTransportMock new smalltalk: self
+! !
+
+!MCPSaveImageToolTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
+!methodProperties: {}!
+testAnswersTheNameOfTheImageItSaved
+
+	self assert: self executeSaveImageTool equals: 'Image saved: ', self imageName
+
+! !
+
+!MCPSaveImageToolTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
+!methodProperties: {}!
+testSavesTheImageOnce
+
+	self executeSaveImageTool.
+
+	self assert: savedImageCount equals: 1
 ! !
 
 !MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:22:42 pm (UTC)'!

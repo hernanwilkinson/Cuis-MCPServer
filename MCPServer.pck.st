@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 10:53:23 am'!
-'Description Give the text transport its streams and test its loop'!
-!provides: 'MCPServer' 1 6!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 11:03:55 am'!
+'Description Give the server the smalltalk its save tool talks to'!
+!provides: 'MCPServer' 1 7!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -76,7 +76,7 @@ MCPHttpSession class
 
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools'
+	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools smalltalk'
 	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -671,11 +671,12 @@ identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
 !methodProperties: {}!
-initializeServingOver: aTransport
+initializeServingOver: aTransport smalltalk: aSmalltalk
 
 	transport := aTransport.
+	smalltalk := aSmalltalk.
 	running := false.
 	self initializeTools.
 	self doNotLogMessages
@@ -1109,7 +1110,7 @@ evaluateTool
 		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 1:56:00 pm (UTC)'!
 !methodProperties: {}!
 saveImageTool
 
@@ -1118,9 +1119,9 @@ saveImageTool
 		describedBy: 'Save the Smalltalk image to disk.'
 		properties: #()
 		executingWith: [
-			[ Smalltalk saveImage ] fork.
+			[ smalltalk saveImage ] fork.
 			(Delay forSeconds: 1) wait.
-			'Image saved: ', Smalltalk imageName ]
+			'Image saved: ', smalltalk imageName ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
@@ -1294,11 +1295,21 @@ subclassesTool
 
 ! !
 
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:18:55 pm (UTC)'!
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
 !methodProperties: {}!
 servingOver: aTransport
 
-	^self new initializeServingOver: aTransport! !
+	"Answer a server that serves over aTransport and saves the image it is itself running in."
+
+	^self servingOver: aTransport smalltalk: Smalltalk
+! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+servingOver: aTransport smalltalk: aSmalltalk
+
+	^self new initializeServingOver: aTransport smalltalk: aSmalltalk
+! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: ''!
 !methodProperties: {}!
