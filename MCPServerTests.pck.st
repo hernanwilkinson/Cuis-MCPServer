@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:27:59 pm'!
-'Description Move the refactoring tools out of the server'!
-!provides: 'MCPServerTests' 1 21!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:34:02 pm'!
+'Description Offer the ExtraRefactorings refactorings from their own package'!
+!provides: 'MCPServerTests' 1 22!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 

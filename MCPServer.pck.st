@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:27:56 pm'!
-'Description Move the refactoring tools out of the server'!
-!provides: 'MCPServer' 1 18!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:33:28 pm'!
+'Description Offer the ExtraRefactorings refactorings from their own package'!
+!provides: 'MCPServer' 1 19!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -87,7 +87,7 @@ MCPRefactoringTools class
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
 	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools smalltalk'
-	classVariableNames: 'RunningInstance'
+	classVariableNames: 'RunningInstance ToolProviders'
 	poolDictionaries: ''
 	category: 'MCPServer'!
 !classDefinition: 'MCPServer class' category: 'MCPServer'!
@@ -1557,7 +1557,7 @@ initializeServingOver: aTransport smalltalk: aSmalltalk
 	self doNotLogMessages
 ! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 4:53:59 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
 !methodProperties: {}!
 initializeTools
 
@@ -1566,7 +1566,8 @@ initializeTools
 	self addClassTools.
 	self addSearchTools.
 	self addRefactoringTools.
-	self addMiscTools
+	self addMiscTools.
+	self addProvidedTools
 ! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
@@ -2165,6 +2166,15 @@ addMiscTools
 	self addTool: self saveImageTool
 ! !
 
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
+!methodProperties: {}!
+addProvidedTools
+
+	"Add the tools of every package that registered itself as a provider of them."
+
+	MCPServer toolProviders do: [ :eachProvider |
+		(eachProvider for: smalltalk) tools do: [ :eachTool | self addTool: eachTool ] ]! !
+
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:27:20 pm (UTC)'!
 !methodProperties: {}!
 addRefactoringTools
@@ -2538,6 +2548,27 @@ classCreationSelectors
 	"Answer the messages Class understands to create a subclass."
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
+
+!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
+!methodProperties: {}!
+addToolProvider: aToolProviderClass
+
+	(self toolProviders includes: aToolProviderClass) ifFalse: [ self toolProviders add: aToolProviderClass ]! !
+
+!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
+!methodProperties: {}!
+removeToolProvider: aToolProviderClass
+
+	self toolProviders remove: aToolProviderClass ifAbsent: [ nil ]! !
+
+!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
+!methodProperties: {}!
+toolProviders
+
+	"Answer the classes a package registers to add its own tools to every server. A package
+	that is not loaded adds nothing, which is how the tools of one are optional."
+
+	^ToolProviders ifNil: [ ToolProviders := OrderedCollection new ]! !
 
 !MCPTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
