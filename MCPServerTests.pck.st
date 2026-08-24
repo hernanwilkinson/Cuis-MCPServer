@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 6:02:06 pm'!
-'Description Add tools for temporaries, naming source by text or interval'!
-!provides: 'MCPServerTests' 1 16!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 7:16:47 pm'!
+'Description Add tools for extracting, inlining and renaming inside a method'!
+!provides: 'MCPServerTests' 1 17!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -1022,6 +1022,104 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:05:22 pm (UTC)'!
+!methodProperties: {}!
+testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeCaller
+
+	^self mcpProbe'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_as_parameter'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'parameterName' being: 'aNumber'
+			and: 'text' being: '42').
+
+	self assert: (self createdClassInTest includesSelector: 'mcpProbe:' asSymbol).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol)
+		includesSubstring: 'self mcpProbe: 42' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:54:49 pm (UTC)'!
+!methodProperties: {}!
+testExtractToTemporaryRefactoringExtractsThePieceNamedByItsText
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42 + 1'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_to_temporary'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'variableName' being: 'aNumber'
+			and: 'text' being: '42').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'aNumber := 42' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: '^aNumber + 1' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:57:22 pm (UTC)'!
+!methodProperties: {}!
+testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^(42 + 1) * (42 + 1)'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_to_temporary'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'variableName' being: 'aNumber'
+			and: 'text' being: '42 + 1')
+				at: 'replaceAll' put: 'true';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'aNumber := 42 + 1' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: '^(aNumber) * (aNumber)' caseSensitive: true)! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:06:14 pm (UTC)'!
+!methodProperties: {}!
+testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
+
+	"The send is named by the text of its selector, which the sending method has to say once,
+	so the method that sends it is not named after the one being inlined."
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^10'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpCallerOfIt
+
+	^self mcpProbe'.
+
+	self applyRefactoring: 'smalltalk_refactor_inline_method'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'senderClassName' being: 'MCPTestSubject'
+			and: 'senderSelector' being: 'mcpCallerOfIt')
+				at: 'text' put: 'mcpProbe';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpCallerOfIt' asSymbol)
+		includesSubstring: '^10' caseSensitive: true)
+
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
 !methodProperties: {}!
 testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
@@ -1318,6 +1416,31 @@ testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 	self assert: (self createdClassInTest includesSelector: #mcpProbeRenamed).
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'mcpProbeRenamed' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:05:20 pm (UTC)'!
+!methodProperties: {}!
+testRenameTemporaryRefactoringRenamesItInEveryUseInsideTheMethod
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| aTemporary |
+
+	aTemporary := 42.
+	^aTemporary'.
+
+	self applyRefactoring: 'smalltalk_refactor_rename_temporary'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'variableName' being: 'aTemporary'
+			and: 'newVariableName' being: 'aRenamedTemporary').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'aRenamedTemporary' caseSensitive: true).
+	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'aTemporary :=' caseSensitive: true)
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 4:53:59 pm (UTC)'!
