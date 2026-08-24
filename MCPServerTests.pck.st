@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:21:42 pm'!
-'Description Add the two tools for extracting a method'!
-!provides: 'MCPServerTests' 1 19!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:25:13 pm'!
+'Description Show a method to a client as a class and a selector'!
+!provides: 'MCPServerTests' 1 20!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -63,6 +63,16 @@ TestCase subclass: #MCPDebuggingToolsTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPDebuggingToolsTest class' category: 'MCPServerTests'!
 MCPDebuggingToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPMethodPropertyTest category: 'MCPServerTests'!
+TestCase subclass: #MCPMethodPropertyTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPMethodPropertyTest class' category: 'MCPServerTests'!
+MCPMethodPropertyTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPSaveImageToolTest category: 'MCPServerTests'!
@@ -1910,6 +1920,85 @@ testSteppingOverDrivesTheDebuggerLeftByAFailure
 	answer := self answerOf: 'smalltalk_debugger_stepover'.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+argumentsForClassNamed: aClassName selector: aSelector
+
+	^Dictionary new
+		at: 'className' put: aClassName;
+		at: 'selector' put: aSelector;
+		yourself
+! !
+
+!MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+toolTakingAMethod
+
+	^MCPPluggableTool
+		named: 'smalltalk_probe'
+		describedBy: 'A tool that takes a method.'
+		properties: { MCPMethodProperty
+			classDescribedBy: 'Name of the class that implements it'
+			selectorDescribedBy: 'Selector of the method' }
+		executingWith: [ :aCompiledMethod | aCompiledMethod ]
+! !
+
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+testAMethodPropertyAnswersTheCompiledMethodItNames
+
+	self
+		assert: (self toolTakingAMethod valueWithArguments:
+			(self argumentsForClassNamed: 'Object' selector: 'printString'))
+		equals: Object >> #printString
+! !
+
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+testAMethodPropertyDescribesEachOfItsPartsOnItsOwn
+
+	| properties |
+
+	properties := (self toolTakingAMethod inputSchema) at: 'properties'.
+
+	self assert: ((properties at: 'className') at: 'description') equals: 'Name of the class that implements it'.
+	self assert: ((properties at: 'selector') at: 'description') equals: 'Selector of the method'
+! !
+
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+testAMethodPropertyIsShownToAClientAsTheClassAndTheSelector
+
+	| properties |
+
+	properties := (self toolTakingAMethod inputSchema) at: 'properties'.
+
+	self assert: properties keys asSortedCollection asArray equals: #('className' 'selector')
+! !
+
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+testAMethodPropertyRefusesASelectorTheClassDoesNotImplement
+
+	self
+		should: [ self toolTakingAMethod valueWithArguments:
+			(self argumentsForClassNamed: 'Object' selector: 'mcpNoSuchSelector') ]
+		raise: Error
+		withMessageText: (MCPTool methodNotFoundErrorDescriptionFor: 'mcpNoSuchSelector' asSymbol in: Object)
+
+! !
+
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!methodProperties: {}!
+testBothOfThePartsOfAMethodPropertyAreRequired
+
+	| required |
+
+	required := (self toolTakingAMethod inputSchema) at: 'required'.
+
+	self assert: required asSortedCollection asArray equals: #('className' 'selector')
 ! !
 
 !MCPSaveImageToolTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!

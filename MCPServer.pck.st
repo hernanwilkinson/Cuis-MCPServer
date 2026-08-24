@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:21:39 pm'!
-'Description Add the two tools for extracting a method'!
-!provides: 'MCPServer' 1 16!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:25:10 pm'!
+'Description Show a method to a client as a class and a selector'!
+!provides: 'MCPServer' 1 17!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -152,6 +152,16 @@ MCPToolProperty subclass: #MCPClassToolProperty
 	category: 'MCPServer'!
 !classDefinition: 'MCPClassToolProperty class' category: 'MCPServer'!
 MCPClassToolProperty class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPMethodProperty category: 'MCPServer'!
+MCPToolProperty subclass: #MCPMethodProperty
+	instanceVariableNames: 'classProperty selectorProperty'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPMethodProperty class' category: 'MCPServer'!
+MCPMethodProperty class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPPlainToolProperty category: 'MCPServer'!
@@ -2555,14 +2565,13 @@ propertiesDefinition
 		inject: OrderedDictionary new
 		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
 
-!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:31:41 pm (UTC)'!
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
 !methodProperties: {}!
 requiredPropertyNames
 
-	^properties 
-		select: [ :aToolProperty | aToolProperty isRequired ]
-		thenCollect: [ :aToolProperty | aToolProperty name ]
-
+	^(properties
+		inject: OrderedCollection new
+		into: [ :someNames :aToolProperty | aToolProperty addRequiredNamesTo: someNames ]) asArray
 ! !
 
 !MCPTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
@@ -2928,6 +2937,18 @@ signalNotProvided
 	self error: self notProvidedErrorDescription
 ! !
 
+!MCPToolProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addRequiredNamesTo: someNames
+
+	"Add the names a client has to send for me. A property answers one value but is not
+	always one name, so it is asked to add them rather than asked what it is called."
+
+	required ifTrue: [ someNames add: name ].
+
+	^someNames
+! !
+
 !MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
 !methodProperties: {}!
 named: aName describedBy: aDescription
@@ -2994,6 +3015,66 @@ classNameNotProvided
 classNotFoundErrorDescriptionFor: aClassName
 
 	^'Class not found: ', aClassName
+! !
+
+!MCPMethodProperty methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+initializeClass: aClassProperty selector: aSelectorProperty
+
+	classProperty := aClassProperty.
+	selectorProperty := aSelectorProperty
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addRequiredNamesTo: someNames
+
+	^selectorProperty addRequiredNamesTo: (classProperty addRequiredNamesTo: someNames)
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addTo: aProperties
+
+	"A client sends a class and a selector, so that is what it is shown."
+
+	^selectorProperty addTo: (classProperty addTo: aProperties)
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+isRequired
+
+	^classProperty isRequired and: [ selectorProperty isRequired ]
+! !
+
+!MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+valueFrom: anArguments
+
+	"Answer the compiled method the class and the selector name. It is one value and not two:
+	a tool that takes a method is handed the method, not the two names it was found by."
+
+	| aClass aSelector |
+
+	aClass := classProperty valueFrom: anArguments.
+	aSelector := selectorProperty valueFrom: anArguments.
+	MCPTool assert: aSelector isImplementedBy: aClass.
+
+	^aClass >> aSelector
+
+! !
+
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
+
+	^self new
+		initializeClass: (MCPClassToolProperty named: 'className' describedBy: aClassDescription)
+		selector: (MCPPluggableToolProperty
+			named: 'selector'
+			describedBy: aSelectorDescription
+			valuedWith: [ :aSelector | aSelector asSymbol ])
 ! !
 
 !MCPPlainToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
