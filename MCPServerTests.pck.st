@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 12:40:01 pm'!
-'Description Drop the tests that only check a tool is advertised'!
-!provides: 'MCPServerTests' 1 12!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 1:47:56 pm'!
+'Description Add tools for finding senders, implementors and references'!
+!provides: 'MCPServerTests' 1 13!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -328,6 +328,21 @@ createdClassInTest
 
 	^Smalltalk classNamed: #MCPTestSubject! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+defineClassWith: aDefinition
+
+	^client callTool: 'smalltalk_define_class' with: (self arguments: 'definition' being: aDefinition)
+! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+defineMethodIn: aClassName source: aSource
+
+	^client callTool: 'smalltalk_define_method' with:
+		(self arguments: 'className' being: aClassName and: 'source' being: aSource)
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:34 pm (UTC)'!
 !methodProperties: {}!
 defineTestSubjectClass
@@ -360,6 +375,17 @@ definitionOf: aClassName subclassOf: aSuperclassName
 	poolDictionaries: ''''
 	category: ''', self classCategoryOfTestData, ''''! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:07:44 pm (UTC)'!
+!methodProperties: {}!
+definitionOf: aClassName subclassOf: aSuperclassName instanceVariableNames: someInstanceVariableNames classVariableNames: someClassVariableNames
+
+	^aSuperclassName, ' subclass: #', aClassName, '
+	instanceVariableNames: ''', someInstanceVariableNames, '''
+	classVariableNames: ''', someClassVariableNames, '''
+	poolDictionaries: ''''
+	category: ''', self classCategoryOfTestData, ''''
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:56 pm (UTC)'!
 !methodProperties: {}!
 definitionWithANonLiteralClassName
@@ -390,6 +416,16 @@ jsonAnswerOf: aToolName with: anArguments
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:10:14 pm (UTC)'!
+!methodProperties: {}!
+phraseNoOtherMethodCarries
+
+	"Built out of pieces so that the source of this method does not carry the phrase itself,
+	which would make the search that looks for it find this method too."
+
+	^'una ', 'frase ', 'que ', 'nadie ', 'mas ', 'dice'
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:51:27 am (UTC)'!
 !methodProperties: {}!
 propertyNamed: aPropertyName of: aToolName
@@ -416,6 +452,13 @@ serverErrorTextFor: anErrorDescription
 	of the exception, which starts with the name of its class."
 
 	^'Error: ', anErrorDescription! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+sortedAnswerOf: aToolName with: anArguments
+
+	^(self jsonAnswerOf: aToolName with: anArguments) asSortedCollection asArray
+! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:52 pm (UTC)'!
 !methodProperties: {}!
@@ -650,6 +693,20 @@ testHierarchyAnswersTheClassAndAllItsSuperclasses
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject' 'Object' 'ProtoObject')! !
 
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_implementors_of' with: (self arguments: 'selector' being: 'mcpProbe'))
+		equals: #('MCPTestSubject mcpProbe')
+! !
+
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 6:13:00 pm (UTC)'!
 !methodProperties: {}!
 testInitializeAnswersTheProtocolVersion
@@ -713,6 +770,135 @@ testMethodSourceOfAnUnknownClassFails
 			with: (self arguments: 'className' being: 'NoSuchClassAtAll' and: 'selector' being: 'anything') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+testReferencesToAClassAnswerEveryMethodThatNamesIt
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeNamingItsClass
+
+	^MCPTestSubject'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_references_to_class' with: (self arguments: 'className' being: 'MCPTestSubject'))
+		equals: #('MCPTestSubject mcpProbeNamingItsClass')
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
+
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubject' subclassOf: 'Object'
+		instanceVariableNames: '' classVariableNames: 'ProbeVariable').
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'
+		instanceVariableNames: '' classVariableNames: '').
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeWriting
+
+	ProbeVariable := 42'.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbeReading
+
+	^ProbeVariable'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_references_to_class_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'ProbeVariable'))
+		equals: #('MCPTestSubject mcpProbeWriting' 'MCPTestSubjectChild mcpProbeReading')
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:09:26 pm (UTC)'!
+!methodProperties: {}!
+testReferencesToAClassVariableTheClassDoesNotHaveFails
+
+	self defineTestSubjectClass.
+
+	self
+		should: [ client
+			callTool: 'smalltalk_references_to_class_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'NoSuchVariable') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPServer classVariableNotFoundErrorDescriptionFor: 'NoSuchVariable' in: self createdClassInTest))
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+testReferencesToAnInstanceVariableIncludeTheSubclassesThatSeeIt
+
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubject' subclassOf: 'Object'
+		instanceVariableNames: 'probeVariable' classVariableNames: '').
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'
+		instanceVariableNames: '' classVariableNames: '').
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeWriting
+
+	probeVariable := 42'.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbeReading
+
+	^probeVariable printString'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_references_to_instance_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'probeVariable'))
+		equals: #('[read] - MCPTestSubjectChild mcpProbeReading' '[write] - MCPTestSubject mcpProbeWriting')
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:09:26 pm (UTC)'!
+!methodProperties: {}!
+testReferencesToAnInstanceVariableTheClassDoesNotHaveFails
+
+	self defineTestSubjectClass.
+
+	self
+		should: [ client
+			callTool: 'smalltalk_references_to_instance_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'noSuchVariable') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPServer instanceVariableNotFoundErrorDescriptionFor: 'noSuchVariable' in: self createdClassInTest))
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:10:14 pm (UTC)'!
+!methodProperties: {}!
+testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
+
+	| phrase |
+
+	phrase := self phraseNoOtherMethodCarries.
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeCarryingAPhrase
+
+	"', phrase, '"
+
+	^42'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_search_source' with: (self arguments: 'text' being: phrase))
+		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:07:45 pm (UTC)'!
+!methodProperties: {}!
+testSendersOfAnswersEveryMethodThatSendsTheSelector
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeCaller
+
+	^self mcpProbe'.
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_senders_of' with: (self arguments: 'selector' being: 'mcpProbe'))
+		equals: #('MCPTestSubject mcpProbeCaller')
+! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:06:55 pm (UTC)'!
 !methodProperties: {}!
