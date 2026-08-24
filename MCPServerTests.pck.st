@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 5:42:02 pm'!
-'Description Add refactoring tools for methods and globals'!
-!provides: 'MCPServerTests' 1 15!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 6:02:06 pm'!
+'Description Add tools for temporaries, naming source by text or interval'!
+!provides: 'MCPServerTests' 1 16!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -326,6 +326,19 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey
 		at: anotherKey put: anotherValue;
 		at: aThirdKey put: aThirdValue;
 		yourself! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 8:54:35 pm (UTC)'!
+!methodProperties: {}!
+arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey being: aThirdValue and: aFourthKey being: aFourthValue
+
+	^Dictionary new
+		at: aKey put: aValue;
+		at: anotherKey put: anotherValue;
+		at: aThirdKey put: aThirdValue;
+		at: aFourthKey put: aFourthValue;
+		yourself
+
+! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 6:33:22 pm (UTC)'!
 !methodProperties: {}!
@@ -1009,6 +1022,55 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| aTemporary |
+
+	aTemporary := 42.
+	^aTemporary + aTemporary'.
+
+	self
+		should: [ self applyRefactoring: 'smalltalk_refactor_inline_temporary_variable'
+			with: (self
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
+				and: 'variableName' being: 'aTemporary'
+				and: 'text' being: 'aTemporary') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: (MCPServer
+			textFoundMoreThanOnceErrorDescriptionFor: 'aTemporary'
+			in: (self createdClassInTest compiledMethodAt: 'mcpProbe' asSymbol)))
+
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+testInlineTemporaryVariableRefactoringReplacesTheUseNamedByItsText
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| aTemporary |
+
+	aTemporary := 42.
+	^aTemporary + 1'.
+
+	self applyRefactoring: 'smalltalk_refactor_inline_temporary_variable'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'variableName' being: 'aTemporary'
+			and: 'text' being: 'aTemporary + 1').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: '^42 + 1' caseSensitive: true)
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 6:31:57 pm (UTC)'!
 !methodProperties: {}!
 testInsertSuperclassRefactoringPutsTheNewClassBetween
@@ -1269,6 +1331,27 @@ testSafelyRemoveClassRefactoringRemovesAClassNothingUses
 
 	self assert: self createdClassInTest isNil
 
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+testTemporaryToInstanceVariableRefactoringMovesItToTheClass
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| aTemporary |
+
+	aTemporary := 42.
+	^aTemporary'.
+
+	self applyRefactoring: 'smalltalk_refactor_temporary_to_instance_variable'
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'variableName' being: 'aTemporary').
+
+	self assert: (self createdClassInTest instVarNames includes: 'aTemporary')
 ! !
 
 !MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 20/Aug/2026, 5:54:03 pm (UTC)'!

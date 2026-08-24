@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 5:41:59 pm'!
-'Description Add refactoring tools for methods and globals'!
-!provides: 'MCPServer' 1 12!
+'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 6:02:04 pm'!
+'Description Add tools for temporaries, naming source by text or interval'!
+!provides: 'MCPServer' 1 13!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1300,7 +1300,7 @@ addMiscTools
 	self addTool: self saveImageTool
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
 !methodProperties: {}!
 addRefactoringTools
 
@@ -1322,7 +1322,9 @@ addRefactoringTools
 	self addTool: self pushDownMethodToSubclassesRefactoringTool.
 	self addTool: self pushDownMethodToOneSubclassRefactoringTool.
 	self addTool: self addAsSubclassResponsibilityRefactoringTool.
-	self addTool: self moveToInstanceOrClassMethodRefactoringTool! !
+	self addTool: self moveToInstanceOrClassMethodRefactoringTool.
+	self addTool: self temporaryToInstanceVariableRefactoringTool.
+	self addTool: self inlineTemporaryVariableRefactoringTool! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
@@ -1377,6 +1379,27 @@ applyToSelector: aSelector refactoringBuiltWith: aBlock
 		inSystem: smalltalk.
 
 	^self apply: (aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ]))
+! !
+
+!MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
+
+	"Answer the piece of source a refactoring works on. A client that knows where it is sends
+	the interval; one that does not sends the text and it is looked for, which only answers
+	when the method says it once."
+
+	| source firstOccurrence |
+
+	aStart isEmpty ifFalse: [ ^aStart asNumber to: aStop asNumber ].
+
+	source := aCompiledMethod sourceCode.
+	firstOccurrence := source findString: aText startingAt: 1.
+	firstOccurrence = 0 ifTrue: [ self error: (MCPServer textNotFoundErrorDescriptionFor: aText in: aCompiledMethod) ].
+	(source findString: aText startingAt: firstOccurrence + 1) = 0
+		ifFalse: [ self error: (MCPServer textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod) ].
+
+	^firstOccurrence to: firstOccurrence + aText size - 1
 ! !
 
 !MCPServer methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
@@ -1464,6 +1487,29 @@ changeKeywordsOrderRefactoringTool
 		executingWith: [ :aSelector :aNewSelector |
 			self applyToSelector: aSelector refactoringBuiltWith: [ :implementors :senders |
 				ChangeKeywordsSelectorOrder from: aSelector to: aNewSelector implementors: implementors senders: senders ] ]
+! !
+
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+inlineTemporaryVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_inline_temporary_variable'
+		describedBy: 'Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to inline'.
+			MCPPlainToolProperty named: 'text' describedBy: 'Text of the use to replace, looked for in the source of the method' defaultingTo: ''.
+			MCPPlainToolProperty named: 'start' describedBy: 'First character of the use, counting from one. Sent instead of the text' defaultingTo: ''.
+			MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the use' defaultingTo: '' }
+		executingWith: [ :aClass :aSelector :aVariableName :aText :aStart :aStop |
+			| methodToRefactor |
+			methodToRefactor := self methodIn: aClass named: aSelector.
+			self apply: (InlineTemporaryVariable
+				named: aVariableName
+				atUsageInterval: (self intervalIn: methodToRefactor matching: aText from: aStart to: aStop)
+				inMethod: methodToRefactor) ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 4:54:11 pm (UTC)'!
@@ -1693,6 +1739,23 @@ safelyRemoveClassRefactoringTool
 
 ! !
 
+!MCPServer methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+temporaryToInstanceVariableRefactoringTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_refactor_temporary_to_instance_variable'
+		describedBy: 'Turn a temporary of a method into an instance variable of its class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to turn into an instance variable' }
+		executingWith: [ :aClass :aSelector :aVariableName |
+			self apply: (TemporaryToInstanceVariable
+				named: aVariableName
+				fromMethod: (self methodIn: aClass named: aSelector) methodNode) ]
+! !
+
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
 implementorsOfTool
@@ -1860,6 +1923,21 @@ instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
 parseErrorDescription
 
 	^'Parse error'! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 8:54:39 pm (UTC)'!
+!methodProperties: {}!
+textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod
+
+	^'Text found more than once in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector,
+		', send the interval instead: ', aText
+! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 8:54:37 pm (UTC)'!
+!methodProperties: {}!
+textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
+
+	^'Text not found in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector, ': ', aText
+! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
 !methodProperties: {}!
