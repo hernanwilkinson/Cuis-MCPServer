@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:34:02 pm'!
-'Description Offer the ExtraRefactorings refactorings from their own package'!
-!provides: 'MCPServerTests' 1 22!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:06:59 am'!
+'Description Hand a tool the method instead of the two names it is found by'!
+!provides: 'MCPServerTests' 1 23!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -1978,7 +1978,7 @@ testAMethodPropertyIsShownToAClientAsTheClassAndTheSelector
 	self assert: properties keys asSortedCollection asArray equals: #('className' 'selector')
 ! !
 
-!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!MCPMethodPropertyTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
 !methodProperties: {}!
 testAMethodPropertyRefusesASelectorTheClassDoesNotImplement
 
@@ -1986,7 +1986,7 @@ testAMethodPropertyRefusesASelectorTheClassDoesNotImplement
 		should: [ self toolTakingAMethod valueWithArguments:
 			(self argumentsForClassNamed: 'Object' selector: 'mcpNoSuchSelector') ]
 		raise: Error
-		withMessageText: (MCPTool methodNotFoundErrorDescriptionFor: 'mcpNoSuchSelector' asSymbol in: Object)
+		withMessageText: (MCPMethodProperty methodNotFoundErrorDescriptionFor: 'mcpNoSuchSelector' asSymbol in: Object)
 
 ! !
 

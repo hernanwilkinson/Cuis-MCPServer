@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:32 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 2!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:08:15 am'!
+'Description Hand a tool the method instead of the two names it is found by'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 3!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -70,7 +70,7 @@ apply: aRefactoring
 	^'Refactoring applied'
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 25/Aug/2026, 11:01:01 am (UTC)'!
 !methodProperties: {}!
 addParameterInActualScopeTool
 
@@ -78,25 +78,26 @@ addParameterInActualScopeTool
 		named: 'smalltalk_refactor_add_parameter_in_actual_scope'
 		describedBy: 'Add a parameter to a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the selector'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to add the parameter to' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to add the parameter to'.
 			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
 			MCPPlainToolProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
 			MCPPlainToolProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
 			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
-		executingWith: [ :aClass :aSelector :aParameterName :aParameterValue :aKeyword :aParameterIndex :aKeepingAnswer |
+		executingWith: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aKeepingAnswer |
 			self
-				actualScopeOf: aSelector
-				in: aClass
+				actualScopeOf: aMethod selector
+				in: aMethod methodClass
 				using: AddParameterWithActualScope
 				keepingPossibleSends: aKeepingAnswer = 'true'
 				applyingWith: [ :implementors :senders |
-					aSelector isUnary
+					aMethod selector isUnary
 						ifTrue: [ AddParameterWithActualScope
 							named: aParameterName
 							initializedWith: aParameterValue
-							toUnarySelector: aSelector
+							toUnarySelector: aMethod selector
 							implementors: implementors
 							senders: senders
 							withPossibleMessageSends: aKeepingAnswer = 'true' ]
@@ -105,14 +106,14 @@ addParameterInActualScopeTool
 							at: aParameterIndex asNumber
 							initializedWith: aParameterValue
 							using: aKeyword
-							toKeywordSelector: aSelector
+							toKeywordSelector: aMethod selector
 							implementors: implementors
 							senders: senders
 							withPossibleMessageSends: aKeepingAnswer = 'true' ] ] ]
 
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 25/Aug/2026, 11:01:01 am (UTC)'!
 !methodProperties: {}!
 changeKeywordsOrderInActualScopeTool
 
@@ -120,26 +121,27 @@ changeKeywordsOrderInActualScopeTool
 		named: 'smalltalk_refactor_change_keywords_order_in_actual_scope'
 		describedBy: 'Reorder the keywords of a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the selector'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to reorder' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to reorder'.
 			MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
-		executingWith: [ :aClass :aSelector :aNewSelector :aKeepingAnswer |
+		executingWith: [ :aMethod :aNewSelector :aKeepingAnswer |
 			self
-				actualScopeOf: aSelector
-				in: aClass
+				actualScopeOf: aMethod selector
+				in: aMethod methodClass
 				using: ChangeKeywordsSelectorOrderWithActualScope
 				keepingPossibleSends: aKeepingAnswer = 'true'
 				applyingWith: [ :implementors :senders |
 					ChangeKeywordsSelectorOrderWithActualScope
-						from: aSelector
+						from: aMethod selector
 						to: aNewSelector
 						implementors: implementors
 						senders: senders
 						withPossibleMessageSends: aKeepingAnswer = 'true' ] ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 25/Aug/2026, 11:01:01 am (UTC)'!
 !methodProperties: {}!
 removeParameterInActualScopeTool
 
@@ -147,28 +149,29 @@ removeParameterInActualScopeTool
 		named: 'smalltalk_refactor_remove_parameter_in_actual_scope'
 		describedBy: 'Remove a parameter from a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the selector'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to remove the parameter from' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to remove the parameter from'.
 			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
 			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
-		executingWith: [ :aClass :aSelector :aParameterName :aParameterIndex :aKeepingAnswer |
+		executingWith: [ :aMethod :aParameterName :aParameterIndex :aKeepingAnswer |
 			self
-				actualScopeOf: aSelector
-				in: aClass
+				actualScopeOf: aMethod selector
+				in: aMethod methodClass
 				using: RemoveParameterWithActualScope
 				keepingPossibleSends: aKeepingAnswer = 'true'
 				applyingWith: [ :implementors :senders |
 					RemoveParameterWithActualScope
 						atIndex: aParameterIndex asNumber
 						named: aParameterName
-						from: aSelector
+						from: aMethod selector
 						implementors: implementors
 						senders: senders
 						withPossibleMessageSends: aKeepingAnswer = 'true' ] ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation - live typing refactoring' stamp: 'HAW 25/Aug/2026, 11:00:49 am (UTC)'!
 !methodProperties: {}!
 renameSelectorInActualScopeTool
 
@@ -176,19 +179,20 @@ renameSelectorInActualScopeTool
 		named: 'smalltalk_refactor_rename_selector_in_actual_scope'
 		describedBy: 'Rename a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran. A send of the same name to anything else is left alone, which renaming a selector in the whole system cannot tell apart.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the selector'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to rename' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to rename'.
 			MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }
-		executingWith: [ :aClass :aSelector :aNewSelector :aKeepingAnswer |
+		executingWith: [ :aMethod :aNewSelector :aKeepingAnswer |
 			self
-				actualScopeOf: aSelector
-				in: aClass
+				actualScopeOf: aMethod selector
+				in: aMethod methodClass
 				using: RenameSelectorWithActualScope
 				keepingPossibleSends: aKeepingAnswer = 'true'
 				applyingWith: [ :implementors :senders |
 					RenameSelectorWithActualScope
-						from: aSelector
+						from: aMethod selector
 						to: aNewSelector
 						implementors: implementors
 						senders: senders

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:13 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerExtraRefactoring' 1 3!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:07:21 am'!
+'Description Hand a tool the method instead of the two names it is found by'!
+!provides: 'MCPServerExtraRefactoring' 1 4!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -52,15 +52,6 @@ classNamed: aClassName
 
 	^(smalltalk classNamed: aClassName)
 		ifNil: [ self error: (MCPExtraRefactoringTools classNotFoundErrorDescriptionFor: aClassName) ]
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-methodIn: aClass named: aSelector
-
-	MCPTool assert: aSelector isImplementedBy: aClass.
-
-	^aClass >> aSelector
 ! !
 
 !MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
@@ -129,7 +120,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
 !methodProperties: {}!
 extractParameterObjectTool
 
@@ -137,29 +128,27 @@ extractParameterObjectTool
 		named: 'smalltalk_refactor_extract_parameter_object'
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty ofAMethod.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
 			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
-		executingWith: [ :aClass :aSelector :aNewClassName :someParameterNames :aSuperclassName :aCategory |
-			| methodToRefactor parameterNames |
-			methodToRefactor := self methodIn: aClass named: aSelector.
+		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
+			| parameterNames |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
-			self scopeOf: aSelector applyingWith: [ :implementors :senders |
+			self scopeOf: aMethod selector applyingWith: [ :implementors :senders |
 				ExtractParameterObject
-					from: methodToRefactor
+					from: aMethod
 					toClassNamed: aNewClassName asSymbol
 					subclassing: (self classNamed: aSuperclassName) name
-					onCategory: (self categoryFor: aCategory of: aClass)
+					onCategory: (self categoryFor: aCategory of: aMethod methodClass)
 					withParameters: parameterNames
-					placedAt: (self positionsIn: methodToRefactor of: parameterNames)
+					placedAt: (self positionsIn: aMethod of: parameterNames)
 					implementors: implementors
 					senders: senders ] ]
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
 !methodProperties: {}!
 extractToMethodObjectTool
 
@@ -167,18 +156,17 @@ extractToMethodObjectTool
 		named: 'smalltalk_refactor_extract_to_method_object'
 		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to turn into an object' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty selectorDescribedBy: 'Selector of the method to turn into an object'.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the method becomes'.
 			MCPPlainToolProperty named: 'evaluationSelector' describedBy: 'Selector the new object is sent to do what the method did' defaultingTo: 'value'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
 			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
-		executingWith: [ :aClass :aSelector :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory |
+		executingWith: [ :aMethod :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory |
 			self apply: (ExtractToMethodObject
-				from: (self methodIn: aClass named: aSelector)
+				from: aMethod
 				toMethodObjectClassNamed: aNewClassName asSymbol
 				subclassing: (self classNamed: aSuperclassName)
-				onCategory: (self categoryFor: aCategory of: aClass)
+				onCategory: (self categoryFor: aCategory of: aMethod methodClass)
 				evaluatedWith: anEvaluationSelector asSymbol) ]
 
 ! !
@@ -203,7 +191,7 @@ moveInstanceVariableTool
 				accessingThrough: anAccessingVariableName) ]
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 moveMethodTool
 
@@ -211,15 +199,14 @@ moveMethodTool
 		named: 'smalltalk_refactor_move_method'
 		describedBy: 'Move a method to another class, which the class it is moved from reaches through an instance variable of its own. When the moved method still needs what it was moved from, it is given as a parameter named here.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method to move' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
 			MCPClassToolProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to'.
 			MCPPlainToolProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }
-		executingWith: [ :aClass :aSelector :aTargetClass :anAccessingVariableName :anExtraParameterName |
+		executingWith: [ :aMethod :aTargetClass :anAccessingVariableName :anExtraParameterName |
 			self apply: (MoveMethod
-				methodNamed: aSelector
-				from: aClass
+				methodNamed: aMethod selector
+				from: aMethod methodClass
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName
 				parameterNeeded: (anExtraParameterName isEmpty

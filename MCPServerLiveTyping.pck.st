@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:26 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerLiveTyping' 1 3!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:07:49 am'!
+'Description Hand a tool the method instead of the two names it is found by'!
+!provides: 'MCPServerLiveTyping' 1 4!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -33,15 +33,6 @@ addToolsTo: anMCPServer
 	anMCPServer addTool: self actualSendersOfTool.
 	anMCPServer addTool: self actualImplementorsOfTool! !
 
-!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
-methodIn: aClass named: aSelector
-
-	MCPTool assert: aSelector isImplementedBy: aClass.
-
-	^aClass >> aSelector
-! !
-
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
 !methodProperties: {}!
 renderMethodReferences: someMethodReferences
@@ -59,9 +50,12 @@ renderTypeNames: aTypeInfo
 	^Json render: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 11:06:10 am (UTC)'!
 !methodProperties: {}!
 actualImplementorsOfTool
+
+	"The class and the selector are two properties here and not a method property, because the
+	class does not have to implement the selector: which classes do is what is being asked."
 
 	^MCPPluggableTool
 		named: 'smalltalk_actual_implementors_of'
@@ -79,7 +73,7 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 actualSendersOfTool
 
@@ -87,31 +81,26 @@ actualSendersOfTool
 		named: 'smalltalk_actual_senders_of'
 		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty ofAMethod.
 			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
-		executingWith: [ :aClass :aSelector :aPossibleAnswer |
+		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
-			sureAndPossibleSenders := smalltalk allActualSendersOn: (self methodIn: aClass named: aSelector).
+			sureAndPossibleSenders := smalltalk allActualSendersOn: aMethod.
 			self renderMethodReferences: (aPossibleAnswer = 'true'
 				ifTrue: [ sureAndPossibleSenders first , sureAndPossibleSenders second ]
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:40:01 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_return_types_of_method'
 		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aClass :aSelector |
-			Json render: (((self methodIn: aClass named: aSelector) returnTypes
-				collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
-
+		properties: { MCPMethodProperty ofAMethod }
+		executingWith: [ :aMethod |
+			Json render: ((aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
@@ -148,7 +137,7 @@ typesOfInstanceVariableTool
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:11 am (UTC)'!
 !methodProperties: {}!
 typesOfMethodVariableTool
 
@@ -156,12 +145,9 @@ typesOfMethodVariableTool
 		named: 'smalltalk_types_of_method_variable'
 		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty ofAMethod.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
-		executingWith: [ :aClass :aSelector :aVariableName |
-			| aMethod |
-			aMethod := self methodIn: aClass named: aSelector.
+		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod
 				typeInfoOfVariableNamed: aVariableName
 				ifAbsent: [ self error: (MCPLiveTypingTools variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]
