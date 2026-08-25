@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:34:41 pm'!
-'Description Offer the ExtraRefactorings refactorings from their own package'!
-!provides: 'MCPServerExtraRefactoringTest' 1 1!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:41:22 am'!
+'Description Extract a parameter object and a method object'!
+!provides: 'MCPServerExtraRefactoringTest' 1 2!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -84,6 +84,56 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 	self assert: (Smalltalk classNamed: 'MCPExtraTestTarget') notNil.
 	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') instVarNames includes: 'movingVariable').
 	self assert: (self sourceClass instVarNames includes: 'stayingVariable')
+! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:41:07 am (UTC)'!
+!methodProperties: {}!
+testExtractingAParameterObjectGathersTheParametersNamed
+
+	"The parameters keep their names without the article they were written with, so aFirst is
+	held as first, and the method is left taking the ones that were not gathered."
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	source compile: 'mcpFirst: aFirst second: aSecond third: aThird
+
+	^aFirst' classified: 'probing'.
+
+	(self toolNamed: 'smalltalk_refactor_extract_parameter_object') valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpFirst:second:third:';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'parameterNames' put: 'aFirst, aThird';
+		at: 'category' put: self classCategoryOfTestData;
+		yourself).
+
+	self deny: (self sourceClass includesSelector: 'mcpFirst:second:third:' asSymbol).
+	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') instVarNames includesAllOf: #('first' 'third')).
+	self assert: (self sourceClass includesSelector: 'second:mCPExtraTestTarget:' asSymbol)! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:40:32 am (UTC)'!
+!methodProperties: {}!
+testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	source compile: 'mcpProbe
+
+	^42' classified: 'probing'.
+
+	(self toolNamed: 'smalltalk_refactor_extract_to_method_object') valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpProbe';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'evaluationSelector' put: 'mcpEvaluate';
+		at: 'category' put: self classCategoryOfTestData;
+		yourself).
+
+	self assert: (Smalltalk classNamed: 'MCPExtraTestTarget') notNil.
+	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') includesSelector: 'mcpEvaluate' asSymbol)
+
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
