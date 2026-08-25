@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:33:28 pm'!
-'Description Offer the ExtraRefactorings refactorings from their own package'!
-!provides: 'MCPServer' 1 19!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:10 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServer' 1 20!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -74,20 +74,10 @@ Object subclass: #MCPHttpSession
 MCPHttpSession class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPRefactoringTools category: 'MCPServer'!
-Object subclass: #MCPRefactoringTools
-	instanceVariableNames: 'smalltalk'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPRefactoringTools class' category: 'MCPServer'!
-MCPRefactoringTools class
-	instanceVariableNames: ''!
-
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
 	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools smalltalk'
-	classVariableNames: 'RunningInstance ToolProviders'
+	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
 !classDefinition: 'MCPServer class' category: 'MCPServer'!
@@ -194,6 +184,26 @@ MCPToolProperty subclass: #MCPPluggableToolProperty
 MCPPluggableToolProperty class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPToolProvider category: 'MCPServer'!
+Object subclass: #MCPToolProvider
+	instanceVariableNames: 'smalltalk'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPToolProvider class' category: 'MCPServer'!
+MCPToolProvider class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPRefactoringTools category: 'MCPServer'!
+MCPToolProvider subclass: #MCPRefactoringTools
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPRefactoringTools class' category: 'MCPServer'!
+MCPRefactoringTools class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPTransport category: 'MCPServer'!
 Object subclass: #MCPTransport
 	instanceVariableNames: ''
@@ -252,11 +262,6 @@ I am one open Server-Sent Events stream between an MCPTransportHttpCopy and a cl
 
 I know my identifier, which the client sends back in the sessionId parameter of every message it posts, and the socket stream my events are written to. Only one writer at a time writes on that stream. A write that fails closes me, and a closed session never writes again.!
 
-!MCPRefactoringTools commentStamp: '<historical>' prior: 0!
-I am every tool that applies a refactoring of the image I was made for.
-
-A server asks me for my tools and offers them; what a refactoring needs to be built, and how a piece of source is named by the text it is written with or by the interval it occupies, is mine to know and not the server's.!
-
 !MCPTool commentStamp: '<historical>' prior: 0!
 I am a tool an MCP server offers.
 
@@ -305,6 +310,16 @@ I am a property whose value is the one that came in the request, with nothing do
 I am a property that turns the value that came in the request into the one the tool needs by evaluating the block I was created with.
 
 When that block would be long, or would need state of its own, write a subclass of MCPToolProperty instead - MCPClassToolProperty is one.!
+
+!MCPToolProvider commentStamp: '<historical>' prior: 0!
+I am a source of tools a server offers.
+
+Every subclass of mine is asked to add its tools, so a package that has some is one that subclasses me, and a package that is not loaded adds none. There is nothing to register and nothing to forget to register.!
+
+!MCPRefactoringTools commentStamp: '<historical>' prior: 0!
+I am every tool that applies a refactoring of the image I was made for.
+
+A server asks me for my tools and offers them; what a refactoring needs to be built, and how a piece of source is named by the text it is written with or by the interval it occupies, is mine to know and not the server's.!
 
 !MCPTransport commentStamp: '<historical>' prior: 0!
 I am the way an MCPServer talks to its client.
@@ -705,6 +720,1636 @@ sendMessageEvent: aJsonString
 identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
+
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+initializeServingOver: aTransport smalltalk: aSmalltalk
+
+	transport := aTransport.
+	smalltalk := aSmalltalk.
+	running := false.
+	self initializeTools.
+	self doNotLogMessages
+! !
+
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:51:07 am (UTC)'!
+!methodProperties: {}!
+initializeTools
+
+	tools := Dictionary new.
+	self addDebuggingTools.
+	self addClassTools.
+	self addSearchTools.
+	self addMiscTools.
+	self addProvidedTools! !
+
+!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
+!methodProperties: {}!
+doNotLogMessages
+
+	shouldLogMessages := false! !
+
+!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
+logAnswered: response receivedAt: receivedTime
+
+	shouldLogMessages ifTrue: [
+		| answeredTime |
+	
+		answeredTime := DateAndTime now.
+		Transcript 
+			show: answeredTime printString; 
+			show: ' Answered after: '; 
+			show: (answeredTime - receivedTime) printString;
+			newLine;
+			flush ]
+
+	! !
+
+!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
+logMessages
+
+	shouldLogMessages := true! !
+
+!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
+!methodProperties: {}!
+logReceived: request
+	
+	| receivedTime |
+	
+	receivedTime := DateAndTime now.
+	shouldLogMessages ifTrue: [
+		Transcript 
+			show: receivedTime printString; 
+			show: ' Received: ';
+			show: (request ifNil: [ 'nil request'] ifNotNil: [request at: 'method' ifAbsent: ['no method found...']]);
+			newLine;
+			flush ].
+			
+	^receivedTime
+	! !
+
+!MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
+isRunning
+
+	"Answer whether I am still serving requests."
+
+	^running! !
+
+!MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
+run
+
+	"Serve MCP requests over my transport until stopped. Whether this blocks the calling
+	process is up to the transport."
+
+	RunningInstance := self.
+	running := true.
+	transport serveRequestsFor: self! !
+
+!MCPServer methodsFor: 'running' stamp: ''!
+!methodProperties: {}!
+stop
+
+	running := false.
+	transport stopServingRequests.
+	RunningInstance := nil! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:05:34 pm (UTC)'!
+!methodProperties: {}!
+dispatch: aMethod with: aParams ifNone: aNoneBlock
+
+	aMethod = 'initialize' ifTrue: [ ^ self handleInitialize: aParams ].
+	aMethod = 'tools/list' ifTrue: [ ^ self handleToolsList: aParams ].
+	aMethod = 'tools/call' ifTrue: [ ^ self handleToolsCall: aParams ].
+	aMethod = 'ping' ifTrue: [ ^ Dictionary new ].
+	
+	^aNoneBlock value! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:59 pm (UTC)'!
+!methodProperties: {}!
+handleMethod: aMethod with: aParams identifiedAs: anId 
+
+	^[ | methodResult |
+		methodResult := self 
+			dispatch: aMethod 
+			with: aParams 
+			ifNone: [ ^self methodNotFoundResponseFor: anId on: aMethod].
+		self successResponseFor: anId result: methodResult ]
+		on: Error
+		do: [ :anError | self internalErrorResponseFor: anId withError: anError ].
+	! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:02:12 pm (UTC)'!
+!methodProperties: {}!
+handleNotification: aMethod with: aParams
+	
+	"Right now it does nothing. Change to support  cancellation - Hernan"
+	
+	aMethod = 'notifications/initialized' ifTrue: [ ^ nil ].
+	aMethod = 'notifications/cancelled' ifTrue: [ ^ nil ].
+	
+	^nil! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:57:28 pm (UTC)'!
+!methodProperties: {}!
+handleRequest: aRequest
+	
+	| method id params |
+
+	method := aRequest at: 'method' ifAbsent: [ ^ nil ].
+	id := aRequest at: 'id' ifAbsent: [ nil ].
+	params := aRequest at: 'params' ifAbsent: [ Dictionary new ].
+	
+	^id 
+		ifNil: [ self handleNotification: method with: params ]
+		ifNotNil: [ self handleMethod: method with: params identifiedAs: id ]! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:43 pm (UTC)'!
+!methodProperties: {}!
+jsonResponseTo: aJsonString
+
+	| request |
+
+	request := [ Json readFrom: aJsonString readStream ]
+		on: Error
+		do: [ :aParseError | ^self jsonParseError ].
+
+	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
+
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:13:30 pm (UTC)'!
+!methodProperties: {}!
+responseTo: aRequest
+
+	| receivedTime response |
+
+	receivedTime := self logReceived: aRequest.
+	response := self handleRequest: aRequest.
+	response ifNotNil: [ :anAnswer |
+		self logAnswered: anAnswer receivedAt: receivedTime ].
+
+	^response! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
+!methodProperties: {}!
+errorFor: aCode with: aMessage
+
+	^OrderedDictionary new
+		at: 'code' put: aCode;
+		at: 'message' put: aMessage;
+		yourself! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:12:07 pm (UTC)'!
+!methodProperties: {}!
+errorResponseFor: anId code: aCode message: aMessage
+	
+	^ (self responseFor: anId)
+		at: 'error' put: (self errorFor: aCode with: aMessage);
+		yourself.! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+internalErrorResponseFor: anId withError: anError
+
+	^ self errorResponseFor: anId code: -32603 message: anError printString! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 12:07:52 pm (UTC)'!
+!methodProperties: {}!
+jsonInternalErrorWith: anError
+
+	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 1:50:33 pm (UTC)'!
+!methodProperties: {}!
+jsonParseError
+
+	^Json render: (self errorResponseFor: nil code: -32700 message: self class parseErrorDescription)! !
+
+!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
+!methodProperties: {}!
+methodNotFoundResponseFor: anId on: aMethod
+
+	^ self errorResponseFor: anId code: -32601 message: 'Unknown method: ' , aMethod! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 20/Aug/2026, 2:40:05 pm (UTC)'!
+!methodProperties: {}!
+responseFor: anId
+
+	^ OrderedDictionary new
+		at: 'jsonrpc' put: '2.0';
+		at: 'id' put: anId;
+		yourself! !
+
+!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:35 pm (UTC)'!
+!methodProperties: {}!
+successResponseFor: anId result: aResult
+	
+	^ (self responseFor: anId)
+		at: 'result' put: aResult;
+		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:21 pm (UTC)'!
+!methodProperties: {}!
+capabilities
+
+	^ OrderedDictionary new
+		at: 'tools' put: Dictionary new;
+		yourself
+					
+					! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 12:02:27 pm (UTC)'!
+!methodProperties: {}!
+contentFor: resultText
+
+	^ Dictionary new
+		at: 'type' put: 'text';
+		at: 'text' put: resultText;
+		yourself! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:39 pm (UTC)'!
+!methodProperties: {}!
+handleInitialize: aParams
+	
+	^ OrderedDictionary new
+		at: 'protocolVersion' put: '2024-11-05';
+		at: 'capabilities' put: self capabilities;
+		at: 'serverInfo' put: self serverInfo;
+		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:19:59 pm (UTC)'!
+!methodProperties: {}!
+handleToolsCall: aParams
+
+	| name arguments resultText |
+
+	name := aParams at: 'name' ifAbsent: [ '' ].
+	arguments := aParams at: 'arguments' ifAbsent: [ Dictionary new ].
+	resultText := self executeTool: name arguments: arguments.
+	
+	^ Dictionary new
+		at: 'content' put: { self contentFor: resultText };
+		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:20:20 pm (UTC)'!
+!methodProperties: {}!
+handleToolsList: params
+
+	^ OrderedDictionary new
+		at: 'tools' put: self toolDefinitions;
+		yourself.! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:52 pm (UTC)'!
+!methodProperties: {}!
+serverInfo
+	
+	^OrderedDictionary new
+		at: 'name' put: 'cuis-smalltalk';
+		at: 'version' put: '1.0.0';
+		yourself! !
+
+!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
+!methodProperties: {}!
+toolDefinitions
+
+	^tools values collect: [ :eachTool | eachTool definition ]
+! !
+
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
+!methodProperties: {}!
+executeTool: aToolName arguments: anArguments
+
+	^(self toolNamed: aToolName) valueWithArguments: anArguments
+
+! !
+
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
+!methodProperties: {}!
+signalUnknownTool: aToolName
+
+	self error: (self class unknownToolErrorDescriptionFor: aToolName)
+! !
+
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:45:29 am (UTC)'!
+!methodProperties: {}!
+toolNamed: aToolName
+
+	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerProceedTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_proceed'
+		describedBy: 'It does a proceed on the debugger, that means running the debugging procees to the end'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current proceed ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerRestartTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_restart'
+		describedBy: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current restart ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerStepIntoTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_stepinto'
+		describedBy: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current stepInto ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerStepOverTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_stepover'
+		describedBy: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current stepOver ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+debuggerThroughTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_debugger_through'
+		describedBy: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current through ]
+! !
+
+!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+evaluateToDebugOnErrorTool
+
+	^MCPEvaluateToDebugOnErrorTool
+		named: 'smalltalk_evaluate_to_debug_on_error'
+		describedBy: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.'
+		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
+
+! !
+
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+evaluateTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_evaluate'
+		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
+		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
+		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
+! !
+
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 1:56:00 pm (UTC)'!
+!methodProperties: {}!
+saveImageTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_save_image'
+		describedBy: 'Save the Smalltalk image to disk.'
+		properties: #()
+		executingWith: [
+			[ smalltalk saveImage ] fork.
+			(Delay forSeconds: 1) wait.
+			'Image saved: ', smalltalk imageName ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+browseTool
+
+	^MCPBrowseTool
+		named: 'smalltalk_browse'
+		describedBy: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+classesInCategoryTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_classes_in_category'
+		describedBy: 'List all classes in a specific category.'
+		properties: { MCPPlainToolProperty named: 'category' describedBy: 'Name of the category' }
+		executingWith: [ :aCategory |
+			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+defineClassTool
+
+	"The definition a request carries is parsed and judged before it is evaluated, which is more
+	than a block should hold, so this tool is a class of its own."
+
+	^MCPDefineClassTool
+		named: 'smalltalk_define_class'
+		describedBy: 'Define a new class or modify an existing class definition.'
+		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+defineMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_define_method'
+		describedBy: 'Define or modify a method on a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'source' describedBy: 'Full method source including selector'.
+			MCPPlainToolProperty
+				named: 'category'
+				describedBy: 'Optional method category. Defaults to as yet unclassified'
+				defaultingTo: ClassOrganizer defaultMethodCategory }
+		executingWith: [ :aClass :aSource :aMethodCategory |
+			MCPServer isDevMode
+				ifTrue: [ aClass compile: aSource classified: aMethodCategory ]
+				ifFalse: [ aClass compileSilently: aSource classified: aMethodCategory ].
+			'Method defined successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+deleteClassTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_delete_class'
+		describedBy: 'Remove a class from the system.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to remove' }
+		executingWith: [ :aClass |
+			aClass removeFromSystem.
+			'Class deleted successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+deleteMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_delete_method'
+		describedBy: 'Remove a method from a class.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector of the method to remove'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			MCPTool assert: aSelector isImplementedBy: aClass.
+			aClass removeSelector: aSelector.
+			'Method deleted successfully' ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+finishDebuggingTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_finish_debugging'
+		describedBy: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed'
+		properties: #()
+		executingWith: [ MCPDebuggingSession finishCurrent ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+hierarchyTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_hierarchy'
+		describedBy: 'Get the inheritance hierarchy for a class (from Object down to the class).'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass |
+			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+listCategoriesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_list_categories'
+		describedBy: 'List all system categories.'
+		properties: #()
+		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 2:05:48 pm (UTC)'!
+!methodProperties: {}!
+listClassesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_list_classes'
+		describedBy: 'List all classes in the system, optionally filtered by prefix.'
+		properties: {
+			MCPPlainToolProperty
+				named: 'prefix'
+				describedBy: 'Optional prefix to filter class names'
+				defaultingTo: '' }
+		executingWith: [ :aPrefix |
+			Json render: (smalltalk allClasses
+				select: [ :aClass | aClass name beginsWith: aPrefix ]
+				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+methodSourceTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_method_source'
+		describedBy: 'Get the source code of a specific method.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Method selector'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aClass :aSelector |
+			MCPTool assert: aSelector isImplementedBy: aClass.
+			(aClass compiledMethodAt: aSelector) sourceCode ]
+! !
+
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
+!methodProperties: {}!
+subclassesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_subclasses'
+		describedBy: 'Get the direct subclasses of a class.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass |
+			Json render: (aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted ]
+
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addClassTools
+
+	self addTool: self browseTool.
+	self addTool: self hierarchyTool.
+	self addTool: self subclassesTool.
+	self addTool: self listClassesTool.
+	self addTool: self listCategoriesTool.
+	self addTool: self classesInCategoryTool.
+	self addTool: self defineClassTool.
+	self addTool: self deleteClassTool.
+	self addTool: self methodSourceTool.
+	self addTool: self defineMethodTool.
+	self addTool: self deleteMethodTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addDebuggingTools
+
+	self addTool: self evaluateToDebugOnErrorTool.
+	self addTool: self debuggerStepIntoTool.
+	self addTool: self debuggerStepOverTool.
+	self addTool: self debuggerThroughTool.
+	self addTool: self debuggerProceedTool.
+	self addTool: self debuggerRestartTool.
+	self addTool: self finishDebuggingTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addMiscTools
+
+	self addTool: self evaluateTool.
+	self addTool: self saveImageTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:51:07 am (UTC)'!
+!methodProperties: {}!
+addProvidedTools
+
+	"Ask every provider of tools there is for the ones it has. A package that has tools has a
+	subclass of MCPToolProvider, so a package that is not loaded adds none."
+
+	MCPToolProvider allSubclasses do: [ :eachProviderClass |
+		(eachProviderClass for: smalltalk) addToolsTo: self ]! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+addSearchTools
+
+	self addTool: self sendersOfTool.
+	self addTool: self implementorsOfTool.
+	self addTool: self referencesToClassTool.
+	self addTool: self referencesToInstanceVariableTool.
+	self addTool: self referencesToClassVariableTool.
+	self addTool: self searchSourceTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!methodProperties: {}!
+addTool: aTool
+
+	tools at: aTool name put: aTool
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+implementorsOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_implementors_of'
+		describedBy: 'List the methods that implement a selector.'
+		properties: {
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector the methods implement'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+referencesToClassTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_class'
+		describedBy: 'List the methods that refer to a class.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+referencesToClassVariableTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_class_variable'
+		describedBy: 'List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the class variable' }
+		executingWith: [ :aClass :aVariableName |
+			| definingClass |
+			definingClass := aClass classThatDefinesClassVariable: aVariableName.
+			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
+			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:11:25 pm (UTC)'!
+!methodProperties: {}!
+referencesToInstanceVariableTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_references_to_instance_variable'
+		describedBy: 'List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
+			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
+		executingWith: [ :aClass :aVariableName |
+			(aClass allInstVarNames includes: aVariableName)
+				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
+			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+renderReferences: aCollectionOfMethodReferences
+
+	"Answer the methods a search found, each named the way a browser names it."
+
+	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
+
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+searchSourceTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_search_source'
+		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
+		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
+		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+sendersOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_senders_of'
+		describedBy: 'List the methods that send a selector.'
+		properties: {
+			MCPPluggableToolProperty
+				named: 'selector'
+				describedBy: 'Selector the methods send'
+				valuedWith: [ :aSelector | aSelector asSymbol ] }
+		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
+! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+servingOver: aTransport
+
+	"Answer a server that serves over aTransport and saves the image it is itself running in."
+
+	^self servingOver: aTransport smalltalk: Smalltalk
+! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!methodProperties: {}!
+servingOver: aTransport smalltalk: aSmalltalk
+
+	^self new initializeServingOver: aTransport smalltalk: aSmalltalk
+! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: ''!
+!methodProperties: {}!
+servingOverHttpAtPort: aPortNumber
+
+	"Answer a server that answers the requests posted to the MCP endpoint on aPortNumber,
+	authenticating them the way the environment asks for."
+
+	^self servingOverHttpAtPort: aPortNumber authenticatingWith: self httpAuthentication! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:07:14 pm (UTC)'!
+!methodProperties: {}!
+servingOverHttpAtPort: aPortNumber authenticatingWith: anAuthentication
+
+	^self servingOver: (MCPTransportHttp listeningAtPort: aPortNumber authenticatingWith: anAuthentication)! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!methodProperties: {}!
+servingOverStandardInputOutput
+
+	"Answer a server that reads its requests from standard input and answers on standard output."
+
+	^self servingOver: MCPTransportText onStandardInputOutput
+
+! !
+
+!MCPServer class methodsFor: 'development mode' stamp: 'HAW 19/Aug/2026, 8:13:06 pm (UTC)'!
+!methodProperties: {}!
+isDevMode
+
+	^Smalltalk startUpArguments includes: '--devMode' ! !
+
+!MCPServer class methodsFor: 'class initialization' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!methodProperties: {}!
+initialize
+
+	Smalltalk addToStartUpList: self! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
+!methodProperties: {}!
+classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
+
+	^'Class variable not found: ', aVariableName, ' in ', aClass name
+! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 4:09:26 pm (UTC)'!
+!methodProperties: {}!
+instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
+
+	^'Instance variable not found: ', aVariableName, ' in ', aClass name
+! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: ''!
+!methodProperties: {}!
+parseErrorDescription
+
+	^'Parse error'! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
+!methodProperties: {}!
+unknownToolErrorDescriptionFor: aToolName
+
+	^'Unknown tool: ', aToolName
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:06:48 pm (UTC)'!
+!methodProperties: {}!
+authenticationRequiring: aToken
+
+	"Answer the authentication for aToken, reading an empty variable as no token at all."
+
+	^aToken
+		ifEmpty: [ MCPNoAuthentication new ]
+		ifNotEmpty: [ MCPBearerTokenAuthentication requiringToken: aToken ]! !
+
+!MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
+httpArgument
+
+	"Answer the command line argument that asks for the HTTP transport on the default port."
+
+	^'--mcpHttp'! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:32 pm (UTC)'!
+!methodProperties: {}!
+httpAuthentication
+
+	"Answer who will decide which requests the endpoint serves, out of the command line the
+	image was launched with and the token its environment carries."
+
+	^self
+		httpAuthenticationFor: Smalltalk startUpArguments
+		token: (OSProcess accessor environmentAt: self httpTokenEnvironmentVariableName)
+
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
+!methodProperties: {}!
+httpAuthenticationFor: someArguments token: aToken
+
+	"Answer who decides which requests the endpoint serves. The command line can turn
+	authentication off whatever the environment carries, which is what makes it useful: the
+	token can be left in place and ignored for a while. Otherwise a token turns authentication
+	on, and without one the endpoint serves any client that reaches it."
+
+	^(self shouldNot: aToken beAuthenticated: someArguments)
+		ifTrue: [ MCPNoAuthentication new ]
+		ifFalse: [ self authenticationRequiring: aToken ]
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
+httpPortArgumentPrefix
+
+	"Answer the start of the command line argument that asks for the HTTP transport on a
+	given port, as in --mcpHttpPort=2358"
+
+	^'--mcpHttpPort='! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:23:51 pm (UTC)'!
+!methodProperties: {}!
+httpPortNumberFromArguments
+
+	"Answer the port named on the command line, or the default one when none is named."
+
+	^Smalltalk startUpArguments
+		detect: [ :anArgument | anArgument beginsWith: self httpPortArgumentPrefix ]
+		ifFound: [ :portArgument | self portNumberFrom: portArgument ]
+		ifNone: [ MCPTransportHttp defaultPortNumber ].
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
+httpTokenEnvironmentVariableName
+
+	"Answer the environment variable that carries the bearer token the endpoint requires.
+	It is read from the environment and not from the command line, because command line
+	arguments are visible to anyone who lists the processes of this machine."
+
+	^'SMALLTALK_MCP_TOKEN'! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:10 pm (UTC)'!
+!methodProperties: {}!
+isHttpArgument: anArgument
+
+	^anArgument = self httpArgument or: [ anArgument beginsWith: self httpPortArgumentPrefix ]! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:57 pm (UTC)'!
+!methodProperties: {}!
+isHttpRequested
+
+	"Answer whether the image was launched to serve MCP over HTTP, with or without naming
+	a port."
+
+	^Smalltalk startUpArguments anySatisfy: [ :anArgument | self isHttpArgument: anArgument ]! !
+
+!MCPServer class methodsFor: 'command line' stamp: ''!
+!methodProperties: {}!
+isStandardInputOutputRequested
+
+	^Smalltalk startUpArguments includes: self standardInputOutputArgument! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:30 pm (UTC)'!
+!methodProperties: {}!
+noAuthenticationArgument
+
+	"Answer the command line argument that asks the endpoint to serve every client, whatever
+	the environment says."
+
+	^'--noAuthentication'
+! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:05 pm (UTC)'!
+!methodProperties: {}!
+portNumberFrom: portArgument 
+
+	^Integer readFrom: (portArgument allButFirst: self httpPortArgumentPrefix size) readStream! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
+!methodProperties: {}!
+shouldNot: aToken beAuthenticated: someArguments
+
+	^ aToken isNil or: [ someArguments includes: self noAuthenticationArgument ]! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:49 pm (UTC)'!
+!methodProperties: {}!
+standardInputOutputArgument
+
+	"Answer the command line argument that asks for the standard streams transport."
+
+	^'--mcpStdIO'! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:19:51 pm (UTC)'!
+!methodProperties: {}!
+startHttpServer
+
+	"Serve MCP over HTTP. The web server listens in processes of its own, so running the
+	server answers as soon as the listener is up. The delay lets the image finish starting."
+
+	[ (Delay forMilliseconds: 500) wait.
+	(self servingOverHttpAtPort: self httpPortNumberFromArguments) run ]
+		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:56 pm (UTC)'!
+!methodProperties: {}!
+startStdIOServer
+
+	"Serve MCP over the standard streams in a background process, so the graphical interface
+	initializes normally."
+
+	[ (Delay forMilliseconds: 500) wait.
+	self servingOverStandardInputOutput run ]
+		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:32 pm (UTC)'!
+!methodProperties: {}!
+startUp: isResuming
+
+	"Start the server the image was launched for. A server left running by the previous
+	life of the image is stopped first, because its streams and its sockets are gone."
+
+	isResuming ifFalse: [ ^self ].
+	RunningInstance ifNotNil: [ :aPreviousServer | aPreviousServer stop ].
+	self isHttpRequested ifTrue: [ ^self startHttpServer ].
+	self isStandardInputOutputRequested ifTrue: [ ^self startStdIOServer ].
+	
+	"I do not signal an error becuase the image is starting - Hernan"
+	Transcript 
+		show: 'No MCP Server started. Check image arguments'; 
+		newLine! !
+
+!MCPServer class methodsFor: 'constants' stamp: 'HAW 20/Aug/2026, 3:14:08 pm (UTC)'!
+!methodProperties: {}!
+classCreationSelectors
+
+	"Answer the messages Class understands to create a subclass."
+
+	^Class organization listAtCategoryNamed: 'subclass creation'! !
+
+!MCPTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
+
+	name := aName.
+	description := aDescription.
+	properties := aCollectionOfProperties
+! !
+
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^description
+! !
+
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+name
+
+	^name
+! !
+
+!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+properties
+
+	^properties
+! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+definition
+
+	^OrderedDictionary new
+		at: 'name' put: name;
+		at: 'description' put: description;
+		at: 'inputSchema' put: self inputSchema;
+		yourself
+! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+inputSchema
+
+	| schema |
+
+	schema := OrderedDictionary new
+		at: 'type' put: 'object';
+		at: 'properties' put: self propertiesDefinition;
+		yourself.
+	self requiredPropertyNames ifNotEmpty: [ :aCollectionOfNames | schema at: 'required' put: aCollectionOfNames ].
+
+	^schema
+! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
+!methodProperties: {}!
+propertiesDefinition
+
+	^properties 
+		inject: OrderedDictionary new
+		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
+
+!MCPTool methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+requiredPropertyNames
+
+	^(properties
+		inject: OrderedCollection new
+		into: [ :someNames :aToolProperty | aToolProperty addRequiredNamesTo: someNames ]) asArray
+! !
+
+!MCPTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	^self subclassResponsibility
+! !
+
+!MCPTool methodsFor: 'executing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+valuesFrom: anArguments
+
+	^properties collect: [ :eachProperty | eachProperty valueFrom: anArguments ]
+! !
+
+!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+assert: aSelector isImplementedBy: aClass
+
+	(aClass includesSelector: aSelector)
+		ifFalse: [ self error: (self methodNotFoundErrorDescriptionFor: aSelector in: aClass) ]
+! !
+
+!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription properties: aCollectionOfProperties
+
+	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
+! !
+
+!MCPTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+methodNotFoundErrorDescriptionFor: aSelector in: aClass
+
+	^'Method not found: ', aClass name, '>>', aSelector
+! !
+
+!MCPBrowseTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	| requestedClass browsedClass |
+
+	requestedClass := (self valuesFrom: anArguments) first.
+	browsedClass := OrderedDictionary new.
+	browsedClass
+		at: 'name' put: requestedClass name;
+		at: 'superclass' put: requestedClass superclass name;
+		at: 'category' put: requestedClass category;
+		at: 'instanceVariables' put: requestedClass instVarNames asArray;
+		at: 'classVariables' put: requestedClass classVarNames asArray;
+		at: 'methods' put: requestedClass selectors asArray sorted;
+		at: 'comment' put: (requestedClass comment ifNil: [ '' ]).
+
+	^Json render: browsedClass
+! !
+
+!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
+!methodProperties: {}!
+assertCreated: aCreatedClass isNamed: aClassName
+
+	"Signal unless evaluating the definition really created the class it names."
+
+	aCreatedClass isBehavior ifFalse: [ self class signalDidNotCreateAClass: aCreatedClass ].
+	aCreatedClass name = aClassName
+		ifFalse: [ self class signalCreatedAnotherClass: aCreatedClass insteadOf: aClassName ]
+
+! !
+
+!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	| definition expectedClassName createdClass |
+
+	definition := (self valuesFrom: anArguments) first.
+	expectedClassName := self class classNameCreatedIn: definition.
+	createdClass := Compiler evaluate: definition.
+	self assertCreated: createdClass isNamed: expectedClassName.
+
+	^'Class defined successfully'
+! !
+
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+classCreationMessageIn: aDefinition
+
+	"Answer the message node aDefinition sends to create a class, signalling when aDefinition
+	is not a single send of one of the class creation messages."
+
+	| messageNode |
+
+	messageNode := self messageSentIn: aDefinition.
+	(self classCreationSelectors includes: messageNode selectorSymbol)
+		ifFalse: [ self signalIsNotAClassCreationMessage: messageNode selectorSymbol ].
+
+	^messageNode
+! !
+
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+classCreationSelectors
+
+	"Answer the messages Class understands to create a subclass."
+
+	^Class organization listAtCategoryNamed: 'subclass creation'
+! !
+
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+classNameCreatedIn: aDefinition
+
+	"Answer the name of the class aDefinition creates, signalling when aDefinition is not a
+	single send of one of the class creation messages naming its class with a literal."
+
+	^self classNameIn: (self classCreationMessageIn: aDefinition)
+! !
+
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+classNameIn: aClassCreationMessage
+
+	"Answer the name aClassCreationMessage gives to the class it creates."
+
+	| nameArgument |
+
+	nameArgument := aClassCreationMessage arguments first.
+	nameArgument isLiteralNode ifFalse: [ self signalClassNameIsNotALiteral ].
+
+	^nameArgument key
+! !
+
+!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+messageSentIn: aDefinition
+
+	"Answer the only message node aDefinition sends, signalling when it does not send exactly one."
+
+	| statements returnedStatement |
+
+	statements := (Parser parse: aDefinition class: UndefinedObject noPattern: true) block statements.
+	statements size = 1 ifFalse: [ self signalIsNotASingleMessageSend ].
+	returnedStatement := statements first.
+	(returnedStatement isReturn and: [ returnedStatement expr isMessageNode ])
+		ifFalse: [ self signalIsNotASingleMessageSend ].
+
+	^returnedStatement expr
+! !
+
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+classNameIsNotALiteralErrorDescription
+
+	^'The name of the class to create has to be a literal symbol'
+! !
+
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName
+
+	^'The class definition created ', aCreatedClass name, ' instead of ', anExpectedClassName
+! !
+
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+didNotCreateAClassErrorDescriptionFor: anObject
+
+	^'The class definition did not create a class, it answered ', anObject printString
+! !
+
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+isNotAClassCreationMessageErrorDescriptionFor: aSelector
+
+	^'The class definition has to send one of the class creation messages, but it sends #', aSelector
+! !
+
+!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+isNotASingleMessageSendErrorDescription
+
+	^'The class definition has to be a single message send'
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalClassNameIsNotALiteral
+
+	self error: self classNameIsNotALiteralErrorDescription
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName
+
+	self error: (self createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName)
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalDidNotCreateAClass: anObject
+
+	self error: (self didNotCreateAClassErrorDescriptionFor: anObject)
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalIsNotAClassCreationMessage: aSelector
+
+	self error: (self isNotAClassCreationMessageErrorDescriptionFor: aSelector)
+! !
+
+!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
+!methodProperties: {}!
+signalIsNotASingleMessageSend
+
+	self error: self isNotASingleMessageSendErrorDescription
+! !
+
+!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	"The evaluation runs in a process of its own so that the one answering the request is not
+	the one left suspended at the error for the debugger to drive."
+
+	| code result semaphore |
+
+	code := (self valuesFrom: anArguments) first.
+	MCPDebuggingSession finishCurrent.
+	semaphore := Semaphore new.
+	[[ result := Compiler evaluate: code.
+	semaphore signal ]
+		on: Error
+		do: [ :anError |
+			result := 'Error: ', anError messageText.
+			MCPDebuggingSession openOnErrorAt: anError signalerContext.
+			semaphore signal.
+			Processor activeProcess suspend ]] fork.
+	semaphore wait.
+
+	^result printString
+! !
+
+!MCPPluggableTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
+
+	self initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties.
+	executeBlock := aBlock
+! !
+
+!MCPPluggableTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	^executeBlock valueWithArguments: (self valuesFrom: anArguments)
+! !
+
+!MCPPluggableTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		properties: aCollectionOfProperties
+		executingWith: aBlock
+! !
+
+!MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
+!methodProperties: {}!
+initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock
+
+	name := aName.
+	description := aDescription.
+	required := isRequired.
+	absentBlock := anAbsentBlock
+! !
+
+!MCPToolProperty methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 3:21:38 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^description
+! !
+
+!MCPToolProperty methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
+!methodProperties: {}!
+name
+
+	^name
+! !
+
+!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 5:30:25 pm (UTC)'!
+!methodProperties: {}!
+addTo: aProperties
+
+	aProperties at: name put: self definition.
+	
+	^aProperties ! !
+
+!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
+!methodProperties: {}!
+definition
+
+	^OrderedDictionary new
+		at: 'type' put: self type;
+		at: 'description' put: description;
+		yourself
+! !
+
+!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+type
+
+	^'string'
+! !
+
+!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+valueFor: aValue
+
+	^self subclassResponsibility
+! !
+
+!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
+!methodProperties: {}!
+valueFrom: anArguments
+
+	^anArguments
+		at: name
+		ifPresent: [ :aValue | self valueFor: aValue ]
+		ifAbsent: [ self valueWhenAbsent ]
+! !
+
+!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 5:11:26 pm (UTC)'!
+!methodProperties: {}!
+valueWhenAbsent
+
+	^absentBlock value: self
+! !
+
+!MCPToolProperty methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
+!methodProperties: {}!
+notProvidedErrorDescription
+
+	^'No ', name, ' provided'
+! !
+
+!MCPToolProperty methodsFor: 'testing' stamp: 'HAW 21/Aug/2026, 5:03:59 pm (UTC)'!
+!methodProperties: {}!
+isRequired
+
+	^required
+! !
+
+!MCPToolProperty methodsFor: 'error signaling' stamp: 'HAW 21/Aug/2026, 5:17:28 pm (UTC)'!
+!methodProperties: {}!
+signalNotProvided
+
+	self error: self notProvidedErrorDescription
+! !
+
+!MCPToolProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addRequiredNamesTo: someNames
+
+	"Add the names a client has to send for me. A property answers one value but is not
+	always one name, so it is asked to add them rather than asked what it is called."
+
+	required ifTrue: [ someNames add: name ].
+
+	^someNames
+! !
+
+!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription
+
+	^self
+		named: aName
+		describedBy: aDescription
+		required: true
+		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
+! !
+
+!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription defaultingTo: aDefaultValue
+
+	^self
+		named: aName
+		describedBy: aDescription
+		required: false
+		ifAbsent: [ :aProperty | aDefaultValue ]
+! !
+
+!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentValueBlock
+
+	^self new initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentValueBlock
+! !
+
+!MCPClassToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+valueFor: aClassName
+
+	^(Smalltalk classNamed: aClassName) ifNil: [ self signalClassNotFound: aClassName ]
+! !
+
+!MCPClassToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+valueWhenAbsent
+
+	"A client that sends no class name is told the class was not found, and not that the
+	property is missing, because that is what it is asking for."
+
+	^self signalClassNotFound: self class classNameNotProvided
+! !
+
+!MCPClassToolProperty methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+signalClassNotFound: aClassName
+
+	self error: (self class classNotFoundErrorDescriptionFor: aClassName)
+! !
+
+!MCPClassToolProperty class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+classNameNotProvided
+
+	^'<not provided>'
+
+! !
+
+!MCPClassToolProperty class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+classNotFoundErrorDescriptionFor: aClassName
+
+	^'Class not found: ', aClassName
+! !
+
+!MCPMethodProperty methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+initializeClass: aClassProperty selector: aSelectorProperty
+
+	classProperty := aClassProperty.
+	selectorProperty := aSelectorProperty
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addRequiredNamesTo: someNames
+
+	^selectorProperty addRequiredNamesTo: (classProperty addRequiredNamesTo: someNames)
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+addTo: aProperties
+
+	"A client sends a class and a selector, so that is what it is shown."
+
+	^selectorProperty addTo: (classProperty addTo: aProperties)
+! !
+
+!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+isRequired
+
+	^classProperty isRequired and: [ selectorProperty isRequired ]
+! !
+
+!MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+valueFrom: anArguments
+
+	"Answer the compiled method the class and the selector name. It is one value and not two:
+	a tool that takes a method is handed the method, not the two names it was found by."
+
+	| aClass aSelector |
+
+	aClass := classProperty valueFrom: anArguments.
+	aSelector := selectorProperty valueFrom: anArguments.
+	MCPTool assert: aSelector isImplementedBy: aClass.
+
+	^aClass >> aSelector
+
+! !
+
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!methodProperties: {}!
+classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
+
+	^self new
+		initializeClass: (MCPClassToolProperty named: 'className' describedBy: aClassDescription)
+		selector: (MCPPluggableToolProperty
+			named: 'selector'
+			describedBy: aSelectorDescription
+			valuedWith: [ :aSelector | aSelector asSymbol ])
+! !
+
+!MCPPlainToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
+!methodProperties: {}!
+valueFor: aValue
+
+	^aValue
+! !
+
+!MCPPluggableToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
+!methodProperties: {}!
+initializeNamed: aName describedBy: aDescription required: isRequired absentValue: anAbsentBlock valuedWith: aValueBlock
+
+	self
+		initializeNamed: aName
+		describedBy: aDescription
+		required: isRequired
+		ifAbsent: anAbsentBlock.
+	valueBlock := aValueBlock
+! !
+
+!MCPPluggableToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:22:30 pm (UTC)'!
+!methodProperties: {}!
+valueFor: aValue
+
+	^valueBlock value: aValue
+! !
+
+!MCPPluggableToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:29:31 pm (UTC)'!
+!methodProperties: {}!
+named: aName describedBy: aDescription valuedWith: aBlock
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		required: true
+		absentValue: [ :aProperty | aProperty signalNotProvided ]
+		valuedWith: aBlock
+! !
+
+!MCPToolProvider methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!methodProperties: {}!
+initializeFor: aSmalltalk
+
+	smalltalk := aSmalltalk! !
+
+!MCPToolProvider methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!methodProperties: {}!
+addToolsTo: anMCPServer
+
+	^self subclassResponsibility! !
+
+!MCPToolProvider class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!methodProperties: {}!
+for: aSmalltalk
+
+	"Answer a provider of tools for aSmalltalk, which is the image its tools work on."
+
+	^self new initializeFor: aSmalltalk! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 !methodProperties: {}!
@@ -1467,46 +3112,37 @@ temporaryToInstanceVariableRefactoringTool
 				fromMethod: (self methodIn: aClass named: aSelector) methodNode) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 !methodProperties: {}!
-initializeFor: aSmalltalk
+addToolsTo: anMCPServer
 
-	smalltalk := aSmalltalk! !
-
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
-!methodProperties: {}!
-tools
-
-	"Answer every tool that applies a refactoring."
-
-	^{
-		self addInstanceVariableRefactoringTool.
-		self removeInstanceVariableRefactoringTool.
-		self renameInstanceVariableRefactoringTool.
-		self pushUpInstanceVariableRefactoringTool.
-		self pushDownInstanceVariableRefactoringTool.
-		self removeUnreferencedInstanceVariablesRefactoringTool.
-		self renameClassRefactoringTool.
-		self insertSuperclassRefactoringTool.
-		self safelyRemoveClassRefactoringTool.
-		self renameGlobalRefactoringTool.
-		self renameSelectorRefactoringTool.
-		self changeKeywordsOrderRefactoringTool.
-		self removeParameterRefactoringTool.
-		self addParameterRefactoringTool.
-		self pushUpMethodRefactoringTool.
-		self pushDownMethodToSubclassesRefactoringTool.
-		self pushDownMethodToOneSubclassRefactoringTool.
-		self addAsSubclassResponsibilityRefactoringTool.
-		self moveToInstanceOrClassMethodRefactoringTool.
-		self temporaryToInstanceVariableRefactoringTool.
-		self inlineTemporaryVariableRefactoringTool.
-		self renameTemporaryRefactoringTool.
-		self extractAsParameterRefactoringTool.
-		self inlineMethodRefactoringTool.
-		self extractToTemporaryRefactoringTool.
-		self extractMethodRefactoringTool.
-		self extractMethodFromSimilarCodeRefactoringTool }! !
+	anMCPServer addTool: self addInstanceVariableRefactoringTool.
+	anMCPServer addTool: self removeInstanceVariableRefactoringTool.
+	anMCPServer addTool: self renameInstanceVariableRefactoringTool.
+	anMCPServer addTool: self pushUpInstanceVariableRefactoringTool.
+	anMCPServer addTool: self pushDownInstanceVariableRefactoringTool.
+	anMCPServer addTool: self removeUnreferencedInstanceVariablesRefactoringTool.
+	anMCPServer addTool: self renameClassRefactoringTool.
+	anMCPServer addTool: self insertSuperclassRefactoringTool.
+	anMCPServer addTool: self safelyRemoveClassRefactoringTool.
+	anMCPServer addTool: self renameGlobalRefactoringTool.
+	anMCPServer addTool: self renameSelectorRefactoringTool.
+	anMCPServer addTool: self changeKeywordsOrderRefactoringTool.
+	anMCPServer addTool: self removeParameterRefactoringTool.
+	anMCPServer addTool: self addParameterRefactoringTool.
+	anMCPServer addTool: self pushUpMethodRefactoringTool.
+	anMCPServer addTool: self pushDownMethodToSubclassesRefactoringTool.
+	anMCPServer addTool: self pushDownMethodToOneSubclassRefactoringTool.
+	anMCPServer addTool: self addAsSubclassResponsibilityRefactoringTool.
+	anMCPServer addTool: self moveToInstanceOrClassMethodRefactoringTool.
+	anMCPServer addTool: self temporaryToInstanceVariableRefactoringTool.
+	anMCPServer addTool: self inlineTemporaryVariableRefactoringTool.
+	anMCPServer addTool: self renameTemporaryRefactoringTool.
+	anMCPServer addTool: self extractAsParameterRefactoringTool.
+	anMCPServer addTool: self inlineMethodRefactoringTool.
+	anMCPServer addTool: self extractToTemporaryRefactoringTool.
+	anMCPServer addTool: self extractMethodRefactoringTool.
+	anMCPServer addTool: self extractMethodFromSimilarCodeRefactoringTool! !
 
 !MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 !methodProperties: {}!
@@ -1536,1652 +3172,6 @@ textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
 unknownScopeErrorDescriptionFor: aScope
 
 	^'Unknown scope: ', aScope, '. It is one of selection, method or class'
-! !
-
-!MCPRefactoringTools class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
-!methodProperties: {}!
-for: aSmalltalk
-
-	"Answer the refactoring tools of aSmalltalk, which is the image they refactor."
-
-	^self new initializeFor: aSmalltalk! !
-
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-initializeServingOver: aTransport smalltalk: aSmalltalk
-
-	transport := aTransport.
-	smalltalk := aSmalltalk.
-	running := false.
-	self initializeTools.
-	self doNotLogMessages
-! !
-
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
-!methodProperties: {}!
-initializeTools
-
-	tools := Dictionary new.
-	self addDebuggingTools.
-	self addClassTools.
-	self addSearchTools.
-	self addRefactoringTools.
-	self addMiscTools.
-	self addProvidedTools
-! !
-
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
-!methodProperties: {}!
-doNotLogMessages
-
-	shouldLogMessages := false! !
-
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-!methodProperties: {}!
-logAnswered: response receivedAt: receivedTime
-
-	shouldLogMessages ifTrue: [
-		| answeredTime |
-	
-		answeredTime := DateAndTime now.
-		Transcript 
-			show: answeredTime printString; 
-			show: ' Answered after: '; 
-			show: (answeredTime - receivedTime) printString;
-			newLine;
-			flush ]
-
-	! !
-
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-!methodProperties: {}!
-logMessages
-
-	shouldLogMessages := true! !
-
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-!methodProperties: {}!
-logReceived: request
-	
-	| receivedTime |
-	
-	receivedTime := DateAndTime now.
-	shouldLogMessages ifTrue: [
-		Transcript 
-			show: receivedTime printString; 
-			show: ' Received: ';
-			show: (request ifNil: [ 'nil request'] ifNotNil: [request at: 'method' ifAbsent: ['no method found...']]);
-			newLine;
-			flush ].
-			
-	^receivedTime
-	! !
-
-!MCPServer methodsFor: 'running' stamp: ''!
-!methodProperties: {}!
-isRunning
-
-	"Answer whether I am still serving requests."
-
-	^running! !
-
-!MCPServer methodsFor: 'running' stamp: ''!
-!methodProperties: {}!
-run
-
-	"Serve MCP requests over my transport until stopped. Whether this blocks the calling
-	process is up to the transport."
-
-	RunningInstance := self.
-	running := true.
-	transport serveRequestsFor: self! !
-
-!MCPServer methodsFor: 'running' stamp: ''!
-!methodProperties: {}!
-stop
-
-	running := false.
-	transport stopServingRequests.
-	RunningInstance := nil! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:05:34 pm (UTC)'!
-!methodProperties: {}!
-dispatch: aMethod with: aParams ifNone: aNoneBlock
-
-	aMethod = 'initialize' ifTrue: [ ^ self handleInitialize: aParams ].
-	aMethod = 'tools/list' ifTrue: [ ^ self handleToolsList: aParams ].
-	aMethod = 'tools/call' ifTrue: [ ^ self handleToolsCall: aParams ].
-	aMethod = 'ping' ifTrue: [ ^ Dictionary new ].
-	
-	^aNoneBlock value! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:59 pm (UTC)'!
-!methodProperties: {}!
-handleMethod: aMethod with: aParams identifiedAs: anId 
-
-	^[ | methodResult |
-		methodResult := self 
-			dispatch: aMethod 
-			with: aParams 
-			ifNone: [ ^self methodNotFoundResponseFor: anId on: aMethod].
-		self successResponseFor: anId result: methodResult ]
-		on: Error
-		do: [ :anError | self internalErrorResponseFor: anId withError: anError ].
-	! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:02:12 pm (UTC)'!
-!methodProperties: {}!
-handleNotification: aMethod with: aParams
-	
-	"Right now it does nothing. Change to support  cancellation - Hernan"
-	
-	aMethod = 'notifications/initialized' ifTrue: [ ^ nil ].
-	aMethod = 'notifications/cancelled' ifTrue: [ ^ nil ].
-	
-	^nil! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:57:28 pm (UTC)'!
-!methodProperties: {}!
-handleRequest: aRequest
-	
-	| method id params |
-
-	method := aRequest at: 'method' ifAbsent: [ ^ nil ].
-	id := aRequest at: 'id' ifAbsent: [ nil ].
-	params := aRequest at: 'params' ifAbsent: [ Dictionary new ].
-	
-	^id 
-		ifNil: [ self handleNotification: method with: params ]
-		ifNotNil: [ self handleMethod: method with: params identifiedAs: id ]! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:43 pm (UTC)'!
-!methodProperties: {}!
-jsonResponseTo: aJsonString
-
-	| request |
-
-	request := [ Json readFrom: aJsonString readStream ]
-		on: Error
-		do: [ :aParseError | ^self jsonParseError ].
-
-	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
-
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:13:30 pm (UTC)'!
-!methodProperties: {}!
-responseTo: aRequest
-
-	| receivedTime response |
-
-	receivedTime := self logReceived: aRequest.
-	response := self handleRequest: aRequest.
-	response ifNotNil: [ :anAnswer |
-		self logAnswered: anAnswer receivedAt: receivedTime ].
-
-	^response! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
-!methodProperties: {}!
-errorFor: aCode with: aMessage
-
-	^OrderedDictionary new
-		at: 'code' put: aCode;
-		at: 'message' put: aMessage;
-		yourself! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:12:07 pm (UTC)'!
-!methodProperties: {}!
-errorResponseFor: anId code: aCode message: aMessage
-	
-	^ (self responseFor: anId)
-		at: 'error' put: (self errorFor: aCode with: aMessage);
-		yourself.! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
-!methodProperties: {}!
-internalErrorResponseFor: anId withError: anError
-
-	^ self errorResponseFor: anId code: -32603 message: anError printString! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 12:07:52 pm (UTC)'!
-!methodProperties: {}!
-jsonInternalErrorWith: anError
-
-	^Json render: (self errorResponseFor: nil code: -32603 message: anError description)! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 24/Aug/2026, 1:50:33 pm (UTC)'!
-!methodProperties: {}!
-jsonParseError
-
-	^Json render: (self errorResponseFor: nil code: -32700 message: self class parseErrorDescription)! !
-
-!MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:09:32 pm (UTC)'!
-!methodProperties: {}!
-methodNotFoundResponseFor: anId on: aMethod
-
-	^ self errorResponseFor: anId code: -32601 message: 'Unknown method: ' , aMethod! !
-
-!MCPServer methodsFor: 'responses' stamp: 'HAW 20/Aug/2026, 2:40:05 pm (UTC)'!
-!methodProperties: {}!
-responseFor: anId
-
-	^ OrderedDictionary new
-		at: 'jsonrpc' put: '2.0';
-		at: 'id' put: anId;
-		yourself! !
-
-!MCPServer methodsFor: 'responses' stamp: 'HAW 19/Aug/2026, 9:11:35 pm (UTC)'!
-!methodProperties: {}!
-successResponseFor: anId result: aResult
-	
-	^ (self responseFor: anId)
-		at: 'result' put: aResult;
-		yourself.! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:21 pm (UTC)'!
-!methodProperties: {}!
-capabilities
-
-	^ OrderedDictionary new
-		at: 'tools' put: Dictionary new;
-		yourself
-					
-					! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 12:02:27 pm (UTC)'!
-!methodProperties: {}!
-contentFor: resultText
-
-	^ Dictionary new
-		at: 'type' put: 'text';
-		at: 'text' put: resultText;
-		yourself! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:39 pm (UTC)'!
-!methodProperties: {}!
-handleInitialize: aParams
-	
-	^ OrderedDictionary new
-		at: 'protocolVersion' put: '2024-11-05';
-		at: 'capabilities' put: self capabilities;
-		at: 'serverInfo' put: self serverInfo;
-		yourself.! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:19:59 pm (UTC)'!
-!methodProperties: {}!
-handleToolsCall: aParams
-
-	| name arguments resultText |
-
-	name := aParams at: 'name' ifAbsent: [ '' ].
-	arguments := aParams at: 'arguments' ifAbsent: [ Dictionary new ].
-	resultText := self executeTool: name arguments: arguments.
-	
-	^ Dictionary new
-		at: 'content' put: { self contentFor: resultText };
-		yourself.! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:20:20 pm (UTC)'!
-!methodProperties: {}!
-handleToolsList: params
-
-	^ OrderedDictionary new
-		at: 'tools' put: self toolDefinitions;
-		yourself.! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 19/Aug/2026, 9:17:52 pm (UTC)'!
-!methodProperties: {}!
-serverInfo
-	
-	^OrderedDictionary new
-		at: 'name' put: 'cuis-smalltalk';
-		at: 'version' put: '1.0.0';
-		yourself! !
-
-!MCPServer methodsFor: 'MCP handlers' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
-!methodProperties: {}!
-toolDefinitions
-
-	^tools values collect: [ :eachTool | eachTool definition ]
-! !
-
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
-!methodProperties: {}!
-executeTool: aToolName arguments: anArguments
-
-	^(self toolNamed: aToolName) valueWithArguments: anArguments
-
-! !
-
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
-!methodProperties: {}!
-signalUnknownTool: aToolName
-
-	self error: (self class unknownToolErrorDescriptionFor: aToolName)
-! !
-
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:45:29 am (UTC)'!
-!methodProperties: {}!
-toolNamed: aToolName
-
-	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-debuggerProceedTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_debugger_proceed'
-		describedBy: 'It does a proceed on the debugger, that means running the debugging procees to the end'
-		properties: #()
-		executingWith: [ MCPDebuggingSession current proceed ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-debuggerRestartTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_debugger_restart'
-		describedBy: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext'
-		properties: #()
-		executingWith: [ MCPDebuggingSession current restart ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-debuggerStepIntoTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_debugger_stepinto'
-		describedBy: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
-		properties: #()
-		executingWith: [ MCPDebuggingSession current stepInto ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-debuggerStepOverTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_debugger_stepover'
-		describedBy: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
-		properties: #()
-		executingWith: [ MCPDebuggingSession current stepOver ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-debuggerThroughTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_debugger_through'
-		describedBy: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack'
-		properties: #()
-		executingWith: [ MCPDebuggingSession current through ]
-! !
-
-!MCPServer methodsFor: 'tool creation - debugging' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-evaluateToDebugOnErrorTool
-
-	^MCPEvaluateToDebugOnErrorTool
-		named: 'smalltalk_evaluate_to_debug_on_error'
-		describedBy: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.'
-		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
-
-! !
-
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-evaluateTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_evaluate'
-		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
-		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
-		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
-! !
-
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 1:56:00 pm (UTC)'!
-!methodProperties: {}!
-saveImageTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_save_image'
-		describedBy: 'Save the Smalltalk image to disk.'
-		properties: #()
-		executingWith: [
-			[ smalltalk saveImage ] fork.
-			(Delay forSeconds: 1) wait.
-			'Image saved: ', smalltalk imageName ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-browseTool
-
-	^MCPBrowseTool
-		named: 'smalltalk_browse'
-		describedBy: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-classesInCategoryTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_classes_in_category'
-		describedBy: 'List all classes in a specific category.'
-		properties: { MCPPlainToolProperty named: 'category' describedBy: 'Name of the category' }
-		executingWith: [ :aCategory |
-			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-defineClassTool
-
-	"The definition a request carries is parsed and judged before it is evaluated, which is more
-	than a block should hold, so this tool is a class of its own."
-
-	^MCPDefineClassTool
-		named: 'smalltalk_define_class'
-		describedBy: 'Define a new class or modify an existing class definition.'
-		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-defineMethodTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_define_method'
-		describedBy: 'Define or modify a method on a class.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPlainToolProperty named: 'source' describedBy: 'Full method source including selector'.
-			MCPPlainToolProperty
-				named: 'category'
-				describedBy: 'Optional method category. Defaults to as yet unclassified'
-				defaultingTo: ClassOrganizer defaultMethodCategory }
-		executingWith: [ :aClass :aSource :aMethodCategory |
-			MCPServer isDevMode
-				ifTrue: [ aClass compile: aSource classified: aMethodCategory ]
-				ifFalse: [ aClass compileSilently: aSource classified: aMethodCategory ].
-			'Method defined successfully' ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-deleteClassTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_delete_class'
-		describedBy: 'Remove a class from the system.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to remove' }
-		executingWith: [ :aClass |
-			aClass removeFromSystem.
-			'Class deleted successfully' ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-deleteMethodTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_delete_method'
-		describedBy: 'Remove a method from a class.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Selector of the method to remove'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aClass :aSelector |
-			MCPTool assert: aSelector isImplementedBy: aClass.
-			aClass removeSelector: aSelector.
-			'Method deleted successfully' ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-finishDebuggingTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_finish_debugging'
-		describedBy: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed'
-		properties: #()
-		executingWith: [ MCPDebuggingSession finishCurrent ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-hierarchyTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_hierarchy'
-		describedBy: 'Get the inheritance hierarchy for a class (from Object down to the class).'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
-		executingWith: [ :aClass |
-			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-listCategoriesTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_list_categories'
-		describedBy: 'List all system categories.'
-		properties: #()
-		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 2:05:48 pm (UTC)'!
-!methodProperties: {}!
-listClassesTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_list_classes'
-		describedBy: 'List all classes in the system, optionally filtered by prefix.'
-		properties: {
-			MCPPlainToolProperty
-				named: 'prefix'
-				describedBy: 'Optional prefix to filter class names'
-				defaultingTo: '' }
-		executingWith: [ :aPrefix |
-			Json render: (smalltalk allClasses
-				select: [ :aClass | aClass name beginsWith: aPrefix ]
-				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-methodSourceTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_method_source'
-		describedBy: 'Get the source code of a specific method.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Method selector'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aClass :aSelector |
-			MCPTool assert: aSelector isImplementedBy: aClass.
-			(aClass compiledMethodAt: aSelector) sourceCode ]
-! !
-
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-subclassesTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_subclasses'
-		describedBy: 'Get the direct subclasses of a class.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
-		executingWith: [ :aClass |
-			Json render: (aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted ]
-
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addClassTools
-
-	self addTool: self browseTool.
-	self addTool: self hierarchyTool.
-	self addTool: self subclassesTool.
-	self addTool: self listClassesTool.
-	self addTool: self listCategoriesTool.
-	self addTool: self classesInCategoryTool.
-	self addTool: self defineClassTool.
-	self addTool: self deleteClassTool.
-	self addTool: self methodSourceTool.
-	self addTool: self defineMethodTool.
-	self addTool: self deleteMethodTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addDebuggingTools
-
-	self addTool: self evaluateToDebugOnErrorTool.
-	self addTool: self debuggerStepIntoTool.
-	self addTool: self debuggerStepOverTool.
-	self addTool: self debuggerThroughTool.
-	self addTool: self debuggerProceedTool.
-	self addTool: self debuggerRestartTool.
-	self addTool: self finishDebuggingTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addMiscTools
-
-	self addTool: self evaluateTool.
-	self addTool: self saveImageTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
-!methodProperties: {}!
-addProvidedTools
-
-	"Add the tools of every package that registered itself as a provider of them."
-
-	MCPServer toolProviders do: [ :eachProvider |
-		(eachProvider for: smalltalk) tools do: [ :eachTool | self addTool: eachTool ] ]! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:27:20 pm (UTC)'!
-!methodProperties: {}!
-addRefactoringTools
-
-	(MCPRefactoringTools for: smalltalk) tools do: [ :eachTool | self addTool: eachTool ]! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-addSearchTools
-
-	self addTool: self sendersOfTool.
-	self addTool: self implementorsOfTool.
-	self addTool: self referencesToClassTool.
-	self addTool: self referencesToInstanceVariableTool.
-	self addTool: self referencesToClassVariableTool.
-	self addTool: self searchSourceTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
-!methodProperties: {}!
-addTool: aTool
-
-	tools at: aTool name put: aTool
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-implementorsOfTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_implementors_of'
-		describedBy: 'List the methods that implement a selector.'
-		properties: {
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Selector the methods implement'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-referencesToClassTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_class'
-		describedBy: 'List the methods that refer to a class.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
-		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-referencesToClassVariableTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_class_variable'
-		describedBy: 'List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the class variable' }
-		executingWith: [ :aClass :aVariableName |
-			| definingClass |
-			definingClass := aClass classThatDefinesClassVariable: aVariableName.
-			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
-			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:11:25 pm (UTC)'!
-!methodProperties: {}!
-referencesToInstanceVariableTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_references_to_instance_variable'
-		describedBy: 'List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.'
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
-		executingWith: [ :aClass :aVariableName |
-			(aClass allInstVarNames includes: aVariableName)
-				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
-			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-renderReferences: aCollectionOfMethodReferences
-
-	"Answer the methods a search found, each named the way a browser names it."
-
-	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
-
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-searchSourceTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_search_source'
-		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
-		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
-		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-sendersOfTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_senders_of'
-		describedBy: 'List the methods that send a selector.'
-		properties: {
-			MCPPluggableToolProperty
-				named: 'selector'
-				describedBy: 'Selector the methods send'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
-! !
-
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-servingOver: aTransport
-
-	"Answer a server that serves over aTransport and saves the image it is itself running in."
-
-	^self servingOver: aTransport smalltalk: Smalltalk
-! !
-
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-servingOver: aTransport smalltalk: aSmalltalk
-
-	^self new initializeServingOver: aTransport smalltalk: aSmalltalk
-! !
-
-!MCPServer class methodsFor: 'instance creation' stamp: ''!
-!methodProperties: {}!
-servingOverHttpAtPort: aPortNumber
-
-	"Answer a server that answers the requests posted to the MCP endpoint on aPortNumber,
-	authenticating them the way the environment asks for."
-
-	^self servingOverHttpAtPort: aPortNumber authenticatingWith: self httpAuthentication! !
-
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 19/Aug/2026, 8:07:14 pm (UTC)'!
-!methodProperties: {}!
-servingOverHttpAtPort: aPortNumber authenticatingWith: anAuthentication
-
-	^self servingOver: (MCPTransportHttp listeningAtPort: aPortNumber authenticatingWith: anAuthentication)! !
-
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
-!methodProperties: {}!
-servingOverStandardInputOutput
-
-	"Answer a server that reads its requests from standard input and answers on standard output."
-
-	^self servingOver: MCPTransportText onStandardInputOutput
-
-! !
-
-!MCPServer class methodsFor: 'development mode' stamp: 'HAW 19/Aug/2026, 8:13:06 pm (UTC)'!
-!methodProperties: {}!
-isDevMode
-
-	^Smalltalk startUpArguments includes: '--devMode' ! !
-
-!MCPServer class methodsFor: 'class initialization' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
-!methodProperties: {}!
-initialize
-
-	Smalltalk addToStartUpList: self! !
-
-!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
-!methodProperties: {}!
-classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
-
-	^'Class variable not found: ', aVariableName, ' in ', aClass name
-! !
-
-!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 4:09:26 pm (UTC)'!
-!methodProperties: {}!
-instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
-
-	^'Instance variable not found: ', aVariableName, ' in ', aClass name
-! !
-
-!MCPServer class methodsFor: 'error descriptions' stamp: ''!
-!methodProperties: {}!
-parseErrorDescription
-
-	^'Parse error'! !
-
-!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
-!methodProperties: {}!
-unknownToolErrorDescriptionFor: aToolName
-
-	^'Unknown tool: ', aToolName
-! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:06:48 pm (UTC)'!
-!methodProperties: {}!
-authenticationRequiring: aToken
-
-	"Answer the authentication for aToken, reading an empty variable as no token at all."
-
-	^aToken
-		ifEmpty: [ MCPNoAuthentication new ]
-		ifNotEmpty: [ MCPBearerTokenAuthentication requiringToken: aToken ]! !
-
-!MCPServer class methodsFor: 'command line' stamp: ''!
-!methodProperties: {}!
-httpArgument
-
-	"Answer the command line argument that asks for the HTTP transport on the default port."
-
-	^'--mcpHttp'! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:32 pm (UTC)'!
-!methodProperties: {}!
-httpAuthentication
-
-	"Answer who will decide which requests the endpoint serves, out of the command line the
-	image was launched with and the token its environment carries."
-
-	^self
-		httpAuthenticationFor: Smalltalk startUpArguments
-		token: (OSProcess accessor environmentAt: self httpTokenEnvironmentVariableName)
-
-! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
-!methodProperties: {}!
-httpAuthenticationFor: someArguments token: aToken
-
-	"Answer who decides which requests the endpoint serves. The command line can turn
-	authentication off whatever the environment carries, which is what makes it useful: the
-	token can be left in place and ignored for a while. Otherwise a token turns authentication
-	on, and without one the endpoint serves any client that reaches it."
-
-	^(self shouldNot: aToken beAuthenticated: someArguments)
-		ifTrue: [ MCPNoAuthentication new ]
-		ifFalse: [ self authenticationRequiring: aToken ]
-! !
-
-!MCPServer class methodsFor: 'command line' stamp: ''!
-!methodProperties: {}!
-httpPortArgumentPrefix
-
-	"Answer the start of the command line argument that asks for the HTTP transport on a
-	given port, as in --mcpHttpPort=2358"
-
-	^'--mcpHttpPort='! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:23:51 pm (UTC)'!
-!methodProperties: {}!
-httpPortNumberFromArguments
-
-	"Answer the port named on the command line, or the default one when none is named."
-
-	^Smalltalk startUpArguments
-		detect: [ :anArgument | anArgument beginsWith: self httpPortArgumentPrefix ]
-		ifFound: [ :portArgument | self portNumberFrom: portArgument ]
-		ifNone: [ MCPTransportHttp defaultPortNumber ].
-! !
-
-!MCPServer class methodsFor: 'command line' stamp: ''!
-!methodProperties: {}!
-httpTokenEnvironmentVariableName
-
-	"Answer the environment variable that carries the bearer token the endpoint requires.
-	It is read from the environment and not from the command line, because command line
-	arguments are visible to anyone who lists the processes of this machine."
-
-	^'SMALLTALK_MCP_TOKEN'! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:10 pm (UTC)'!
-!methodProperties: {}!
-isHttpArgument: anArgument
-
-	^anArgument = self httpArgument or: [ anArgument beginsWith: self httpPortArgumentPrefix ]! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:57 pm (UTC)'!
-!methodProperties: {}!
-isHttpRequested
-
-	"Answer whether the image was launched to serve MCP over HTTP, with or without naming
-	a port."
-
-	^Smalltalk startUpArguments anySatisfy: [ :anArgument | self isHttpArgument: anArgument ]! !
-
-!MCPServer class methodsFor: 'command line' stamp: ''!
-!methodProperties: {}!
-isStandardInputOutputRequested
-
-	^Smalltalk startUpArguments includes: self standardInputOutputArgument! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:30 pm (UTC)'!
-!methodProperties: {}!
-noAuthenticationArgument
-
-	"Answer the command line argument that asks the endpoint to serve every client, whatever
-	the environment says."
-
-	^'--noAuthentication'
-! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:24:05 pm (UTC)'!
-!methodProperties: {}!
-portNumberFrom: portArgument 
-
-	^Integer readFrom: (portArgument allButFirst: self httpPortArgumentPrefix size) readStream! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:42:42 pm (UTC)'!
-!methodProperties: {}!
-shouldNot: aToken beAuthenticated: someArguments
-
-	^ aToken isNil or: [ someArguments includes: self noAuthenticationArgument ]! !
-
-!MCPServer class methodsFor: 'command line' stamp: 'HAW 19/Aug/2026, 8:25:49 pm (UTC)'!
-!methodProperties: {}!
-standardInputOutputArgument
-
-	"Answer the command line argument that asks for the standard streams transport."
-
-	^'--mcpStdIO'! !
-
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:19:51 pm (UTC)'!
-!methodProperties: {}!
-startHttpServer
-
-	"Serve MCP over HTTP. The web server listens in processes of its own, so running the
-	server answers as soon as the listener is up. The delay lets the image finish starting."
-
-	[ (Delay forMilliseconds: 500) wait.
-	(self servingOverHttpAtPort: self httpPortNumberFromArguments) run ]
-		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'! !
-
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:56 pm (UTC)'!
-!methodProperties: {}!
-startStdIOServer
-
-	"Serve MCP over the standard streams in a background process, so the graphical interface
-	initializes normally."
-
-	[ (Delay forMilliseconds: 500) wait.
-	self servingOverStandardInputOutput run ]
-		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'! !
-
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:32 pm (UTC)'!
-!methodProperties: {}!
-startUp: isResuming
-
-	"Start the server the image was launched for. A server left running by the previous
-	life of the image is stopped first, because its streams and its sockets are gone."
-
-	isResuming ifFalse: [ ^self ].
-	RunningInstance ifNotNil: [ :aPreviousServer | aPreviousServer stop ].
-	self isHttpRequested ifTrue: [ ^self startHttpServer ].
-	self isStandardInputOutputRequested ifTrue: [ ^self startStdIOServer ].
-	
-	"I do not signal an error becuase the image is starting - Hernan"
-	Transcript 
-		show: 'No MCP Server started. Check image arguments'; 
-		newLine! !
-
-!MCPServer class methodsFor: 'constants' stamp: 'HAW 20/Aug/2026, 3:14:08 pm (UTC)'!
-!methodProperties: {}!
-classCreationSelectors
-
-	"Answer the messages Class understands to create a subclass."
-
-	^Class organization listAtCategoryNamed: 'subclass creation'! !
-
-!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
-!methodProperties: {}!
-addToolProvider: aToolProviderClass
-
-	(self toolProviders includes: aToolProviderClass) ifFalse: [ self toolProviders add: aToolProviderClass ]! !
-
-!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
-!methodProperties: {}!
-removeToolProvider: aToolProviderClass
-
-	self toolProviders remove: aToolProviderClass ifAbsent: [ nil ]! !
-
-!MCPServer class methodsFor: 'tool providers' stamp: 'HAW 24/Aug/2026, 11:29:10 pm (UTC)'!
-!methodProperties: {}!
-toolProviders
-
-	"Answer the classes a package registers to add its own tools to every server. A package
-	that is not loaded adds nothing, which is how the tools of one are optional."
-
-	^ToolProviders ifNil: [ ToolProviders := OrderedCollection new ]! !
-
-!MCPTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
-
-	name := aName.
-	description := aDescription.
-	properties := aCollectionOfProperties
-! !
-
-!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-description
-
-	^description
-! !
-
-!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-name
-
-	^name
-! !
-
-!MCPTool methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-properties
-
-	^properties
-! !
-
-!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-definition
-
-	^OrderedDictionary new
-		at: 'name' put: name;
-		at: 'description' put: description;
-		at: 'inputSchema' put: self inputSchema;
-		yourself
-! !
-
-!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-inputSchema
-
-	| schema |
-
-	schema := OrderedDictionary new
-		at: 'type' put: 'object';
-		at: 'properties' put: self propertiesDefinition;
-		yourself.
-	self requiredPropertyNames ifNotEmpty: [ :aCollectionOfNames | schema at: 'required' put: aCollectionOfNames ].
-
-	^schema
-! !
-
-!MCPTool methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
-!methodProperties: {}!
-propertiesDefinition
-
-	^properties 
-		inject: OrderedDictionary new
-		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
-
-!MCPTool methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-requiredPropertyNames
-
-	^(properties
-		inject: OrderedCollection new
-		into: [ :someNames :aToolProperty | aToolProperty addRequiredNamesTo: someNames ]) asArray
-! !
-
-!MCPTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
-!methodProperties: {}!
-valueWithArguments: anArguments
-
-	^self subclassResponsibility
-! !
-
-!MCPTool methodsFor: 'executing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-valuesFrom: anArguments
-
-	^properties collect: [ :eachProperty | eachProperty valueFrom: anArguments ]
-! !
-
-!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-assert: aSelector isImplementedBy: aClass
-
-	(aClass includesSelector: aSelector)
-		ifFalse: [ self error: (self methodNotFoundErrorDescriptionFor: aSelector in: aClass) ]
-! !
-
-!MCPTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription properties: aCollectionOfProperties
-
-	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
-! !
-
-!MCPTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-methodNotFoundErrorDescriptionFor: aSelector in: aClass
-
-	^'Method not found: ', aClass name, '>>', aSelector
-! !
-
-!MCPBrowseTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
-!methodProperties: {}!
-valueWithArguments: anArguments
-
-	| requestedClass browsedClass |
-
-	requestedClass := (self valuesFrom: anArguments) first.
-	browsedClass := OrderedDictionary new.
-	browsedClass
-		at: 'name' put: requestedClass name;
-		at: 'superclass' put: requestedClass superclass name;
-		at: 'category' put: requestedClass category;
-		at: 'instanceVariables' put: requestedClass instVarNames asArray;
-		at: 'classVariables' put: requestedClass classVarNames asArray;
-		at: 'methods' put: requestedClass selectors asArray sorted;
-		at: 'comment' put: (requestedClass comment ifNil: [ '' ]).
-
-	^Json render: browsedClass
-! !
-
-!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
-!methodProperties: {}!
-assertCreated: aCreatedClass isNamed: aClassName
-
-	"Signal unless evaluating the definition really created the class it names."
-
-	aCreatedClass isBehavior ifFalse: [ self class signalDidNotCreateAClass: aCreatedClass ].
-	aCreatedClass name = aClassName
-		ifFalse: [ self class signalCreatedAnotherClass: aCreatedClass insteadOf: aClassName ]
-
-! !
-
-!MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
-!methodProperties: {}!
-valueWithArguments: anArguments
-
-	| definition expectedClassName createdClass |
-
-	definition := (self valuesFrom: anArguments) first.
-	expectedClassName := self class classNameCreatedIn: definition.
-	createdClass := Compiler evaluate: definition.
-	self assertCreated: createdClass isNamed: expectedClassName.
-
-	^'Class defined successfully'
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-classCreationMessageIn: aDefinition
-
-	"Answer the message node aDefinition sends to create a class, signalling when aDefinition
-	is not a single send of one of the class creation messages."
-
-	| messageNode |
-
-	messageNode := self messageSentIn: aDefinition.
-	(self classCreationSelectors includes: messageNode selectorSymbol)
-		ifFalse: [ self signalIsNotAClassCreationMessage: messageNode selectorSymbol ].
-
-	^messageNode
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-classCreationSelectors
-
-	"Answer the messages Class understands to create a subclass."
-
-	^Class organization listAtCategoryNamed: 'subclass creation'
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-classNameCreatedIn: aDefinition
-
-	"Answer the name of the class aDefinition creates, signalling when aDefinition is not a
-	single send of one of the class creation messages naming its class with a literal."
-
-	^self classNameIn: (self classCreationMessageIn: aDefinition)
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-classNameIn: aClassCreationMessage
-
-	"Answer the name aClassCreationMessage gives to the class it creates."
-
-	| nameArgument |
-
-	nameArgument := aClassCreationMessage arguments first.
-	nameArgument isLiteralNode ifFalse: [ self signalClassNameIsNotALiteral ].
-
-	^nameArgument key
-! !
-
-!MCPDefineClassTool class methodsFor: 'class definitions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-messageSentIn: aDefinition
-
-	"Answer the only message node aDefinition sends, signalling when it does not send exactly one."
-
-	| statements returnedStatement |
-
-	statements := (Parser parse: aDefinition class: UndefinedObject noPattern: true) block statements.
-	statements size = 1 ifFalse: [ self signalIsNotASingleMessageSend ].
-	returnedStatement := statements first.
-	(returnedStatement isReturn and: [ returnedStatement expr isMessageNode ])
-		ifFalse: [ self signalIsNotASingleMessageSend ].
-
-	^returnedStatement expr
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-classNameIsNotALiteralErrorDescription
-
-	^'The name of the class to create has to be a literal symbol'
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName
-
-	^'The class definition created ', aCreatedClass name, ' instead of ', anExpectedClassName
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-didNotCreateAClassErrorDescriptionFor: anObject
-
-	^'The class definition did not create a class, it answered ', anObject printString
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-isNotAClassCreationMessageErrorDescriptionFor: aSelector
-
-	^'The class definition has to send one of the class creation messages, but it sends #', aSelector
-! !
-
-!MCPDefineClassTool class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-isNotASingleMessageSendErrorDescription
-
-	^'The class definition has to be a single message send'
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-signalClassNameIsNotALiteral
-
-	self error: self classNameIsNotALiteralErrorDescription
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-signalCreatedAnotherClass: aCreatedClass insteadOf: anExpectedClassName
-
-	self error: (self createdAnotherClassErrorDescriptionFor: aCreatedClass insteadOf: anExpectedClassName)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-signalDidNotCreateAClass: anObject
-
-	self error: (self didNotCreateAClassErrorDescriptionFor: anObject)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-signalIsNotAClassCreationMessage: aSelector
-
-	self error: (self isNotAClassCreationMessageErrorDescriptionFor: aSelector)
-! !
-
-!MCPDefineClassTool class methodsFor: 'errors' stamp: 'HAW 24/Aug/2026, 11:47:49 am (UTC)'!
-!methodProperties: {}!
-signalIsNotASingleMessageSend
-
-	self error: self isNotASingleMessageSendErrorDescription
-! !
-
-!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-valueWithArguments: anArguments
-
-	"The evaluation runs in a process of its own so that the one answering the request is not
-	the one left suspended at the error for the debugger to drive."
-
-	| code result semaphore |
-
-	code := (self valuesFrom: anArguments) first.
-	MCPDebuggingSession finishCurrent.
-	semaphore := Semaphore new.
-	[[ result := Compiler evaluate: code.
-	semaphore signal ]
-		on: Error
-		do: [ :anError |
-			result := 'Error: ', anError messageText.
-			MCPDebuggingSession openOnErrorAt: anError signalerContext.
-			semaphore signal.
-			Processor activeProcess suspend ]] fork.
-	semaphore wait.
-
-	^result printString
-! !
-
-!MCPPluggableTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
-
-	self initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties.
-	executeBlock := aBlock
-! !
-
-!MCPPluggableTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
-!methodProperties: {}!
-valueWithArguments: anArguments
-
-	^executeBlock valueWithArguments: (self valuesFrom: anArguments)
-! !
-
-!MCPPluggableTool class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
-
-	^self new
-		initializeNamed: aName
-		describedBy: aDescription
-		properties: aCollectionOfProperties
-		executingWith: aBlock
-! !
-
-!MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
-!methodProperties: {}!
-initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock
-
-	name := aName.
-	description := aDescription.
-	required := isRequired.
-	absentBlock := anAbsentBlock
-! !
-
-!MCPToolProperty methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 3:21:38 pm (UTC)'!
-!methodProperties: {}!
-description
-
-	^description
-! !
-
-!MCPToolProperty methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
-!methodProperties: {}!
-name
-
-	^name
-! !
-
-!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 5:30:25 pm (UTC)'!
-!methodProperties: {}!
-addTo: aProperties
-
-	aProperties at: name put: self definition.
-	
-	^aProperties ! !
-
-!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
-!methodProperties: {}!
-definition
-
-	^OrderedDictionary new
-		at: 'type' put: self type;
-		at: 'description' put: description;
-		yourself
-! !
-
-!MCPToolProperty methodsFor: 'property definition' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-type
-
-	^'string'
-! !
-
-!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-valueFor: aValue
-
-	^self subclassResponsibility
-! !
-
-!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
-!methodProperties: {}!
-valueFrom: anArguments
-
-	^anArguments
-		at: name
-		ifPresent: [ :aValue | self valueFor: aValue ]
-		ifAbsent: [ self valueWhenAbsent ]
-! !
-
-!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 5:11:26 pm (UTC)'!
-!methodProperties: {}!
-valueWhenAbsent
-
-	^absentBlock value: self
-! !
-
-!MCPToolProperty methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 4:56:48 pm (UTC)'!
-!methodProperties: {}!
-notProvidedErrorDescription
-
-	^'No ', name, ' provided'
-! !
-
-!MCPToolProperty methodsFor: 'testing' stamp: 'HAW 21/Aug/2026, 5:03:59 pm (UTC)'!
-!methodProperties: {}!
-isRequired
-
-	^required
-! !
-
-!MCPToolProperty methodsFor: 'error signaling' stamp: 'HAW 21/Aug/2026, 5:17:28 pm (UTC)'!
-!methodProperties: {}!
-signalNotProvided
-
-	self error: self notProvidedErrorDescription
-! !
-
-!MCPToolProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-addRequiredNamesTo: someNames
-
-	"Add the names a client has to send for me. A property answers one value but is not
-	always one name, so it is asked to add them rather than asked what it is called."
-
-	required ifTrue: [ someNames add: name ].
-
-	^someNames
-! !
-
-!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription
-
-	^self
-		named: aName
-		describedBy: aDescription
-		required: true
-		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
-! !
-
-!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription defaultingTo: aDefaultValue
-
-	^self
-		named: aName
-		describedBy: aDescription
-		required: false
-		ifAbsent: [ :aProperty | aDefaultValue ]
-! !
-
-!MCPToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 5:15:28 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentValueBlock
-
-	^self new initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentValueBlock
-! !
-
-!MCPClassToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-valueFor: aClassName
-
-	^(Smalltalk classNamed: aClassName) ifNil: [ self signalClassNotFound: aClassName ]
-! !
-
-!MCPClassToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-valueWhenAbsent
-
-	"A client that sends no class name is told the class was not found, and not that the
-	property is missing, because that is what it is asking for."
-
-	^self signalClassNotFound: self class classNameNotProvided
-! !
-
-!MCPClassToolProperty methodsFor: 'errors' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-signalClassNotFound: aClassName
-
-	self error: (self class classNotFoundErrorDescriptionFor: aClassName)
-! !
-
-!MCPClassToolProperty class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-classNameNotProvided
-
-	^'<not provided>'
-
-! !
-
-!MCPClassToolProperty class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-classNotFoundErrorDescriptionFor: aClassName
-
-	^'Class not found: ', aClassName
-! !
-
-!MCPMethodProperty methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-initializeClass: aClassProperty selector: aSelectorProperty
-
-	classProperty := aClassProperty.
-	selectorProperty := aSelectorProperty
-! !
-
-!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-addRequiredNamesTo: someNames
-
-	^selectorProperty addRequiredNamesTo: (classProperty addRequiredNamesTo: someNames)
-! !
-
-!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-addTo: aProperties
-
-	"A client sends a class and a selector, so that is what it is shown."
-
-	^selectorProperty addTo: (classProperty addTo: aProperties)
-! !
-
-!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-isRequired
-
-	^classProperty isRequired and: [ selectorProperty isRequired ]
-! !
-
-!MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-valueFrom: anArguments
-
-	"Answer the compiled method the class and the selector name. It is one value and not two:
-	a tool that takes a method is handed the method, not the two names it was found by."
-
-	| aClass aSelector |
-
-	aClass := classProperty valueFrom: anArguments.
-	aSelector := selectorProperty valueFrom: anArguments.
-	MCPTool assert: aSelector isImplementedBy: aClass.
-
-	^aClass >> aSelector
-
-! !
-
-!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-!methodProperties: {}!
-classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
-
-	^self new
-		initializeClass: (MCPClassToolProperty named: 'className' describedBy: aClassDescription)
-		selector: (MCPPluggableToolProperty
-			named: 'selector'
-			describedBy: aSelectorDescription
-			valuedWith: [ :aSelector | aSelector asSymbol ])
-! !
-
-!MCPPlainToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
-!methodProperties: {}!
-valueFor: aValue
-
-	^aValue
-! !
-
-!MCPPluggableToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
-!methodProperties: {}!
-initializeNamed: aName describedBy: aDescription required: isRequired absentValue: anAbsentBlock valuedWith: aValueBlock
-
-	self
-		initializeNamed: aName
-		describedBy: aDescription
-		required: isRequired
-		ifAbsent: anAbsentBlock.
-	valueBlock := aValueBlock
-! !
-
-!MCPPluggableToolProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:22:30 pm (UTC)'!
-!methodProperties: {}!
-valueFor: aValue
-
-	^valueBlock value: aValue
-! !
-
-!MCPPluggableToolProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:29:31 pm (UTC)'!
-!methodProperties: {}!
-named: aName describedBy: aDescription valuedWith: aBlock
-
-	^self new
-		initializeNamed: aName
-		describedBy: aDescription
-		required: true
-		absentValue: [ :aProperty | aProperty signalNotProvided ]
-		valuedWith: aBlock
 ! !
 
 !MCPTransport methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:18:07 pm (UTC)'!

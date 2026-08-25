@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:46:51 pm'!
-'Description Refactor only what LiveTyping saw is really sent'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 1!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:35 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 2!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -37,13 +37,13 @@ probeClass
 	^probeClass
 ! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:23 am (UTC)'!
 !methodProperties: {}!
 toolNamed: aToolName
 
-	^(MCPLiveTypingRefactoringTools for: Smalltalk) tools
-		detect: [ :eachTool | eachTool name = aToolName ]
-! !
+	"Ask a server for the tool, which is how a client reaches it."
+
+	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
 !methodProperties: {}!

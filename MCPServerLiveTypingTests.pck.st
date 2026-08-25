@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:37:53 am'!
-'Description Tell a real sender from a method that writes the same selector'!
-!provides: 'MCPServerLiveTypingTests' 1 2!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:29 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerLiveTypingTests' 1 3!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -78,12 +78,13 @@ defineProbeHierarchy
 	^childClass
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:14 am (UTC)'!
 !methodProperties: {}!
 toolNamed: aToolName
 
-	^(MCPLiveTypingTools for: Smalltalk) tools detect: [ :eachTool | eachTool name = aToolName ]
-! !
+	"Ask a server for the tool, which is how a client reaches it."
+
+	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
 !methodProperties: {}!

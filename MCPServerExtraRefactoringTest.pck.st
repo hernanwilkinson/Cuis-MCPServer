@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:41:22 am'!
-'Description Extract a parameter object and a method object'!
-!provides: 'MCPServerExtraRefactoringTest' 1 2!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:16 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerExtraRefactoringTest' 1 3!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -60,13 +60,13 @@ targetClass
 	^Smalltalk classNamed: 'MCPExtraTestTarget'
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:06 am (UTC)'!
 !methodProperties: {}!
 toolNamed: aToolName
 
-	^(MCPExtraRefactoringTools for: Smalltalk) tools
-		detect: [ :eachTool | eachTool name = aToolName ]
-! !
+	"Ask a server for the tool, which is how a client reaches it."
+
+	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
 !methodProperties: {}!

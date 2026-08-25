@@ -1,14 +1,14 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:37:44 am'!
-'Description Tell a real sender from a method that writes the same selector'!
-!provides: 'MCPServerLiveTyping' 1 2!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:26 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerLiveTyping' 1 3!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
 
 
 !classDefinition: #MCPLiveTypingTools category: #MCPServerLiveTyping!
-Object subclass: #MCPLiveTypingTools
-	instanceVariableNames: 'smalltalk'
+MCPToolProvider subclass: #MCPLiveTypingTools
+	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerLiveTyping'!
@@ -22,25 +22,16 @@ I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
 
-!MCPLiveTypingTools methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:46 am (UTC)'!
 !methodProperties: {}!
-initializeFor: aSmalltalk
+addToolsTo: anMCPServer
 
-	smalltalk := aSmalltalk
-! !
-
-!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:37:31 am (UTC)'!
-!methodProperties: {}!
-tools
-
-	^{
-		self typesOfInstanceVariableTool.
-		self typesOfEveryInstanceVariableTool.
-		self typesOfMethodVariableTool.
-		self returnTypesOfMethodTool.
-		self actualSendersOfTool.
-		self actualImplementorsOfTool }
-! !
+	anMCPServer addTool: self typesOfInstanceVariableTool.
+	anMCPServer addTool: self typesOfEveryInstanceVariableTool.
+	anMCPServer addTool: self typesOfMethodVariableTool.
+	anMCPServer addTool: self returnTypesOfMethodTool.
+	anMCPServer addTool: self actualSendersOfTool.
+	anMCPServer addTool: self actualImplementorsOfTool! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
@@ -176,20 +167,6 @@ typesOfMethodVariableTool
 				ifAbsent: [ self error: (MCPLiveTypingTools variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]
 ! !
 
-!MCPLiveTypingTools class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
-for: aSmalltalk
-
-	^self new initializeFor: aSmalltalk
-! !
-
-!MCPLiveTypingTools class methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
-initialize
-
-	MCPServer addToolProvider: self
-! !
-
 !MCPLiveTypingTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
 variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
@@ -197,4 +174,3 @@ variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
 	^'Variable not found: ', aVariableName, ' in ',
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
 ! !
-MCPLiveTypingTools initialize!

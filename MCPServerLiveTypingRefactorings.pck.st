@@ -1,14 +1,14 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:46:24 pm'!
-'Description Refactor only what LiveTyping saw is really sent'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 1!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:32 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 2!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
 
 
 !classDefinition: #MCPLiveTypingRefactoringTools category: #MCPServerLiveTypingRefactorings!
-Object subclass: #MCPLiveTypingRefactoringTools
-	instanceVariableNames: 'smalltalk'
+MCPToolProvider subclass: #MCPLiveTypingRefactoringTools
+	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerLiveTypingRefactorings'!
@@ -22,23 +22,14 @@ I am the tools that apply the refactorings LiveTyping makes possible.
 
 They differ from the ones that work on a selector alone by what they take to be a send of it: only the sends to objects LiveTyping saw were of the class that implements it. A send of the same name to anything else is left as it was, which a refactoring over the whole system cannot tell apart.!
 
-!MCPLiveTypingRefactoringTools methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:48 am (UTC)'!
 !methodProperties: {}!
-initializeFor: aSmalltalk
+addToolsTo: anMCPServer
 
-	smalltalk := aSmalltalk
-! !
-
-!MCPLiveTypingRefactoringTools methodsFor: 'tools' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
-tools
-
-	^{
-		self renameSelectorInActualScopeTool.
-		self changeKeywordsOrderInActualScopeTool.
-		self removeParameterInActualScopeTool.
-		self addParameterInActualScopeTool }
-! !
+	anMCPServer addTool: self renameSelectorInActualScopeTool.
+	anMCPServer addTool: self changeKeywordsOrderInActualScopeTool.
+	anMCPServer addTool: self removeParameterInActualScopeTool.
+	anMCPServer addTool: self addParameterInActualScopeTool! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
 !methodProperties: {}!
@@ -203,18 +194,3 @@ renameSelectorInActualScopeTool
 						senders: senders
 						withPossibleMessageSends: aKeepingAnswer = 'true' ] ]
 ! !
-
-!MCPLiveTypingRefactoringTools class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
-for: aSmalltalk
-
-	^self new initializeFor: aSmalltalk
-! !
-
-!MCPLiveTypingRefactoringTools class methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
-initialize
-
-	MCPServer addToolProvider: self
-! !
-MCPLiveTypingRefactoringTools initialize!

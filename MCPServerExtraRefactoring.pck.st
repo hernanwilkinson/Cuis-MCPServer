@@ -1,14 +1,14 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:41:14 am'!
-'Description Extract a parameter object and a method object'!
-!provides: 'MCPServerExtraRefactoring' 1 2!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:13 am'!
+'Description Find the tool providers instead of registering them'!
+!provides: 'MCPServerExtraRefactoring' 1 3!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
 
 
 !classDefinition: #MCPExtraRefactoringTools category: #MCPServerExtraRefactoring!
-Object subclass: #MCPExtraRefactoringTools
-	instanceVariableNames: 'smalltalk'
+MCPToolProvider subclass: #MCPExtraRefactoringTools
+	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerExtraRefactoring'!
@@ -17,24 +17,15 @@ MCPExtraRefactoringTools class
 	instanceVariableNames: ''!
 
 
-!MCPExtraRefactoringTools methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 !methodProperties: {}!
-initializeFor: aSmalltalk
+addToolsTo: anMCPServer
 
-	smalltalk := aSmalltalk
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-tools
-
-	^{
-		self moveInstanceVariableTool.
-		self moveMethodTool.
-		self extractClassTool.
-		self extractParameterObjectTool.
-		self extractToMethodObjectTool }
-! !
+	anMCPServer addTool: self moveInstanceVariableTool.
+	anMCPServer addTool: self moveMethodTool.
+	anMCPServer addTool: self extractClassTool.
+	anMCPServer addTool: self extractParameterObjectTool.
+	anMCPServer addTool: self extractToMethodObjectTool! !
 
 !MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 !methodProperties: {}!
@@ -236,26 +227,9 @@ moveMethodTool
 					ifFalse: [ ExtraParameterNameNeeded parameterName: anExtraParameterName ])) ]
 ! !
 
-!MCPExtraRefactoringTools class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
-for: aSmalltalk
-
-	^self new initializeFor: aSmalltalk
-! !
-
-!MCPExtraRefactoringTools class methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
-initialize
-
-	"Offer my tools to every server, now that the package that has them is loaded."
-
-	MCPServer addToolProvider: self
-! !
-
 !MCPExtraRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 25/Aug/2026, 10:40:28 am (UTC)'!
 !methodProperties: {}!
 classNotFoundErrorDescriptionFor: aClassName
 
 	^'Class not found: ', aClassName
 ! !
-MCPExtraRefactoringTools initialize!
