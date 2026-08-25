@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:40:26 pm'!
-'Description Read the types LiveTyping saw while the image ran'!
-!provides: 'MCPServerLiveTyping' 1 1!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:37:44 am'!
+'Description Tell a real sender from a method that writes the same selector'!
+!provides: 'MCPServerLiveTyping' 1 2!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -29,7 +29,7 @@ initializeFor: aSmalltalk
 	smalltalk := aSmalltalk
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:37:31 am (UTC)'!
 !methodProperties: {}!
 tools
 
@@ -37,7 +37,9 @@ tools
 		self typesOfInstanceVariableTool.
 		self typesOfEveryInstanceVariableTool.
 		self typesOfMethodVariableTool.
-		self returnTypesOfMethodTool }
+		self returnTypesOfMethodTool.
+		self actualSendersOfTool.
+		self actualImplementorsOfTool }
 ! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
@@ -49,6 +51,13 @@ methodIn: aClass named: aSelector
 	^aClass >> aSelector
 ! !
 
+!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!methodProperties: {}!
+renderMethodReferences: someMethodReferences
+
+	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
+! !
+
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
 renderTypeNames: aTypeInfo
@@ -57,6 +66,45 @@ renderTypeNames: aTypeInfo
 	image ran, so a variable of a method that has not run yet has none."
 
 	^Json render: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)
+! !
+
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!methodProperties: {}!
+actualImplementorsOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_actual_implementors_of'
+		describedBy: 'List the methods that really answer a selector sent to an object of a class, which are the ones implemented by that class and by every subclass of the one highest up that implements it. The class does not have to implement the selector itself.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector that is sent' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether a class that answers the selector nowhere is listed too, saying so, true or false' defaultingTo: 'false' }
+		executingWith: [ :aClass :aSelector :aPossibleAnswer |
+			| implementors |
+			implementors := smalltalk actualImplementorsOf: aSelector in: aClass.
+			self renderMethodReferences: (aPossibleAnswer = 'true'
+				ifTrue: [ implementors ]
+				ifFalse: [ implementors reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]) ]
+
+! !
+
+!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!methodProperties: {}!
+actualSendersOfTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_actual_senders_of'
+		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
+		properties: {
+			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that implements the method'.
+			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector of the method' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
+		executingWith: [ :aClass :aSelector :aPossibleAnswer |
+			| sureAndPossibleSenders |
+			sureAndPossibleSenders := smalltalk allActualSendersOn: (self methodIn: aClass named: aSelector).
+			self renderMethodReferences: (aPossibleAnswer = 'true'
+				ifTrue: [ sureAndPossibleSenders first , sureAndPossibleSenders second ]
+				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:40:01 pm (UTC)'!

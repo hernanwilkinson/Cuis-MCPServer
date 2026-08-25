@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 24 August 2026 at 8:40:53 pm'!
-'Description Read the types LiveTyping saw while the image ran'!
-!provides: 'MCPServerLiveTypingTests' 1 1!
+'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:37:53 am'!
+'Description Tell a real sender from a method that writes the same selector'!
+!provides: 'MCPServerLiveTypingTests' 1 2!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -46,11 +46,66 @@ answerOf: aToolName with: anArguments
 	^Json readFrom: ((self toolNamed: aToolName) valueWithArguments: anArguments) readStream
 ! !
 
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!methodProperties: {}!
+defineProbeHierarchy
+
+	"A root that implements the selector, a subclass that overrides it, and a caller that sends
+	it to itself and to something LiveTyping never saw hold anything."
+
+	| childClass |
+
+	probeClass compile: 'mcpAnswered
+
+	^1' classified: 'probing'.
+	probeClass compile: 'mcpCaller
+
+	| anythingElse |
+
+	self mcpAnswered.
+	false ifTrue: [ anythingElse mcpAnswered ]' classified: 'probing'.
+	childClass := probeClass subclass: #MCPLiveTypingProbeChild
+		instanceVariableNames: ''
+		classVariableNames: ''
+		poolDictionaries: ''
+		category: self classCategoryOfTestData.
+	childClass compile: 'mcpAnswered
+
+	^2' classified: 'probing'.
+	(probeClass >> #mcpCaller) initializeTypeInformation.
+	probeClass new mcpCaller.
+
+	^childClass
+! !
+
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
 toolNamed: aToolName
 
 	^(MCPLiveTypingTools for: Smalltalk) tools detect: [ :eachTool | eachTool name = aToolName ]
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!methodProperties: {}!
+testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'selector' put: 'mcpNeverImplemented';
+			yourself))
+		equals: #().
+
+	self
+		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'selector' put: 'mcpNeverImplemented';
+			at: 'includingPossible' put: 'true';
+			yourself)) size
+		equals: 1
+
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:40:01 pm (UTC)'!
@@ -79,6 +134,23 @@ testAnInstanceVariableThatHeldNothingHasNoTypes
 		equals: #()
 ! !
 
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!methodProperties: {}!
+testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
+
+	| withPossible |
+
+	self defineProbeHierarchy.
+
+	withPossible := self answerOf: 'smalltalk_actual_senders_of' with: (Dictionary new
+		at: 'className' put: 'MCPLiveTypingProbe';
+		at: 'selector' put: 'mcpAnswered';
+		at: 'includingPossible' put: 'true';
+		yourself).
+
+	self assert: withPossible size equals: 2
+! !
+
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
 !methodProperties: {}!
 testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
@@ -90,6 +162,34 @@ testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself))
 		equals: (Dictionary new at: 'held' put: #('SmallInteger'); yourself)
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!methodProperties: {}!
+testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'selector' put: 'mcpAnswered';
+			yourself))
+		equals: #('MCPLiveTypingProbe mcpAnswered' 'MCPLiveTypingProbeChild mcpAnswered')
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!methodProperties: {}!
+testTheActualSendersAreTheOnesSeenSendingItToThisClass
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self answerOf: 'smalltalk_actual_senders_of' with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'selector' put: 'mcpAnswered';
+			yourself))
+		equals: #('MCPLiveTypingProbe mcpCaller')
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
