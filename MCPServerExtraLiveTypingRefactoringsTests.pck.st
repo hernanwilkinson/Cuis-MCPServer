@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:13:19 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 2!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:37 pm'!
+'Description Let a method say its own name in every report'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 3!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -77,7 +77,7 @@ toolNamed: aToolName
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 5:02:20 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 !methodProperties: {}!
 testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
 
@@ -88,10 +88,10 @@ testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
 	self
 		assert: (self gatherFirstParameterOf: 'mcpFirst:second:')
 		equals: 'Refactoring applied. 2 methods changed:
-MCPExtraLiveTypingRefactoringProbe>>mcpCaller
-MCPExtraLiveTypingRefactoringProbe>>second:mCPExtraLiveTypingRefactoringParameters:
+MCPExtraLiveTypingRefactoringProbe>>#mcpCaller
+MCPExtraLiveTypingRefactoringProbe>>#second:mCPExtraLiveTypingRefactoringParameters:
 1 method removed:
-MCPExtraLiveTypingRefactoringProbe>>mcpFirst:second:'
+MCPExtraLiveTypingRefactoringProbe>>#mcpFirst:second:'
 
 ! !
 

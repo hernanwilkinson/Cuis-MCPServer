@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:12:13 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServer' 1 24!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:35 pm'!
+'Description Let a method say its own name in every report'!
+!provides: 'MCPServer' 1 25!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2262,20 +2262,26 @@ descriptionOfChanges: someMethods
 
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:21:03 pm (UTC)'!
 !methodProperties: {}!
 descriptionOfNewSourceOf: aMethod
 
 	"The source is read from the system and not from what the refactoring answered, so a client
 	sees the source that was really saved."
 
-	| refactoredClass |
+	| refactoredMethod |
 
-	refactoredClass := aMethod methodClass.
+	refactoredMethod := aMethod methodClass >> aMethod selector.
 
-	^'Refactoring applied. ' , refactoredClass name , '>>' , aMethod selector , ' is now:' ,
-		String newLineString , String newLineString ,
-		(refactoredClass >> aMethod selector) sourceCode
+	^String streamContents: [ :aStream |
+		aStream nextPutAll: 'Refactoring applied. '.
+		refactoredMethod printClassAndSelectorOn: aStream.
+		aStream
+			nextPutAll: ' is now:';
+			newLine;
+			newLine;
+			nextPutAll: refactoredMethod sourceCode ]
+
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:56:24 pm (UTC)'!
@@ -2285,15 +2291,11 @@ isImplemented: aMethod
 	^aMethod methodClass includesSelector: aMethod selector
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:56:48 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:36:16 pm (UTC)'!
 !methodProperties: {}!
 nameOf: aMethod
 
-	"Name a method the way a client asks for one, by the class that implements it and its
-	selector. A method reference and a compiled method are both named this way."
-
-	^aMethod methodClass name , '>>' , aMethod selector
-! !
+	^String streamContents: [ :aStream | aMethod printClassAndSelectorOn: aStream ]! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
 !methodProperties: {}!

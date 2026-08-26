@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:13:40 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 4!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:42 pm'!
+'Description Let a method say its own name in every report'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 5!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -94,7 +94,7 @@ testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 		includesSubstring: 'self mcpProbeWith' caseSensitive: true)
 ! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 5:01:57 pm (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 !methodProperties: {}!
 testRenamingInTheActualScopeAnswersTheMethodsItChanged
 
@@ -121,10 +121,10 @@ testRenamingInTheActualScopeAnswersTheMethodsItChanged
 			at: 'newSelector' put: 'mcpRenamed';
 			yourself))
 		equals: 'Refactoring applied. 2 methods changed:
-MCPLiveTypingRefactoringProbe>>mcpCaller
-MCPLiveTypingRefactoringProbe>>mcpRenamed
+MCPLiveTypingRefactoringProbe>>#mcpCaller
+MCPLiveTypingRefactoringProbe>>#mcpRenamed
 1 method removed:
-MCPLiveTypingRefactoringProbe>>mcpProbe'
+MCPLiveTypingRefactoringProbe>>#mcpProbe'
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!

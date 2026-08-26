@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:14:41 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerExtraRefactoringTest' 1 5!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:44 pm'!
+'Description Let a method say its own name in every report'!
+!provides: 'MCPServerExtraRefactoringTest' 1 6!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -103,7 +103,7 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 	self assert: (self sourceClass instVarNames includes: 'stayingVariable')
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 5:00:44 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 !methodProperties: {}!
 testExtractingAParameterObjectAnswersTheMethodsItChanged
 
@@ -126,9 +126,9 @@ testExtractingAParameterObjectAnswersTheMethodsItChanged
 			at: 'category' put: self classCategoryOfTestData;
 			yourself))
 		equals: 'Refactoring applied. 1 method changed:
-MCPExtraTestSource>>second:mCPExtraTestTarget:
+MCPExtraTestSource>>#second:mCPExtraTestTarget:
 1 method removed:
-MCPExtraTestSource>>mcpFirst:second:third:'
+MCPExtraTestSource>>#mcpFirst:second:third:'
 
 ! !
 
@@ -206,7 +206,7 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:35 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 !methodProperties: {}!
 testMovingAMethodAnswersTheMethodsItChanged
 
@@ -232,8 +232,8 @@ testMovingAMethodAnswersTheMethodsItChanged
 			at: 'accessingThrough' put: 'reachingVariable';
 			yourself))
 		equals: 'Refactoring applied. 2 methods changed:
-MCPExtraTestSource>>mcpMoving
-MCPExtraTestTarget>>mcpMoving'
+MCPExtraTestSource>>#mcpMoving
+MCPExtraTestTarget>>#mcpMoving'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
