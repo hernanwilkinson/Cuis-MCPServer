@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 5:28:54 pm'!
-'Description Remove what the fixed heuristics found unused'!
-!provides: 'MCPServer' 1 29!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:20:27 pm'!
+'Description Ask the image whether a message already exists'!
+!provides: 'MCPServer' 1 30!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1358,7 +1358,7 @@ addProvidedTools
 
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
 !methodProperties: {}!
 addSearchTools
 
@@ -1368,13 +1368,35 @@ addSearchTools
 		addTool: self referencesToClassTool;
 		addTool: self referencesToInstanceVariableTool;
 		addTool: self referencesToClassVariableTool;
-		addTool: self searchSourceTool! !
+		addTool: self searchSourceTool;
+		addTool: self searchSelectorsTool;
+		addTool: self findMessagesByExampleTool
+
+! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
 !methodProperties: {}!
 addTool: aTool
 
 	tools at: aTool name put: aTool
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+findMessagesByExampleTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_find_messages_by_example'
+		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection, an enumerating message taking a block built from a message of its elements is looked for as well.'
+		properties: {
+			MCPPlainToolProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
+			MCPPlainToolProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.
+			MCPPlainToolProperty named: 'arguments' describedBy: 'Smalltalk expression answering an Array with the arguments to send, such as #(4). Defaults to sending none' defaultingTo: '' }
+		executingWith: [ :aReceiverSource :anExpectedSource :anArgumentsSource |
+			self renderMessagesFound: (self
+				messagesFrom: aReceiverSource
+				withArguments: anArgumentsSource
+				expecting: anExpectedSource) ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
@@ -1390,6 +1412,29 @@ implementorsOfTool
 				describedBy: 'Selector the methods implement'
 				valuedWith: [ :aSelector | aSelector asSymbol ] }
 		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpectedSource
+
+	"The arguments are copied because the finder hands the very array it is given to each
+	candidate message, and the one a literal expression answers is read only."
+
+	| arguments finder |
+
+	arguments := anArgumentsSource
+		ifEmpty: [ Array new ]
+		ifNotEmpty: [ :aSource | (Compiler evaluate: aSource) copy ].
+	finder := MethodFinder new.
+	finder
+		findMethodsOf: (Compiler evaluate: aReceiverSource)
+		withArguments: arguments
+		expecting: (Compiler evaluate: anExpectedSource)
+		withReceiverSource: aReceiverSource
+		andArgumentSources: (arguments collect: [ :eachArgument | eachArgument printString ]).
+
+	^finder messageList
 ! !
 
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
@@ -1436,6 +1481,20 @@ referencesToInstanceVariableTool
 			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
 ! !
 
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+renderMessagesFound: someMethodEvaluationReferences
+
+	"Answer each message along with the expression that answers the expected result, which is
+	the only record of the block an enumerating message was found with."
+
+	^Json render: (someMethodEvaluationReferences collect: [ :eachReference |
+		OrderedDictionary new
+			at: 'message' put: eachReference classAndSelector;
+			at: 'expression' put: eachReference evaluationSourceCode;
+			yourself ]) asArray
+! !
+
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
 renderReferences: aCollectionOfMethodReferences
@@ -1444,6 +1503,24 @@ renderReferences: aCollectionOfMethodReferences
 
 	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+renderSelectors: someSelectors
+
+	^Json render: (someSelectors collect: [ :eachSelector | eachSelector asString ])
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+searchSelectorsTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_search_selectors'
+		describedBy: 'List the selectors that contain a text, which tells whether a message doing what is about to be written already has a name. A * in the text matches any text and a # any character, and several texts can be sent separated by semicolons.'
+		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the selector contains' }
+		executingWith: [ :aText | self renderSelectors: (self selectorsContaining: aText) ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
@@ -1455,6 +1532,18 @@ searchSourceTool
 		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
 		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
 		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
+! !
+
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!methodProperties: {}!
+selectorsContaining: aText
+
+	| messageNames |
+
+	messageNames := MessageNames new.
+	messageNames searchString: aText.
+
+	^messageNames computeSelectorListFromSearchString
 ! !
 
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 5:29:01 pm'!
-'Description Remove what the fixed heuristics found unused'!
-!provides: 'MCPServerTests' 1 27!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:20:35 pm'!
+'Description Ask the image whether a message already exists'!
+!provides: 'MCPServerTests' 1 28!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -445,6 +445,14 @@ evaluate: aCodeString
 
 	^client callTool: 'smalltalk_evaluate' with: (self arguments: 'code' being: aCodeString)! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+expressionsFoundWith: anArguments
+
+	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
+		collect: [ :eachMessageFound | eachMessageFound at: 'expression' ]
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:56:04 pm (UTC)'!
 !methodProperties: {}!
 jsonAnswerOf: aToolName
@@ -458,6 +466,16 @@ jsonAnswerOf: aToolName with: anArguments
 	"Answer the parsed value of a tool that answers JSON."
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+messagesFoundWith: anArguments
+
+	"Answer the name of each message the finder found, which is what names it in the image."
+
+	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
+		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
+! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 4:10:14 pm (UTC)'!
 !methodProperties: {}!
@@ -724,6 +742,45 @@ testEveryAdvertisedToolHasADescriptionAndAnInputSchema
 		client listTools allSatisfy: [ :eachToolDefinition |
 			(eachToolDefinition includesKey: 'description') and: [ eachToolDefinition includesKey: 'inputSchema' ] ])! !
 
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
+
+	self
+		assert: (self messagesFoundWith: (self
+			arguments: 'receiver' being: '''method'''
+			and: 'expected' being: '''zzz not the plural of anything'''))
+		equals: #()
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
+
+	self assert: ((self expressionsFoundWith: (self
+		arguments: 'receiver' being: '''method'''
+		and: 'expected' being: '''methods''')) includes: '''method'' asPlural')
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
+
+	self assert: ((self messagesFoundWith: (self
+		arguments: 'receiver' being: '''method'''
+		and: 'expected' being: '''methods''')) includes: 'CharacterSequence>>#asPlural')
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleSendsTheArgumentsItIsGiven
+
+	self assert: ((self messagesFoundWith: (self
+		arguments: 'receiver' being: '3'
+		and: 'expected' being: '7'
+		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
+! !
+
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:08 pm (UTC)'!
 !methodProperties: {}!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
@@ -904,6 +961,25 @@ testReferencesToAnInstanceVariableTheClassDoesNotHaveFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
 			(MCPServer instanceVariableNotFoundErrorDescriptionFor: 'noSuchVariable' in: self createdClassInTest))
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testSearchingSelectorsAnswersNoneWhenNoSelectorContainsTheText
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_search_selectors' with: (self arguments: 'text' being: self phraseNoOtherMethodCarries))
+		equals: #()
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
+!methodProperties: {}!
+testSearchingSelectorsAnswersTheOnesWhoseNameContainsTheText
+
+	self
+		assert: (self sortedAnswerOf: 'smalltalk_search_selectors' with: (self arguments: 'text' being: 'pluralize'))
+		equals: #('pluralize:')
 ! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 4:10:14 pm (UTC)'!

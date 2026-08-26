@@ -202,6 +202,27 @@ of version control.
 Always use `smalltalk_save_image` to save. Evaluating `Smalltalk saveImage` through
 `smalltalk_evaluate` blocks the server.
 
+### Search
+
+The last two answer what the image already has, which is worth asking before writing something
+new: `smalltalk_find_messages_by_example` is `MethodFinder` and `smalltalk_search_selectors` is
+`MessageNames`.
+
+| Tool | |
+| --- | --- |
+| `smalltalk_senders_of` | Methods that send a selector |
+| `smalltalk_implementors_of` | Methods that implement a selector |
+| `smalltalk_references_to_class` | Methods that name a class |
+| `smalltalk_references_to_instance_variable` | Methods that read or write an instance variable |
+| `smalltalk_references_to_class_variable` | Methods that read or write a class variable |
+| `smalltalk_search_source` | Methods whose source contains a text |
+| `smalltalk_search_selectors` | Selectors whose name contains a text |
+| `smalltalk_find_messages_by_example` | Messages that answer an expected result from a receiver |
+
+`smalltalk_find_messages_by_example` takes the receiver, the arguments and the expected result as
+Smalltalk expressions, and answers each message it found with the expression that produced the
+result. Asking for `'method'` expecting `'methods'` answers `CharacterSequence>>#asPlural`.
+
 ### Debugging
 
 `smalltalk_evaluate_to_debug_on_error` leaves a debugger open when the expression fails, and the
