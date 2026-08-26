@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:26:11 pm'!
-'Description Close the debugger window that is not on screen yet'!
-!provides: 'MCPServerTests' 1 31!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:59:48 pm'!
+'Description Run the tests without leaving the image'!
+!provides: 'MCPServerTests' 1 32!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -360,6 +360,20 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey
 
 ! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+countsOfRunning: aToolName with: anArguments
+
+	| answer |
+
+	answer := self jsonAnswerOf: aToolName with: anArguments.
+
+	^Array
+		with: (answer at: 'passedCount')
+		with: (answer at: 'failedCount')
+		with: (answer at: 'errorCount')
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 6:33:22 pm (UTC)'!
 !methodProperties: {}!
 createdClassInTest
@@ -384,6 +398,25 @@ defineMethodIn: aClassName source: aSource
 
 	^client callTool: 'smalltalk_define_method' with:
 		(self arguments: 'className' being: aClassName and: 'source' being: aSource)
+! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+defineTestCaseProbe
+
+	"A test case class with one test that passes, one that fails and one that signals, which
+	is what tells the three counts and the two lists apart."
+
+	self defineClassWith: (self definitionOf: 'MCPTestProbeCase' subclassOf: 'TestCase').
+	self defineMethodIn: 'MCPTestProbeCase' source: 'testThatPasses
+
+	self assert: true'.
+	self defineMethodIn: 'MCPTestProbeCase' source: 'testThatFails
+
+	self assert: false'.
+	self defineMethodIn: 'MCPTestProbeCase' source: 'testThatSignals
+
+	self error: ''probing'''
 ! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:34 pm (UTC)'!
@@ -985,6 +1018,75 @@ testReferencesToAnInstanceVariableTheClassDoesNotHaveFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
 			(MCPServer instanceVariableNotFoundErrorDescriptionFor: 'noSuchVariable' in: self createdClassInTest))
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
+
+	self defineTestCaseProbe.
+
+	self
+		assert: (self countsOfRunning: 'smalltalk_run_test_class'
+			with: (self arguments: 'className' being: 'MCPTestProbeCase'))
+		equals: #(1 1 1)
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
+
+	| answer |
+
+	self defineTestCaseProbe.
+
+	answer := self jsonAnswerOf: 'smalltalk_run_test_class'
+		with: (self arguments: 'className' being: 'MCPTestProbeCase').
+
+	self
+		assert: (Array with: (answer at: 'failed') with: (answer at: 'errors'))
+		equals: #(#('MCPTestProbeCase>>#testThatFails') #('MCPTestProbeCase>>#testThatSignals'))
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+testRunningOneTestMethodRunsThatOneAlone
+
+	self defineTestCaseProbe.
+
+	self
+		assert: (self countsOfRunning: 'smalltalk_run_test_method'
+			with: (self arguments: 'className' being: 'MCPTestProbeCase' and: 'selector' being: 'testThatPasses'))
+		equals: #(1 0 0)
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
+
+	self defineTestCaseProbe.
+	self defineClassWith: (self definitionOf: 'MCPTestOtherProbeCase' subclassOf: 'TestCase').
+	self defineMethodIn: 'MCPTestOtherProbeCase' source: 'testThatAlsoPasses
+
+	self assert: true'.
+
+	self
+		assert: (self countsOfRunning: 'smalltalk_run_tests_for_classes'
+			with: (self arguments: 'classNames' being: 'MCPTestProbeCase, MCPTestOtherProbeCase'))
+		equals: #(2 1 1)
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!methodProperties: {}!
+testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
+
+	self defineTestCaseProbe.
+
+	self
+		assert: (self countsOfRunning: 'smalltalk_run_tests_in_category'
+			with: (self arguments: 'categoryName' being: self classCategoryOfTestData))
+		equals: #(1 1 1)
 ! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!

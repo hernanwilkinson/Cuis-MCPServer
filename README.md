@@ -227,6 +227,21 @@ the receiver is a collection it also looks for an enumerating message taking a b
 expression is the only place the block shows: asking for `#(1 2 3 4)` expecting `#(1 3)` answers
 `#(1 2 3 4) select: [:aSmallInteger | aSmallInteger odd]` and the `reject:` that sends `even`.
 
+### Tests
+
+Each of these answers how many tests passed, failed and signalled an error, and names the ones
+that failed apart from the ones that signalled.
+
+| Tool | |
+| --- | --- |
+| `smalltalk_run_test_method` | Run one test |
+| `smalltalk_run_test_class` | Run every test of a test case class |
+| `smalltalk_run_tests_in_category` | Run every test of a class category |
+| `smalltalk_run_tests_for_classes` | Run the tests of several classes as one suite |
+
+A class that is not a test case class contributes the tests that exercise it, so
+`smalltalk_run_tests_for_classes` with `MCPServer` runs what covers it.
+
 ### Debugging
 
 `smalltalk_evaluate_to_debug_on_error` leaves a debugger open when the expression fails, and the
