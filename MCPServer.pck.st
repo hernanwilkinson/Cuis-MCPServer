@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:20:27 pm'!
-'Description Ask the image whether a message already exists'!
-!provides: 'MCPServer' 1 30!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:37:55 pm'!
+'Description Let the finder send the message to the arguments too'!
+!provides: 'MCPServer' 1 31!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1381,13 +1381,13 @@ addTool: aTool
 	tools at: aTool name put: aTool
 ! !
 
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:36:16 pm (UTC)'!
 !methodProperties: {}!
 findMessagesByExampleTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_find_messages_by_example'
-		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection, an enumerating message taking a block built from a message of its elements is looked for as well.'
+		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. Every order of the receiver and the arguments is looked in, so the message found may well be the one implemented by what was sent as an argument. When the receiver is a collection, an enumerating message taking a block built from a message of its elements is looked for as well.'
 		properties: {
 			MCPPlainToolProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
 			MCPPlainToolProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.
@@ -1414,27 +1414,23 @@ implementorsOfTool
 		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:17:24 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:36:18 pm (UTC)'!
 !methodProperties: {}!
 messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpectedSource
 
-	"The arguments are copied because the finder hands the very array it is given to each
-	candidate message, and the one a literal expression answers is read only."
-
-	| arguments finder |
+	| arguments |
 
 	arguments := anArgumentsSource
 		ifEmpty: [ Array new ]
-		ifNotEmpty: [ :aSource | (Compiler evaluate: aSource) copy ].
-	finder := MethodFinder new.
-	finder
+		ifNotEmpty: [ :aSource | Compiler evaluate: aSource ].
+
+	^(MethodFinder new
 		findMethodsOf: (Compiler evaluate: aReceiverSource)
 		withArguments: arguments
 		expecting: (Compiler evaluate: anExpectedSource)
 		withReceiverSource: aReceiverSource
-		andArgumentSources: (arguments collect: [ :eachArgument | eachArgument printString ]).
-
-	^finder messageList
+		andArgumentSources: (arguments collect: [ :eachArgument | eachArgument printString ]);
+		yourself) messageList
 ! !
 
 !MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!

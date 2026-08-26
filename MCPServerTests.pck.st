@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:20:35 pm'!
-'Description Ask the image whether a message already exists'!
-!provides: 'MCPServerTests' 1 28!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:38:03 pm'!
+'Description Let the finder send the message to the arguments too'!
+!provides: 'MCPServerTests' 1 29!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -779,6 +779,19 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		arguments: 'receiver' being: '3'
 		and: 'expected' being: '7'
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:36:18 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleSendsTheMessageToTheArgumentsToo
+
+	"3 raisedTo: 10 is not 1000, so the message is only found by looking the other way around."
+
+	self assert: ((self messagesFoundWith: (self
+		arguments: 'receiver' being: '3'
+		and: 'expected' being: '1000'
+		and: 'arguments' being: '#(10)')) includes: 'Number>>#raisedTo:')
+
 ! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:08 pm (UTC)'!
