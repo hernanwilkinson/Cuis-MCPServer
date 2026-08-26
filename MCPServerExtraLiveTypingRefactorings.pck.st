@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:17 pm'!
-'Description Report the source a refactoring really saved'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 2!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:14:01 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 3!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
@@ -30,7 +30,7 @@ addToolsTo: anMCPServer
 	anMCPServer addTool: self extractParameterObjectInActualScopeTool
 ! !
 
-!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:17 pm (UTC)'!
 !methodProperties: {}!
 extractParameterObjectInActualScopeTool
 
@@ -48,7 +48,7 @@ extractParameterObjectInActualScopeTool
 			| parameterNames keepingPossibleSends |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
 			keepingPossibleSends := aKeepingAnswer = 'true'.
-			self applyReportingChangedMethods: (self
+			self applyReportingChanges: (self
 				refactoringOn: aMethod selector
 				in: aMethod methodClass
 				using: AddParameterWithActualScope

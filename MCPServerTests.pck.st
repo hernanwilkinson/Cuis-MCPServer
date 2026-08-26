@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:56 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerTests' 1 24!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:14:20 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerTests' 1 25!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -966,6 +966,23 @@ testUnknownMethodAnswersAMethodNotFoundError
 
 	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testAddAsSubclassResponsibilityRefactoringAnswersTheMethodItWrote
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_add_as_subclass_responsibility'
+			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe'))
+		equals: 'Refactoring applied. 1 method changed:
+MCPTestSubject>>mcpProbe'
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
 !methodProperties: {}!
 testAddAsSubclassResponsibilityRefactoringDeclaresItInTheSuperclass
@@ -993,6 +1010,19 @@ testAddInstanceVariableRefactoringAddsItToTheClass
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'addedVariable').
 
 	self assert: (self createdClassInTest instVarNames includes: 'addedVariable')
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:27:40 pm (UTC)'!
+!methodProperties: {}!
+testAddInstanceVariableRefactoringAnswersTheDefinitionOfTheClass
+
+	self defineTestSubjectClass.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_add_instance_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'addedVariable'))
+		equals: 'Refactoring applied. 1 class changed:' , String newLineString , String newLineString ,
+			self createdClassInTest definition
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:29:59 pm (UTC)'!
@@ -1042,9 +1072,12 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)
 ! !
 
-!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 25/Aug/2026, 5:01:19 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:16 pm (UTC)'!
 !methodProperties: {}!
 testExtractAsParameterRefactoringAnswersTheMethodsItChanged
+
+	"The method that took the piece as a parameter is a new one, and the one it came from is
+	gone, which the refactoring says apart from the methods that are still there."
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -1061,10 +1094,11 @@ testExtractAsParameterRefactoringAnswersTheMethodsItChanged
 				and: 'selector' being: 'mcpProbe'
 				and: 'parameterName' being: 'aNumber'
 				and: 'text' being: '42'))
-		equals: 'Refactoring applied. 3 methods changed:
-MCPTestSubject>>mcpProbe
+		equals: 'Refactoring applied. 2 methods changed:
 MCPTestSubject>>mcpProbe:
-MCPTestSubject>>mcpProbeCaller'
+MCPTestSubject>>mcpProbeCaller
+1 method removed:
+MCPTestSubject>>mcpProbe'
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 9:05:22 pm (UTC)'!
@@ -1123,6 +1157,28 @@ testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
 		includesSubstring: 'self mcpExtracted: 2' caseSensitive: true).
 	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'mcpFoo' caseSensitive: true)! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 5:03:48 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodRefactoringAnswersTheMethodItCreatedAndTheOneItChanged
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42 + 1'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_extract_method'
+			with: (self
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
+				and: 'newSelector' being: 'mcpExtracted'
+				and: 'text' being: '42 + 1'))
+		equals: 'Refactoring applied. 2 methods changed:
+MCPTestSubject>>mcpExtracted
+MCPTestSubject>>mcpProbe'
+
+! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:09:39 pm (UTC)'!
 !methodProperties: {}!
@@ -1294,6 +1350,33 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testInlineTemporaryVariableRefactoringAnswersTheNewSourceOfTheMethod
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| aTemporary |
+
+	aTemporary := 42.
+	^aTemporary + 1'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_inline_temporary_variable'
+			with: (self
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
+				and: 'variableName' being: 'aTemporary'
+				and: 'text' being: 'aTemporary + 1'))
+		equals: 'Refactoring applied. MCPTestSubject>>mcpProbe is now:
+
+mcpProbe
+
+	^42 + 1'
+
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:27:21 pm (UTC)'!
 !methodProperties: {}!
 testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
@@ -1367,6 +1450,24 @@ testInsertSuperclassRefactoringPutsTheNewClassBetween
 	self assert: self createdClassInTest superclass name equals: #MCPTestSubjectChild
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testMoveToInstanceOrClassMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_move_to_instance_or_class_method'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe'))
+		equals: 'Refactoring applied. 1 method changed:
+MCPTestSubject class>>mcpProbe
+1 method removed:
+MCPTestSubject>>mcpProbe'
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
 !methodProperties: {}!
 testMoveToInstanceOrClassMethodRefactoringMovesItToTheClassSide
@@ -1401,6 +1502,28 @@ testPushDownInstanceVariableRefactoringMovesItToTheSubclasses
 	self assert: ((Smalltalk classNamed: #MCPTestSubjectChild) instVarNames includes: 'travellingVariable')
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testPushDownMethodToOneSubclassRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_push_down_method_to_one_subclass'
+			with: (self
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
+				and: 'subclassName' being: 'MCPTestSubjectChild'))
+		equals: 'Refactoring applied. 1 method changed:
+MCPTestSubjectChild>>mcpProbe
+1 method removed:
+MCPTestSubject>>mcpProbe'
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
 !methodProperties: {}!
 testPushDownMethodToOneSubclassRefactoringMovesItThere
@@ -1421,6 +1544,27 @@ testPushDownMethodToOneSubclassRefactoringMovesItThere
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testPushDownMethodToSubclassesRefactoringAnswersTheMethodsItChanged
+
+	"The method it came from is left saying it is the responsibility of the subclasses, so it
+	is a method that changed and not one that went away."
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_push_down_method_to_subclasses'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe'))
+		equals: 'Refactoring applied. 2 methods changed:
+MCPTestSubject>>mcpProbe
+MCPTestSubjectChild>>mcpProbe'
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
 !methodProperties: {}!
 testPushDownMethodToSubclassesRefactoringGivesItToEverySubclass
@@ -1437,6 +1581,26 @@ testPushDownMethodToSubclassesRefactoringGivesItToEverySubclass
 	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)
 ! !
 
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:27:40 pm (UTC)'!
+!methodProperties: {}!
+testPushUpInstanceVariableRefactoringAnswersTheDefinitionsOfTheClassesItChanged
+
+	"The definitions say where the variable ended up, which is what a client asks the classes
+	after moving one."
+
+	self defineTestSubjectClass.
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'
+		instanceVariableNames: 'travellingVariable' classVariableNames: '').
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_push_up_instance_variable'
+			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'variableName' being: 'travellingVariable'))
+		equals: 'Refactoring applied. 2 classes changed:' , String newLineString , String newLineString ,
+			self createdClassInTest definition , String newLineString , String newLineString ,
+			(Smalltalk classNamed: 'MCPTestSubjectChild') definition
+! !
+
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 4:53:59 pm (UTC)'!
 !methodProperties: {}!
 testPushUpInstanceVariableRefactoringMovesItToTheSuperclass
@@ -1450,6 +1614,25 @@ testPushUpInstanceVariableRefactoringMovesItToTheSuperclass
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'variableName' being: 'travellingVariable').
 
 	self assert: (self createdClassInTest instVarNames includes: 'travellingVariable')
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
+!methodProperties: {}!
+testPushUpMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^42'.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_push_up_method'
+			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe'))
+		equals: 'Refactoring applied. 1 method changed:
+MCPTestSubject>>mcpProbe
+1 method removed:
+MCPTestSubjectChild>>mcpProbe'
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 8:39:41 pm (UTC)'!
@@ -1661,12 +1844,12 @@ testRenameInstanceVariableRefactoringRenamesItEverywhereItIsUsed
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeUsingIt) includesSubstring: 'newVariable' caseSensitive: true)
 ! !
 
-!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 25/Aug/2026, 5:01:17 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:21:19 pm (UTC)'!
 !methodProperties: {}!
 testRenameSelectorRefactoringAnswersTheMethodsItChanged
 
-	"The old implementor, the new one and the sender are all changes the refactoring made, and
-	they are what it answers instead of only that it worked."
+	"The new implementor and the sender are the methods that are still there, and the one the
+	rename left behind is named as removed."
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -1679,10 +1862,12 @@ testRenameSelectorRefactoringAnswersTheMethodsItChanged
 	self
 		assert: (self applyRefactoring: 'smalltalk_refactor_rename_selector'
 			with: (self arguments: 'selector' being: 'mcpProbe' and: 'newSelector' being: 'mcpProbeRenamed'))
-		equals: 'Refactoring applied. 3 methods changed:
-MCPTestSubject>>mcpProbe
+		equals: 'Refactoring applied. 2 methods changed:
 MCPTestSubject>>mcpProbeCaller
-MCPTestSubject>>mcpProbeRenamed'
+MCPTestSubject>>mcpProbeRenamed
+1 method removed:
+MCPTestSubject>>mcpProbe'
+
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 6:36:43 pm (UTC)'!
@@ -1760,6 +1945,22 @@ testRenameTemporaryRefactoringRenamesItInEveryUseInsideTheMethod
 		includesSubstring: 'aRenamedTemporary' caseSensitive: true).
 	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'aTemporary :=' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 26/Aug/2026, 4:30:05 pm (UTC)'!
+!methodProperties: {}!
+testSafelyRemoveClassRefactoringAnswersTheClassesItRemoved
+
+	"The name is all that is left of a class that is out of the system, so it is what a client
+	is told."
+
+	self defineTestSubjectClass.
+
+	self
+		assert: (self applyRefactoring: 'smalltalk_refactor_safely_remove_class'
+			with: (self arguments: 'className' being: 'MCPTestSubject'))
+		equals: 'Refactoring applied. 1 class removed: MCPTestSubject'
+
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 4:53:59 pm (UTC)'!

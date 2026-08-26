@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:46 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 3!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:13:40 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 4!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -94,12 +94,13 @@ testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 		includesSubstring: 'self mcpProbeWith' caseSensitive: true)
 ! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 5:02:55 pm (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 5:01:57 pm (UTC)'!
 !methodProperties: {}!
 testRenamingInTheActualScopeAnswersTheMethodsItChanged
 
-	"The old implementor, the new one and the method that really sends it are the changes it
-	made. The send it left alone is in a method it changed, so the method is named once."
+	"The new implementor and the method that really sends it are the ones that are still there,
+	and the one the rename left behind is named as removed. The send it left alone is in a
+	method it changed, so the method is named once."
 
 	probeClass compile: 'mcpProbe
 
@@ -119,10 +120,11 @@ testRenamingInTheActualScopeAnswersTheMethodsItChanged
 			at: 'selector' put: 'mcpProbe';
 			at: 'newSelector' put: 'mcpRenamed';
 			yourself))
-		equals: 'Refactoring applied. 3 methods changed:
+		equals: 'Refactoring applied. 2 methods changed:
 MCPLiveTypingRefactoringProbe>>mcpCaller
-MCPLiveTypingRefactoringProbe>>mcpProbe
-MCPLiveTypingRefactoringProbe>>mcpRenamed'
+MCPLiveTypingRefactoringProbe>>mcpRenamed
+1 method removed:
+MCPLiveTypingRefactoringProbe>>mcpProbe'
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!

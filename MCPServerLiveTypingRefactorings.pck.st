@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:43 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 4!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:12:58 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 5!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -85,7 +85,7 @@ addToolsTo: anMCPServer
 		addTool: self removeParameterInActualScopeTool;
 		addTool: self addParameterInActualScopeTool! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:57:53 pm (UTC)'!
 !methodProperties: {}!
 addParameterInActualScopeTool
 
@@ -102,7 +102,7 @@ addParameterInActualScopeTool
 			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aKeepingAnswer |
-			self applyReportingChangedMethods: (self
+			self applyReportingChanges: (self
 				refactoringOn: aMethod selector
 				in: aMethod methodClass
 				using: AddParameterWithActualScope
@@ -127,7 +127,7 @@ addParameterInActualScopeTool
 							withPossibleMessageSends: aKeepingAnswer = 'true' ] ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
 !methodProperties: {}!
 changeKeywordsOrderInActualScopeTool
 
@@ -141,7 +141,7 @@ changeKeywordsOrderInActualScopeTool
 			MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aNewSelector :aKeepingAnswer |
-			self applyReportingChangedMethods: (self
+			self applyReportingChanges: (self
 				refactoringOn: aMethod selector
 				in: aMethod methodClass
 				using: ChangeKeywordsSelectorOrderWithActualScope
@@ -155,7 +155,7 @@ changeKeywordsOrderInActualScopeTool
 						withPossibleMessageSends: aKeepingAnswer = 'true' ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
 !methodProperties: {}!
 removeParameterInActualScopeTool
 
@@ -170,7 +170,7 @@ removeParameterInActualScopeTool
 			MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aParameterName :aParameterIndex :aKeepingAnswer |
-			self applyReportingChangedMethods: (self
+			self applyReportingChanges: (self
 				refactoringOn: aMethod selector
 				in: aMethod methodClass
 				using: RemoveParameterWithActualScope
@@ -185,7 +185,7 @@ removeParameterInActualScopeTool
 						withPossibleMessageSends: aKeepingAnswer = 'true' ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
 !methodProperties: {}!
 renameSelectorInActualScopeTool
 
@@ -199,7 +199,7 @@ renameSelectorInActualScopeTool
 			MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
 			MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aNewSelector :aKeepingAnswer |
-			self applyReportingChangedMethods: (self
+			self applyReportingChanges: (self
 				refactoringOn: aMethod selector
 				in: aMethod methodClass
 				using: RenameSelectorWithActualScope

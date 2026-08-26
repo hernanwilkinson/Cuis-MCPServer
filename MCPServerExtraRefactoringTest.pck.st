@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:58 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerExtraRefactoringTest' 1 4!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:14:41 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerExtraRefactoringTest' 1 5!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -68,6 +68,23 @@ toolNamed: aToolName
 
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!methodProperties: {}!
+testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
+
+	self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable stayingVariable'.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_extract_class') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPExtraTestSource';
+			at: 'newClassName' put: 'MCPExtraTestTarget';
+			at: 'instanceVariableName' put: 'reachingVariable';
+			at: 'variableNames' put: 'movingVariable';
+			yourself))
+		equals: 'Refactoring applied. Class created:' , String newLineString , String newLineString ,
+			self targetClass definition
+! !
+
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
 !methodProperties: {}!
 testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
@@ -86,9 +103,12 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 	self assert: (self sourceClass instVarNames includes: 'stayingVariable')
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 5:02:53 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 5:00:44 pm (UTC)'!
 !methodProperties: {}!
 testExtractingAParameterObjectAnswersTheMethodsItChanged
+
+	"The method that takes the parameter object is a new one, and the one it came from is gone,
+	which the refactoring says apart from the methods that are still there."
 
 	| source |
 
@@ -105,9 +125,11 @@ testExtractingAParameterObjectAnswersTheMethodsItChanged
 			at: 'parameterNames' put: 'aFirst, aThird';
 			at: 'category' put: self classCategoryOfTestData;
 			yourself))
-		equals: 'Refactoring applied. 2 methods changed:
-MCPExtraTestSource>>mcpFirst:second:third:
-MCPExtraTestSource>>second:mCPExtraTestTarget:'
+		equals: 'Refactoring applied. 1 method changed:
+MCPExtraTestSource>>second:mCPExtraTestTarget:
+1 method removed:
+MCPExtraTestSource>>mcpFirst:second:third:'
+
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:41:07 am (UTC)'!
@@ -136,6 +158,30 @@ testExtractingAParameterObjectGathersTheParametersNamed
 	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') instVarNames includesAllOf: #('first' 'third')).
 	self assert: (self sourceClass includesSelector: 'second:mCPExtraTestTarget:' asSymbol)! !
 
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!methodProperties: {}!
+testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	source compile: 'mcpProbe
+
+	^42' classified: 'probing'.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_extract_to_method_object') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPExtraTestSource';
+			at: 'selector' put: 'mcpProbe';
+			at: 'newClassName' put: 'MCPExtraTestTarget';
+			at: 'evaluationSelector' put: 'mcpEvaluate';
+			at: 'category' put: self classCategoryOfTestData;
+			yourself))
+		equals: 'Refactoring applied. Class created:' , String newLineString , String newLineString ,
+			self targetClass definition
+
+! !
+
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:40:32 am (UTC)'!
 !methodProperties: {}!
 testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
@@ -158,6 +204,36 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 	self assert: (Smalltalk classNamed: 'MCPExtraTestTarget') notNil.
 	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') includesSelector: 'mcpEvaluate' asSymbol)
 
+! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:35 pm (UTC)'!
+!methodProperties: {}!
+testMovingAMethodAnswersTheMethodsItChanged
+
+	"The method is in the other class and the one it came from is left delegating to it, so
+	both are methods that changed."
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'reachingVariable'.
+	self defineClassNamed: 'MCPExtraTestTarget' instanceVariableNames: ''.
+	source compile: 'mcpInitialize
+
+	reachingVariable := MCPExtraTestTarget new' classified: 'probing'.
+	source compile: 'mcpMoving
+
+	^42' classified: 'probing'.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_move_method') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPExtraTestSource';
+			at: 'selector' put: 'mcpMoving';
+			at: 'targetClassName' put: 'MCPExtraTestTarget';
+			at: 'accessingThrough' put: 'reachingVariable';
+			yourself))
+		equals: 'Refactoring applied. 2 methods changed:
+MCPExtraTestSource>>mcpMoving
+MCPExtraTestTarget>>mcpMoving'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
@@ -183,6 +259,30 @@ testMovingAMethodTakesItToTheOtherClass
 		yourself).
 
 	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol)
+! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!methodProperties: {}!
+testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable reachingVariable'.
+	self defineClassNamed: 'MCPExtraTestTarget' instanceVariableNames: ''.
+	source compile: 'mcpInitialize
+
+	reachingVariable := MCPExtraTestTarget new' classified: 'probing'.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_move_instance_variable') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPExtraTestSource';
+			at: 'variableName' put: 'movingVariable';
+			at: 'targetClassName' put: 'MCPExtraTestTarget';
+			at: 'accessingThrough' put: 'reachingVariable';
+			yourself))
+		equals: 'Refactoring applied. 2 classes changed:' , String newLineString , String newLineString ,
+			self sourceClass definition , String newLineString , String newLineString ,
+			self targetClass definition
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!

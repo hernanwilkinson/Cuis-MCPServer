@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:13 pm'!
-'Description Report the source a refactoring really saved'!
-!provides: 'MCPServerExtraRefactoring' 1 6!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:12:37 pm'!
+'Description Answer the changes the rest of the refactorings make'!
+!provides: 'MCPServerExtraRefactoring' 1 7!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -28,7 +28,7 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
 !methodProperties: {}!
 extractClassTool
 
@@ -42,7 +42,7 @@ extractClassTool
 			MCPPlainToolProperty named: 'variableNames' describedBy: 'Names of the instance variables to extract, separated by commas' defaultingTo: ''.
 			MCPPlainToolProperty named: 'selectors' describedBy: 'Selectors of the methods to extract, separated by commas' defaultingTo: '' }
 		executingWith: [ :aClass :aNewClassName :anInstanceVariableName :someVariableNames :someSelectors |
-			self apply: (ExtractClass
+			self applyReportingNewClass: (ExtractClass
 				from: aClass
 				to: aNewClassName asSymbol
 				instanceVariableNamed: anInstanceVariableName
@@ -51,7 +51,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
 !methodProperties: {}!
 extractParameterObjectTool
 
@@ -67,7 +67,7 @@ extractParameterObjectTool
 		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
 			| parameterNames |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
-			self applyReportingChangedMethods: (self refactoringOn: aMethod selector builtWith: [ :implementors :senders |
+			self applyReportingChanges: (self refactoringOn: aMethod selector builtWith: [ :implementors :senders |
 				ExtractParameterObject
 					from: aMethod
 					toClassNamed: aNewClassName asSymbol
@@ -80,7 +80,7 @@ extractParameterObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
 !methodProperties: {}!
 extractToMethodObjectTool
 
@@ -94,7 +94,7 @@ extractToMethodObjectTool
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
 			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
 		executingWith: [ :aMethod :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory |
-			self apply: (ExtractToMethodObject
+			self applyReportingNewClass: (ExtractToMethodObject
 				from: aMethod
 				toMethodObjectClassNamed: aNewClassName asSymbol
 				subclassing: (self classNamed: aSuperclassName)
@@ -103,7 +103,7 @@ extractToMethodObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
 !methodProperties: {}!
 moveInstanceVariableTool
 
@@ -116,14 +116,14 @@ moveInstanceVariableTool
 			MCPClassToolProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }
 		executingWith: [ :aClass :aVariableName :aTargetClass :anAccessingVariableName |
-			self apply: (MoveInstanceVariable
+			self applyReportingChangedClasses: (MoveInstanceVariable
 				named: aVariableName
 				from: aClass
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName) ]
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
 !methodProperties: {}!
 moveMethodTool
 
@@ -136,7 +136,7 @@ moveMethodTool
 			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to'.
 			MCPPlainToolProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }
 		executingWith: [ :aMethod :aTargetClass :anAccessingVariableName :anExtraParameterName |
-			self apply: (MoveMethod
+			self applyReportingChanges: (MoveMethod
 				methodNamed: aMethod selector
 				from: aMethod methodClass
 				to: aTargetClass
