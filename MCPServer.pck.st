@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:51:20 pm'!
-'Description Let a refactoring that changes one class answer that class'!
-!provides: 'MCPServer' 1 36!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:54:37 pm'!
+'Description Look at the image instead of guessing at it'!
+!provides: 'MCPServer' 1 37!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -562,7 +562,7 @@ initializeDebugger: aDebugger
 	debugger := aDebugger
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
 !methodProperties: {}!
 finish
 
@@ -575,7 +575,7 @@ finish
 	and the window is then let go of its model, because closing a debugger window that still
 	has one asks it about code it has just thrown away."
 
-	self whenTheUserInterfaceHasDone: [
+	MCPServer whenTheUserInterfaceHasDone: [
 		DebuggerWindow
 			debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
 			do: [ :aDebuggerWindow |
@@ -636,23 +636,6 @@ through
 topOfStackDescription
 
 	^debugger contextStackList first printString
-! !
-
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
-!methodProperties: {}!
-whenTheUserInterfaceHasDone: aBlock
-
-	"Have the process that draws morphs evaluate the block, and answer only once it has. It
-	runs what it is given in the order it was given, so a block queued after a window was
-	queued to be put up runs when the window is already up."
-
-	| done |
-
-	(UISupervisor isUIProcess: Processor activeProcess) ifTrue: [ ^aBlock value ].
-
-	done := Semaphore new.
-	UISupervisor whenUIinSafeState: [ aBlock value. done signal ].
-	done wait
 ! !
 
 !MCPOpenDebuggingSession class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
@@ -1173,6 +1156,30 @@ saveImageTool
 			'Image saved: ', smalltalk imageName ]
 ! !
 
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
+!methodProperties: {}!
+screenshotTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_screenshot'
+		describedBy: 'Write what the image looks like right now to a JPEG file and answer the name of the file, so that a change to something on screen can be looked at instead of guessed at.'
+		properties: { MCPPlainToolProperty named: 'fileName' describedBy: 'Absolute path of the JPEG file to write' }
+		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
+! !
+
+!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
+!methodProperties: {}!
+writeScreenshotTo: aFileName
+
+	"The world is drawn by the process that draws morphs, so the picture is taken there, and
+	this answers once the file has been written."
+
+	self class whenTheUserInterfaceHasDone: [
+		(UISupervisor ui imageForm: 32) writeJPEGfileNamed: aFileName ].
+
+	^aFileName
+! !
+
 !MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
 !methodProperties: {}!
 browseTool
@@ -1361,13 +1368,16 @@ addDebuggingTools
 		addTool: self debuggerRestartTool;
 		addTool: self finishDebuggingTool! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
 !methodProperties: {}!
 addMiscTools
 
 	self
 		addTool: self evaluateTool;
-		addTool: self saveImageTool! !
+		addTool: self screenshotTool;
+		addTool: self saveImageTool
+
+! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
 !methodProperties: {}!
@@ -1834,6 +1844,23 @@ classCreationSelectors
 	"Answer the messages Class understands to create a subclass."
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
+
+!MCPServer class methodsFor: 'user interface' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
+!methodProperties: {}!
+whenTheUserInterfaceHasDone: aBlock
+
+	"Have the process that draws morphs evaluate the block, and answer only once it has. It
+	runs what it is given in the order it was given, so a block queued after a window was
+	queued to be put up runs when the window is already up."
+
+	| done |
+
+	(UISupervisor isUIProcess: Processor activeProcess) ifTrue: [ ^aBlock value ].
+
+	done := Semaphore new.
+	UISupervisor whenUIinSafeState: [ aBlock value. done signal ].
+	done wait
+! !
 
 !MCPTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!

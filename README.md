@@ -197,6 +197,7 @@ of version control.
 | `smalltalk_define_method` | Create or change a method, optionally in a category |
 | `smalltalk_delete_class` | Remove a class |
 | `smalltalk_delete_method` | Remove a method |
+| `smalltalk_screenshot` | Write what the image looks like to a JPEG file |
 | `smalltalk_save_image` | Save the image |
 
 Always use `smalltalk_save_image` to save. Evaluating `Smalltalk saveImage` through
