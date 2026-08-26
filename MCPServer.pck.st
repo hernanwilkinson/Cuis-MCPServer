@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:48:39 pm'!
-'Description Sort the tool group protocol into what it is for'!
-!provides: 'MCPServer' 1 34!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:49:17 pm'!
+'Description Let the text say where its names end'!
+!provides: 'MCPServer' 1 35!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2426,17 +2426,13 @@ classNamed: aClassName
 		ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aClassName) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 26/Aug/2026, 10:49:04 pm (UTC)'!
 !methodProperties: {}!
 namesFrom: aCommaSeparatedText
 
 	"Answer the names a client sent as one text, which is how a list reaches a tool."
 
-	^aCommaSeparatedText isEmpty
-		ifTrue: [ OrderedCollection new ]
-		ifFalse: [ ((aCommaSeparatedText subStrings: ',')
-			collect: [ :eachName | eachName withBlanksTrimmed ]) asOrderedCollection ]
-! !
+	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName | eachName withBlanksTrimmed ]! !
 
 !MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
 !methodProperties: {}!
