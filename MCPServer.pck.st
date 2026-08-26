@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 5:09:18 pm'!
-'Description Let the word say whether it is plural'!
-!provides: 'MCPServer' 1 28!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 5:28:54 pm'!
+'Description Remove what the fixed heuristics found unused'!
+!provides: 'MCPServer' 1 29!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -76,7 +76,7 @@ MCPHttpSession class
 
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running debugger debuggerMorph shouldLogMessages tools smalltalk'
+	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk'
 	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -2081,19 +2081,6 @@ isAbstract
 	this before it looks for tools, because only a group that has them can be asked for them."
 
 	^self == MCPToolGroup
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
-!methodProperties: {}!
-apply: aRefactoring
-
-	"Apply a refactoring the way a RefactoringApplier does once it has one, which is by sending
-	it apply. What a client is told is that it worked, because a refactoring that could not be
-	made signals instead of answering."
-
-	aRefactoring apply.
-
-	^'Refactoring applied'
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
