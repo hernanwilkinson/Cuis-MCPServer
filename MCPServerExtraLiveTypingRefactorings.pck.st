@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:53 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 1!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:17 pm'!
+'Description Report the source a refactoring really saved'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 2!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
@@ -30,7 +30,7 @@ addToolsTo: anMCPServer
 	anMCPServer addTool: self extractParameterObjectInActualScopeTool
 ! !
 
-!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:39 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
 !methodProperties: {}!
 extractParameterObjectInActualScopeTool
 
@@ -38,7 +38,7 @@ extractParameterObjectInActualScopeTool
 		named: 'smalltalk_refactor_extract_parameter_object_in_actual_scope'
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, changing only the sends LiveTyping saw were to objects of the class that implements it. A send of the same name to anything else is left as it was.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:41 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerExtraRefactoring' 1 5!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:13 pm'!
+'Description Report the source a refactoring really saved'!
+!provides: 'MCPServerExtraRefactoring' 1 6!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -51,7 +51,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
 !methodProperties: {}!
 extractParameterObjectTool
 
@@ -59,7 +59,7 @@ extractParameterObjectTool
 		named: 'smalltalk_refactor_extract_parameter_object'
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:35 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServer' 1 22!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:08 pm'!
+'Description Report the source a refactoring really saved'!
+!provides: 'MCPServer' 1 23!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -749,16 +749,18 @@ initializeServingOver: aTransport smalltalk: aSmalltalk
 	self doNotLogMessages
 ! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:51:07 am (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 26/Aug/2026, 3:49:59 pm (UTC)'!
 !methodProperties: {}!
 initializeTools
 
 	tools := Dictionary new.
-	self addDebuggingTools.
-	self addClassTools.
-	self addSearchTools.
-	self addMiscTools.
-	self addProvidedTools! !
+	self
+		addDebuggingTools;
+		addClassTools;
+		addSearchTools;
+		addMiscTools;
+		addProvidedTools
+! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
 !methodProperties: {}!
@@ -1281,14 +1283,14 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 25/Aug/2026, 10:59:11 am (UTC)'!
+!MCPServer methodsFor: 'tool creation - class' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 methodSourceTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_method_source'
 		describedBy: 'Get the source code of a specific method.'
-		properties: { MCPMethodProperty ofAMethod }
+		properties: { MCPMethodProperty newDefault }
 		executingWith: [ :aMethod | aMethod sourceCode ]
 ! !
 
@@ -2094,14 +2096,15 @@ apply: aRefactoring
 	^'Refactoring applied'
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 apply: aRefactoring reportingNewSourceOf: aMethod
 
-	"A refactoring that changes one method answers its new source once it has compiled it.
-	Answer that source, naming the method it is now the source of."
+	"A refactoring that changes one method compiles it itself. Answer the source it saved."
 
-	^self descriptionOfNewSource: aRefactoring apply of: aMethod methodClass at: aMethod selector
+	aRefactoring apply.
+
+	^self descriptionOfNewSourceOf: aMethod
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
@@ -2145,20 +2148,22 @@ applyReportingRemovedVariables: aRefactoring
 			(', ' join: removedVariableNames asSortedCollection) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
-applySourceChanging: aRefactoring to: aClass at: aSelector
+applySourceChanging: aRefactoring to: aMethod
 
 	"A refactoring such as RenameTemporary answers the new source of the method instead of
 	installing it, and it is its applier that compiles it. The method keeps the category it
 	is already in."
 
-	| newSourceCode |
+	| refactoredClass |
 
-	newSourceCode := aRefactoring apply.
-	aClass compile: newSourceCode classified: (aClass organization categoryOfElement: aSelector).
+	refactoredClass := aMethod methodClass.
+	refactoredClass
+		compile: aRefactoring apply
+		classified: (refactoredClass organization categoryOfElement: aMethod selector).
 
-	^self descriptionOfNewSource: newSourceCode of: aClass at: aSelector
+	^self descriptionOfNewSourceOf: aMethod
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
@@ -2197,12 +2202,20 @@ descriptionOfChangedMethods: someMethods
 			asSortedCollection do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
-descriptionOfNewSource: aSourceCode of: aClass at: aSelector
+descriptionOfNewSourceOf: aMethod
 
-	^'Refactoring applied. ' , aClass name , '>>' , aSelector , ' is now:' ,
-		String newLineString , String newLineString , aSourceCode
+	"The source is read from the system and not from what the refactoring answered, so a client
+	sees the source that was really saved."
+
+	| refactoredClass |
+
+	refactoredClass := aMethod methodClass.
+
+	^'Refactoring applied. ' , refactoredClass name , '>>' , aMethod selector , ' is now:' ,
+		String newLineString , String newLineString ,
+		(refactoredClass >> aMethod selector) sourceCode
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
@@ -2828,7 +2841,7 @@ pushUpMethodRefactoringTool
 				pushingUp: OrderedCollection new) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 25/Aug/2026, 11:03:06 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
 !methodProperties: {}!
 inlineTemporaryVariableRefactoringTool
 
@@ -2836,7 +2849,7 @@ inlineTemporaryVariableRefactoringTool
 		named: 'smalltalk_refactor_inline_temporary_variable'
 		describedBy: 'Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to inline'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the use to replace, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the use, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -2848,7 +2861,7 @@ inlineTemporaryVariableRefactoringTool
 				inMethod: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 25/Aug/2026, 11:03:06 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 renameTemporaryRefactoringTool
 
@@ -2856,7 +2869,7 @@ renameTemporaryRefactoringTool
 		named: 'smalltalk_refactor_rename_temporary'
 		describedBy: 'Rename a temporary or an argument of a method, in every use it has inside it.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to rename'.
 			MCPPlainToolProperty named: 'newVariableName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aMethod :aVariableName :aNewVariableName |
@@ -2865,12 +2878,11 @@ renameTemporaryRefactoringTool
 					from: aVariableName
 					to: aNewVariableName
 					in: aMethod methodNode)
-				to: aMethod methodClass
-				at: aMethod selector ]
+				to: aMethod ]
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
 !methodProperties: {}!
 temporaryToInstanceVariableRefactoringTool
 
@@ -2878,7 +2890,7 @@ temporaryToInstanceVariableRefactoringTool
 		named: 'smalltalk_refactor_temporary_to_instance_variable'
 		describedBy: 'Turn a temporary of a method into an instance variable of its class.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to turn into an instance variable' }
 		executingWith: [ :aMethod :aVariableName |
 			self
@@ -2886,7 +2898,7 @@ temporaryToInstanceVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
 !methodProperties: {}!
 extractAsParameterRefactoringTool
 
@@ -2894,7 +2906,7 @@ extractAsParameterRefactoringTool
 		named: 'smalltalk_refactor_extract_as_parameter'
 		describedBy: 'Turn a piece of a method into a parameter of it, giving every sender the piece to pass. The piece is named by the text it is written with, or by the interval it occupies.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -2953,7 +2965,7 @@ extractMethodRefactoringTool
 				within: aScope ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 25/Aug/2026, 11:03:06 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
 !methodProperties: {}!
 extractToTemporaryRefactoringTool
 
@@ -2961,7 +2973,7 @@ extractToTemporaryRefactoringTool
 		named: 'smalltalk_refactor_extract_to_temporary'
 		describedBy: 'Extract a piece of a method into a temporary of it. The piece is named by the text it is written with, or by the interval it occupies. Replacing all of them replaces every piece that is the same expression, which is found in the parse tree and so does not include a comment or a string saying the same.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to extract into'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -3282,9 +3294,9 @@ classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
 			valuedWith: [ :aSelector | aSelector asSymbol ])
 ! !
 
-!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
-ofAMethod
+newDefault
 
 	^self selectorDescribedBy: self defaultSelectorDescription
 ! !

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:32 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerLiveTyping' 1 5!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:04 pm'!
+'Description Report the source a refactoring really saved'!
+!provides: 'MCPServerLiveTyping' 1 6!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -74,7 +74,7 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 actualSendersOfTool
 
@@ -82,7 +82,7 @@ actualSendersOfTool
 		named: 'smalltalk_actual_senders_of'
 		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
@@ -92,14 +92,14 @@ actualSendersOfTool
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
 !methodProperties: {}!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_return_types_of_method'
 		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.'
-		properties: { MCPMethodProperty ofAMethod }
+		properties: { MCPMethodProperty newDefault }
 		executingWith: [ :aMethod |
 			Json render: ((aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
 ! !
@@ -138,7 +138,7 @@ typesOfInstanceVariableTool
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
 !methodProperties: {}!
 typesOfMethodVariableTool
 
@@ -146,7 +146,7 @@ typesOfMethodVariableTool
 		named: 'smalltalk_types_of_method_variable'
 		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.'
 		properties: {
-			MCPMethodProperty ofAMethod.
+			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
 		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod
