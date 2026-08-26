@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:49:17 pm'!
-'Description Let the text say where its names end'!
-!provides: 'MCPServer' 1 35!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:51:20 pm'!
+'Description Let a refactoring that changes one class answer that class'!
+!provides: 'MCPServer' 1 36!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2203,6 +2203,16 @@ apply: aRefactoring reportingNewSourceOf: aMethod
 	^self descriptionOfNewSourceOf: aMethod
 ! !
 
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 10:51:13 pm (UTC)'!
+!methodProperties: {}!
+applyReportingChangedClass: aRefactoring
+
+	"A refactoring that changes one class answers that class and not a collection of them, so
+	the one class it answers is what is described."
+
+	^self descriptionOfChangedClasses: (Array with: aRefactoring apply)
+! !
+
 !MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
 !methodProperties: {}!
 applyReportingChangedClasses: aRefactoring
@@ -2734,7 +2744,7 @@ addToolsTo: anMCPServer
 		addTemporaryRefactoringToolsTo: anMCPServer;
 		addExtractionRefactoringToolsTo: anMCPServer! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 10:51:13 pm (UTC)'!
 !methodProperties: {}!
 addInstanceVariableRefactoringTool
 
@@ -2745,7 +2755,7 @@ addInstanceVariableRefactoringTool
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to add' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClasses: (AddInstanceVariable named: aVariableName to: aClass) ]
+			self applyReportingChangedClass: (AddInstanceVariable named: aVariableName to: aClass) ]
 ! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
@@ -2776,7 +2786,7 @@ pushUpInstanceVariableRefactoringTool
 			self applyReportingChangedClasses: (PushUpInstanceVariable named: aVariableName from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 10:51:13 pm (UTC)'!
 !methodProperties: {}!
 removeInstanceVariableRefactoringTool
 
@@ -2787,7 +2797,8 @@ removeInstanceVariableRefactoringTool
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to remove' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClasses: (RemoveInstanceVariable named: aVariableName from: aClass) ]
+			self applyReportingChangedClass: (RemoveInstanceVariable named: aVariableName from: aClass) ]
+
 ! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
