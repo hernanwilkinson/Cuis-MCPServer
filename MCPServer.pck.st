@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:43:53 pm'!
-'Description Ask a method for its class and selector'!
-!provides: 'MCPServer' 1 26!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 5:09:18 pm'!
+'Description Let the word say whether it is plural'!
+!provides: 'MCPServer' 1 28!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2138,7 +2138,7 @@ applyReportingNewClass: aRefactoring
 		aRefactoring apply definition
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 applyReportingRemovedClasses: aRefactoring
 
@@ -2149,12 +2149,19 @@ applyReportingRemovedClasses: aRefactoring
 
 	removedClassNames := aRefactoring apply.
 
-	^'Refactoring applied. ' , removedClassNames size printString ,
-		(removedClassNames size = 1 ifTrue: [ ' class removed: ' ] ifFalse: [ ' classes removed: ' ]) ,
-		(', ' join: removedClassNames asSortedCollection)
+	^String streamContents: [ :aStream |
+		aStream
+			nextPutAll: 'Refactoring applied. ';
+			print: removedClassNames size;
+			space;
+			nextPutAll: ('class' pluralize: removedClassNames size ~= 1);
+			space;
+			nextPutAll: 'removed:';
+			space;
+			nextPutAll: (', ' join: removedClassNames asSortedCollection) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 8:09:11 pm (UTC)'!
 !methodProperties: {}!
 applyReportingRemovedVariables: aRefactoring
 
@@ -2165,14 +2172,18 @@ applyReportingRemovedVariables: aRefactoring
 
 	removedVariableNames := aRefactoring apply.
 
-	^removedVariableNames isEmpty
-		ifTrue: [ 'Refactoring applied. No instance variable removed' ]
-		ifFalse: [ 'Refactoring applied. ' , removedVariableNames size printString ,
-			(removedVariableNames size = 1
-				ifTrue: [ ' instance variable removed: ' ]
-				ifFalse: [ ' instance variables removed: ' ]) ,
-			(', ' join: removedVariableNames asSortedCollection) ]
-! !
+	removedVariableNames ifEmpty: [ ^'Refactoring applied. No instance variable removed' ].
+
+	^String streamContents: [ :aStream |
+		aStream
+			nextPutAll: 'Refactoring applied. ';
+			print: removedVariableNames size;
+			space;
+			nextPutAll: ('instance variable' pluralize: removedVariableNames size ~= 1);
+			space;
+			nextPutAll: 'removed:';
+			space;
+			nextPutAll: (', ' join: removedVariableNames asSortedCollection) ]! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
@@ -2210,21 +2221,23 @@ classNamed: aClassName
 		ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aClassName) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:42:19 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 description: someMethods asHavingBeen: aChange
 
 	^String streamContents: [ :aStream |
 		aStream
 			print: someMethods size;
-			nextPutAll: (someMethods size = 1 ifTrue: [ ' method ' ] ifFalse: [ ' methods ' ]);
+			space;
+			nextPutAll: ('method' pluralize: someMethods size ~= 1);
+			space;
 			nextPutAll: aChange;
 			nextPut: $:.
 		(someMethods collect: [ :eachMethod | eachMethod classAndSelector ]) asSortedCollection
 			do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 descriptionOfChangedClasses: someClasses
 
@@ -2235,7 +2248,10 @@ descriptionOfChangedClasses: someClasses
 		aStream
 			nextPutAll: 'Refactoring applied. ';
 			print: someClasses size;
-			nextPutAll: (someClasses size = 1 ifTrue: [ ' class changed:' ] ifFalse: [ ' classes changed:' ]).
+			space;
+			nextPutAll: ('class' pluralize: someClasses size ~= 1);
+			space;
+			nextPutAll: 'changed:'.
 		(someClasses asSortedCollection: [ :aClass :anotherClass | aClass name <= anotherClass name ])
 			do: [ :eachClass | aStream newLine; newLine; nextPutAll: eachClass definition ] ]
 ! !
