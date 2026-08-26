@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:37:55 pm'!
-'Description Let the finder send the message to the arguments too'!
-!provides: 'MCPServer' 1 31!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:19:10 pm'!
+'Description Say that the finder answers the block a collection needs'!
+!provides: 'MCPServer' 1 32!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1381,13 +1381,13 @@ addTool: aTool
 	tools at: aTool name put: aTool
 ! !
 
-!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 9:36:16 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation - search' stamp: 'HAW 26/Aug/2026, 10:04:58 pm (UTC)'!
 !methodProperties: {}!
 findMessagesByExampleTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_find_messages_by_example'
-		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. Every order of the receiver and the arguments is looked in, so the message found may well be the one implemented by what was sent as an argument. When the receiver is a collection, an enumerating message taking a block built from a message of its elements is looked for as well.'
+		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection that is not empty, the enumerating messages taking a block are looked for as well, the block being built from a message its elements understand, so a receiver of #(1 2 3 4) expecting #(1 3) answers select: along with the block it needs.'
 		properties: {
 			MCPPlainToolProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
 			MCPPlainToolProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.

@@ -221,9 +221,10 @@ new: `smalltalk_find_messages_by_example` is `MethodFinder` and `smalltalk_searc
 
 `smalltalk_find_messages_by_example` takes the receiver, the arguments and the expected result as
 Smalltalk expressions, and answers each message it found with the expression that produced the
-result. Asking for `'method'` expecting `'methods'` answers `CharacterSequence>>#asPlural`. Every
-order of the receiver and the arguments is looked in, so asking for `3` with `#(10)` expecting
-`1000` answers `10 raisedTo: 3`.
+result. Asking for `'method'` expecting `'methods'` answers `CharacterSequence>>#asPlural`. When
+the receiver is a collection it also looks for an enumerating message taking a block, and the
+expression is the only place the block shows: asking for `#(1 2 3 4)` expecting `#(1 3)` answers
+`#(1 2 3 4) select: [:aSmallInteger | aSmallInteger odd]` and the `reject:` that sends `even`.
 
 ### Debugging
 

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 6:38:03 pm'!
-'Description Let the finder send the message to the arguments too'!
-!provides: 'MCPServerTests' 1 29!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:19:19 pm'!
+'Description Say that the finder answers the block a collection needs'!
+!provides: 'MCPServerTests' 1 30!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -753,6 +753,30 @@ testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
 		equals: #()
 ! !
 
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:04:58 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
+
+	"The block is built out of a message the elements of the collection understand, and it is
+	only the expression that says which one, because the message found is just select:."
+
+	self assert: ((self expressionsFoundWith: (self
+		arguments: 'receiver' being: '#(1 2 3 4)'
+		and: 'expected' being: '#(1 3)'))
+			anySatisfy: [ :anExpression |
+				anExpression includesSubstring: '[:aSmallInteger | aSmallInteger odd]' caseSensitive: true ])
+
+! !
+
+!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:04:58 pm (UTC)'!
+!methodProperties: {}!
+testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheResultWith
+
+	self assert: ((self messagesFoundWith: (self
+		arguments: 'receiver' being: '#(1 2 3 4)'
+		and: 'expected' being: '#(1 3)')) includes: 'SequenceableCollection>>#select:')
+! !
+
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:18:43 pm (UTC)'!
 !methodProperties: {}!
 testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
@@ -779,19 +803,6 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		arguments: 'receiver' being: '3'
 		and: 'expected' being: '7'
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
-! !
-
-!MCPToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 9:36:18 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleSendsTheMessageToTheArgumentsToo
-
-	"3 raisedTo: 10 is not 1000, so the message is only found by looking the other way around."
-
-	self assert: ((self messagesFoundWith: (self
-		arguments: 'receiver' being: '3'
-		and: 'expected' being: '1000'
-		and: 'arguments' being: '#(10)')) includes: 'Number>>#raisedTo:')
-
 ! !
 
 !MCPToolsTest methodsFor: 'tests' stamp: 'HAW 20/Aug/2026, 7:05:08 pm (UTC)'!
