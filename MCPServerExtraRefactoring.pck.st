@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:07:21 am'!
-'Description Hand a tool the method instead of the two names it is found by'!
-!provides: 'MCPServerExtraRefactoring' 1 4!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:41 pm'!
+'Description Answer the changes a refactoring made'!
+!provides: 'MCPServerExtraRefactoring' 1 5!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
 
 
 !classDefinition: #MCPExtraRefactoringTools category: #MCPServerExtraRefactoring!
-MCPToolProvider subclass: #MCPExtraRefactoringTools
+MCPRefactoringToolGroup subclass: #MCPExtraRefactoringTools
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -17,87 +17,18 @@ MCPExtraRefactoringTools class
 	instanceVariableNames: ''!
 
 
-!MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
-	anMCPServer addTool: self moveInstanceVariableTool.
-	anMCPServer addTool: self moveMethodTool.
-	anMCPServer addTool: self extractClassTool.
-	anMCPServer addTool: self extractParameterObjectTool.
-	anMCPServer addTool: self extractToMethodObjectTool! !
+	anMCPServer
+		addTool: self moveInstanceVariableTool;
+		addTool: self moveMethodTool;
+		addTool: self extractClassTool;
+		addTool: self extractParameterObjectTool;
+		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
-apply: aRefactoring
-
-	aRefactoring apply.
-
-	^'Refactoring applied'
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-categoryFor: aCategory of: aClass
-
-	"Answer the category the new class is made in, which is the one of the class it came from
-	unless a client named another."
-
-	^aCategory isEmpty ifTrue: [ aClass category ] ifFalse: [ aCategory ]
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-classNamed: aClassName
-
-	^(smalltalk classNamed: aClassName)
-		ifNil: [ self error: (MCPExtraRefactoringTools classNotFoundErrorDescriptionFor: aClassName) ]
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
-namesFrom: aCommaSeparatedText
-
-	"Answer the names a client sent as one text, which is how a list reaches a tool."
-
-	^aCommaSeparatedText isEmpty
-		ifTrue: [ OrderedCollection new ]
-		ifFalse: [ ((aCommaSeparatedText subStrings: ',')
-			collect: [ :eachName | eachName withBlanksTrimmed ]) asOrderedCollection ]
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-positionsIn: aCompiledMethod of: someParameterNames
-
-	"Answer where each parameter stands in the message, counting from one. A client names the
-	parameters it wants extracted and not where they are, which the method already says."
-
-	^someParameterNames collect: [ :eachName |
-		(aCompiledMethod methodNode argumentNames indexOf: eachName)
-			ifNotNil: [ :anIndex | anIndex ] ]
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 10:40:30 am (UTC)'!
-!methodProperties: {}!
-scopeOf: aSelector applyingWith: aBlock
-
-	| implementors senders |
-
-	implementors := OrderedCollection new.
-	senders := OrderedCollection new.
-	ScopedRefactoring
-		addImplementorsOf: aSelector
-		to: implementors
-		andSendersTo: senders
-		inSystem: smalltalk.
-
-	^self apply: (aBlock
-		value: implementors
-		value: (senders collect: [ :eachSender | eachSender compiledMethod ]))
-! !
-
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 !methodProperties: {}!
 extractClassTool
 
@@ -120,7 +51,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
 !methodProperties: {}!
 extractParameterObjectTool
 
@@ -136,7 +67,7 @@ extractParameterObjectTool
 		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
 			| parameterNames |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
-			self scopeOf: aMethod selector applyingWith: [ :implementors :senders |
+			self applyReportingChangedMethods: (self refactoringOn: aMethod selector builtWith: [ :implementors :senders |
 				ExtractParameterObject
 					from: aMethod
 					toClassNamed: aNewClassName asSymbol
@@ -145,10 +76,11 @@ extractParameterObjectTool
 					withParameters: parameterNames
 					placedAt: (self positionsIn: aMethod of: parameterNames)
 					implementors: implementors
-					senders: senders ] ]
+					senders: senders ]) ]
+
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:35 am (UTC)'!
 !methodProperties: {}!
 extractToMethodObjectTool
 
@@ -171,7 +103,7 @@ extractToMethodObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 !methodProperties: {}!
 moveInstanceVariableTool
 
@@ -191,7 +123,7 @@ moveInstanceVariableTool
 				accessingThrough: anAccessingVariableName) ]
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation - refactoring' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 moveMethodTool
 
@@ -212,11 +144,4 @@ moveMethodTool
 				parameterNeeded: (anExtraParameterName isEmpty
 					ifTrue: [ NonExtraParameterNameNeeded new ]
 					ifFalse: [ ExtraParameterNameNeeded parameterName: anExtraParameterName ])) ]
-! !
-
-!MCPExtraRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 25/Aug/2026, 10:40:28 am (UTC)'!
-!methodProperties: {}!
-classNotFoundErrorDescriptionFor: aClassName
-
-	^'Class not found: ', aClassName
 ! !

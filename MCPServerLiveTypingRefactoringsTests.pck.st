@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:35 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 2!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:46 pm'!
+'Description Answer the changes a refactoring made'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 3!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -92,6 +92,37 @@ testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 	self assert: (self probeClass includesSelector: 'mcpProbeWith' asSymbol).
 	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
 		includesSubstring: 'self mcpProbeWith' caseSensitive: true)
+! !
+
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 5:02:55 pm (UTC)'!
+!methodProperties: {}!
+testRenamingInTheActualScopeAnswersTheMethodsItChanged
+
+	"The old implementor, the new one and the method that really sends it are the changes it
+	made. The send it left alone is in a method it changed, so the method is named once."
+
+	probeClass compile: 'mcpProbe
+
+	^42' classified: 'probing'.
+	probeClass compile: 'mcpCaller
+
+	| anythingElse |
+
+	self mcpProbe.
+	false ifTrue: [ anythingElse mcpProbe ]' classified: 'probing'.
+	(probeClass >> #mcpCaller) initializeTypeInformation.
+	probeClass new mcpCaller.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_rename_selector_in_actual_scope') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingRefactoringProbe';
+			at: 'selector' put: 'mcpProbe';
+			at: 'newSelector' put: 'mcpRenamed';
+			yourself))
+		equals: 'Refactoring applied. 3 methods changed:
+MCPLiveTypingRefactoringProbe>>mcpCaller
+MCPLiveTypingRefactoringProbe>>mcpProbe
+MCPLiveTypingRefactoringProbe>>mcpRenamed'
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!

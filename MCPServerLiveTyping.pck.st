@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 8:07:49 am'!
-'Description Hand a tool the method instead of the two names it is found by'!
-!provides: 'MCPServerLiveTyping' 1 4!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:32 pm'!
+'Description Answer the changes a refactoring made'!
+!provides: 'MCPServerLiveTyping' 1 5!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
 
 
 !classDefinition: #MCPLiveTypingTools category: #MCPServerLiveTyping!
-MCPToolProvider subclass: #MCPLiveTypingTools
+MCPToolGroup subclass: #MCPLiveTypingTools
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -22,16 +22,17 @@ I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
 
-!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:46 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
-	anMCPServer addTool: self typesOfInstanceVariableTool.
-	anMCPServer addTool: self typesOfEveryInstanceVariableTool.
-	anMCPServer addTool: self typesOfMethodVariableTool.
-	anMCPServer addTool: self returnTypesOfMethodTool.
-	anMCPServer addTool: self actualSendersOfTool.
-	anMCPServer addTool: self actualImplementorsOfTool! !
+	anMCPServer
+		addTool: self typesOfInstanceVariableTool;
+		addTool: self typesOfEveryInstanceVariableTool;
+		addTool: self typesOfMethodVariableTool;
+		addTool: self returnTypesOfMethodTool;
+		addTool: self actualSendersOfTool;
+		addTool: self actualImplementorsOfTool! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
 !methodProperties: {}!
@@ -50,7 +51,7 @@ renderTypeNames: aTypeInfo
 	^Json render: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 11:06:10 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 11:06:10 am (UTC)'!
 !methodProperties: {}!
 actualImplementorsOfTool
 
@@ -73,7 +74,7 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 actualSendersOfTool
 
@@ -91,7 +92,7 @@ actualSendersOfTool
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 10:59:23 am (UTC)'!
 !methodProperties: {}!
 returnTypesOfMethodTool
 
@@ -103,7 +104,7 @@ returnTypesOfMethodTool
 			Json render: ((aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
 typesOfEveryInstanceVariableTool
 
@@ -121,7 +122,7 @@ typesOfEveryInstanceVariableTool
 			Json render: typesByVariable ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 !methodProperties: {}!
 typesOfInstanceVariableTool
 
@@ -137,7 +138,7 @@ typesOfInstanceVariableTool
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation - live typing' stamp: 'HAW 25/Aug/2026, 10:59:11 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
 !methodProperties: {}!
 typesOfMethodVariableTool
 
@@ -150,7 +151,7 @@ typesOfMethodVariableTool
 		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod
 				typeInfoOfVariableNamed: aVariableName
-				ifAbsent: [ self error: (MCPLiveTypingTools variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]
+				ifAbsent: [ self error: (self class variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]
 ! !
 
 !MCPLiveTypingTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!

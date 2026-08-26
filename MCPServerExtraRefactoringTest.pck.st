@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:16 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerExtraRefactoringTest' 1 3!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:58 pm'!
+'Description Answer the changes a refactoring made'!
+!provides: 'MCPServerExtraRefactoringTest' 1 4!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -84,6 +84,30 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 	self assert: (Smalltalk classNamed: 'MCPExtraTestTarget') notNil.
 	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') instVarNames includes: 'movingVariable').
 	self assert: (self sourceClass instVarNames includes: 'stayingVariable')
+! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 5:02:53 pm (UTC)'!
+!methodProperties: {}!
+testExtractingAParameterObjectAnswersTheMethodsItChanged
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	source compile: 'mcpFirst: aFirst second: aSecond third: aThird
+
+	^aFirst' classified: 'probing'.
+
+	self
+		assert: ((self toolNamed: 'smalltalk_refactor_extract_parameter_object') valueWithArguments: (Dictionary new
+			at: 'className' put: 'MCPExtraTestSource';
+			at: 'selector' put: 'mcpFirst:second:third:';
+			at: 'newClassName' put: 'MCPExtraTestTarget';
+			at: 'parameterNames' put: 'aFirst, aThird';
+			at: 'category' put: self classCategoryOfTestData;
+			yourself))
+		equals: 'Refactoring applied. 2 methods changed:
+MCPExtraTestSource>>mcpFirst:second:third:
+MCPExtraTestSource>>second:mCPExtraTestTarget:'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:41:07 am (UTC)'!

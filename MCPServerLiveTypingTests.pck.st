@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 25 August 2026 at 7:55:29 am'!
-'Description Find the tool providers instead of registering them'!
-!provides: 'MCPServerLiveTypingTests' 1 3!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:50 pm'!
+'Description Answer the changes a refactoring made'!
+!provides: 'MCPServerLiveTypingTests' 1 4!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
