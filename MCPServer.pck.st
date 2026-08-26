@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:35 pm'!
-'Description Let a method say its own name in every report'!
-!provides: 'MCPServer' 1 25!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:43:53 pm'!
+'Description Ask a method for its class and selector'!
+!provides: 'MCPServer' 1 26!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2210,7 +2210,7 @@ classNamed: aClassName
 		ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aClassName) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:18:22 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:42:19 pm (UTC)'!
 !methodProperties: {}!
 description: someMethods asHavingBeen: aChange
 
@@ -2220,7 +2220,7 @@ description: someMethods asHavingBeen: aChange
 			nextPutAll: (someMethods size = 1 ifTrue: [ ' method ' ] ifFalse: [ ' methods ' ]);
 			nextPutAll: aChange;
 			nextPut: $:.
-		(someMethods collect: [ :eachMethod | self nameOf: eachMethod ]) asSortedCollection
+		(someMethods collect: [ :eachMethod | eachMethod classAndSelector ]) asSortedCollection
 			do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]
 ! !
 
@@ -2290,12 +2290,6 @@ isImplemented: aMethod
 
 	^aMethod methodClass includesSelector: aMethod selector
 ! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:36:16 pm (UTC)'!
-!methodProperties: {}!
-nameOf: aMethod
-
-	^String streamContents: [ :aStream | aMethod printClassAndSelectorOn: aStream ]! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
 !methodProperties: {}!
