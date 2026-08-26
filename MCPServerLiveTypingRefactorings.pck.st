@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:12:58 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 5!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:48:41 pm'!
+'Description Sort the tool group protocol into what it is for'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 6!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -37,7 +37,7 @@ I am the tools that apply the refactorings LiveTyping makes possible.
 
 They differ from the ones that work on a selector alone by what they take to be a send of it: only the sends to objects LiveTyping saw were of the class that implements it. A send of the same name to anything else is left as it was, which a refactoring over the whole system cannot tell apart.!
 
-!MCPActualScopeRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPActualScopeRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
 !methodProperties: {}!
 refactoringOn: aSelector in: aClass using: aRefactoringClass keepingPossibleSends: aBoolean builtWith: aBlock
 

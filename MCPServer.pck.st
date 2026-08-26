@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:26:02 pm'!
-'Description Close the debugger window that is not on screen yet'!
-!provides: 'MCPServer' 1 33!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:48:39 pm'!
+'Description Sort the tool group protocol into what it is for'!
+!provides: 'MCPServer' 1 34!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2192,7 +2192,7 @@ isAbstract
 	^self == MCPToolGroup
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 apply: aRefactoring reportingNewSourceOf: aMethod
 
@@ -2203,7 +2203,7 @@ apply: aRefactoring reportingNewSourceOf: aMethod
 	^self descriptionOfNewSourceOf: aMethod
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
 !methodProperties: {}!
 applyReportingChangedClasses: aRefactoring
 
@@ -2213,7 +2213,7 @@ applyReportingChangedClasses: aRefactoring
 	^self descriptionOfChangedClasses: aRefactoring apply
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:57:53 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:57:53 pm (UTC)'!
 !methodProperties: {}!
 applyReportingChanges: aRefactoring
 
@@ -2223,7 +2223,7 @@ applyReportingChanges: aRefactoring
 	^self descriptionOfChanges: aRefactoring apply
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
 !methodProperties: {}!
 applyReportingNewClass: aRefactoring
 
@@ -2234,7 +2234,7 @@ applyReportingNewClass: aRefactoring
 		aRefactoring apply definition
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 applyReportingRemovedClasses: aRefactoring
 
@@ -2257,7 +2257,7 @@ applyReportingRemovedClasses: aRefactoring
 			nextPutAll: (', ' join: removedClassNames asSortedCollection) ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 8:09:11 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 8:09:11 pm (UTC)'!
 !methodProperties: {}!
 applyReportingRemovedVariables: aRefactoring
 
@@ -2281,7 +2281,7 @@ applyReportingRemovedVariables: aRefactoring
 			space;
 			nextPutAll: (', ' join: removedVariableNames asSortedCollection) ]! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 !methodProperties: {}!
 applySourceChanging: aRefactoring to: aMethod
 
@@ -2299,25 +2299,7 @@ applySourceChanging: aRefactoring to: aMethod
 	^self descriptionOfNewSourceOf: aMethod
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
-!methodProperties: {}!
-categoryFor: aCategory of: aClass
-
-	"Answer the category the new class is made in, which is the one of the class it came from
-	unless a client named another."
-
-	^aCategory isEmpty ifTrue: [ aClass category ] ifFalse: [ aCategory ]
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
-!methodProperties: {}!
-classNamed: aClassName
-
-	^(smalltalk classNamed: aClassName)
-		ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aClassName) ]
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'describing' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 description: someMethods asHavingBeen: aChange
 
@@ -2333,7 +2315,7 @@ description: someMethods asHavingBeen: aChange
 			do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'describing' stamp: 'HAW 26/Aug/2026, 7:55:39 pm (UTC)'!
 !methodProperties: {}!
 descriptionOfChangedClasses: someClasses
 
@@ -2352,7 +2334,7 @@ descriptionOfChangedClasses: someClasses
 			do: [ :eachClass | aStream newLine; newLine; nextPutAll: eachClass definition ] ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:18:22 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'describing' stamp: 'HAW 26/Aug/2026, 4:18:22 pm (UTC)'!
 !methodProperties: {}!
 descriptionOfChanges: someMethods
 
@@ -2374,7 +2356,7 @@ descriptionOfChanges: someMethods
 
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 7:21:03 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'describing' stamp: 'HAW 26/Aug/2026, 7:21:03 pm (UTC)'!
 !methodProperties: {}!
 descriptionOfNewSourceOf: aMethod
 
@@ -2396,37 +2378,14 @@ descriptionOfNewSourceOf: aMethod
 
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 3:56:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'describing' stamp: 'HAW 26/Aug/2026, 3:56:24 pm (UTC)'!
 !methodProperties: {}!
 isImplemented: aMethod
 
 	^aMethod methodClass includesSelector: aMethod selector
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
-!methodProperties: {}!
-namesFrom: aCommaSeparatedText
-
-	"Answer the names a client sent as one text, which is how a list reaches a tool."
-
-	^aCommaSeparatedText isEmpty
-		ifTrue: [ OrderedCollection new ]
-		ifFalse: [ ((aCommaSeparatedText subStrings: ',')
-			collect: [ :eachName | eachName withBlanksTrimmed ]) asOrderedCollection ]
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
-!methodProperties: {}!
-positionsIn: aCompiledMethod of: someParameterNames
-
-	"Answer where each parameter stands in the message, counting from one. A client names the
-	parameters it wants extracted and not where they are, which the method already says."
-
-	^someParameterNames collect: [ :eachName |
-		aCompiledMethod methodNode argumentNames indexOf: eachName ]
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
 !methodProperties: {}!
 refactoringOn: aSelector builtWith: aBlock
 
@@ -2447,6 +2406,47 @@ refactoringOn: aSelector builtWith: aBlock
 		inSystem: smalltalk.
 
 	^aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ])
+! !
+
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!methodProperties: {}!
+categoryFor: aCategory of: aClass
+
+	"Answer the category the new class is made in, which is the one of the class it came from
+	unless a client named another."
+
+	^aCategory isEmpty ifTrue: [ aClass category ] ifFalse: [ aCategory ]
+! !
+
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!methodProperties: {}!
+classNamed: aClassName
+
+	^(smalltalk classNamed: aClassName)
+		ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aClassName) ]
+! !
+
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!methodProperties: {}!
+namesFrom: aCommaSeparatedText
+
+	"Answer the names a client sent as one text, which is how a list reaches a tool."
+
+	^aCommaSeparatedText isEmpty
+		ifTrue: [ OrderedCollection new ]
+		ifFalse: [ ((aCommaSeparatedText subStrings: ',')
+			collect: [ :eachName | eachName withBlanksTrimmed ]) asOrderedCollection ]
+! !
+
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
+!methodProperties: {}!
+positionsIn: aCompiledMethod of: someParameterNames
+
+	"Answer where each parameter stands in the message, counting from one. A client names the
+	parameters it wants extracted and not where they are, which the method already says."
+
+	^someParameterNames collect: [ :eachName |
+		aCompiledMethod methodNode argumentNames indexOf: eachName ]
 ! !
 
 !MCPRefactoringToolGroup class methodsFor: 'testing' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
