@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:19:10 pm'!
-'Description Say that the finder answers the block a collection needs'!
-!provides: 'MCPServer' 1 32!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:26:02 pm'!
+'Description Close the debugger window that is not on screen yet'!
+!provides: 'MCPServer' 1 33!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -482,13 +482,15 @@ current
 	^Current ifNil: [ Current := MCPNoDebuggingSession new ]
 ! !
 
-!MCPDebuggingSession class methodsFor: 'current session' stamp: 'HAW 21/Aug/2026, 11:07:03 am (UTC)'!
+!MCPDebuggingSession class methodsFor: 'current session' stamp: 'HAW 26/Aug/2026, 10:24:09 pm (UTC)'!
 !methodProperties: {}!
 openOnErrorAt: aSignalerContext
 
 	"Open a debugger on the process signalling at aSignalerContext, which is the process
-	evaluating the code and not the one answering the request."
+	evaluating the code and not the one answering the request. Whatever was being debugged is
+	finished first: letting go of it would leave its window with nobody able to close it."
 
+	self finishCurrent.
 	Current := MCPOpenDebuggingSession debugging: Processor activeProcess at: aSignalerContext
 ! !
 
@@ -560,21 +562,26 @@ initializeDebugger: aDebugger
 	debugger := aDebugger
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
 !methodProperties: {}!
 finish
 
-	"Close the window my debugger is the model of. Telling the debugger its window is closing
-	is what terminates the process it was debugging, and the window is then let go of its
-	model, because closing a debugger window that still has one asks it about code it has
-	just thrown away."
+	"Close the window my debugger is the model of, in the process that draws morphs and only
+	once it has done it. A window opened from another process is added to the world when that
+	process gets to it, so looking for it here would find nothing and leave it to appear
+	afterwards with nobody left holding it.
 
-	DebuggerWindow
-		debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
-		do: [ :aDebuggerWindow |
-			debugger windowIsClosing.
-			aDebuggerWindow model: nil.
-			aDebuggerWindow delete ].
+	Telling the debugger its window is closing is what terminates the process it was debugging,
+	and the window is then let go of its model, because closing a debugger window that still
+	has one asks it about code it has just thrown away."
+
+	self whenTheUserInterfaceHasDone: [
+		DebuggerWindow
+			debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
+			do: [ :aDebuggerWindow |
+				debugger windowIsClosing.
+				aDebuggerWindow model: nil.
+				aDebuggerWindow delete ] ].
 
 	^'Finished'
 ! !
@@ -629,6 +636,23 @@ through
 topOfStackDescription
 
 	^debugger contextStackList first printString
+! !
+
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
+!methodProperties: {}!
+whenTheUserInterfaceHasDone: aBlock
+
+	"Have the process that draws morphs evaluate the block, and answer only once it has. It
+	runs what it is given in the order it was given, so a block queued after a window was
+	queued to be put up runs when the window is already up."
+
+	| done |
+
+	(UISupervisor isUIProcess: Processor activeProcess) ifTrue: [ ^aBlock value ].
+
+	done := Semaphore new.
+	UISupervisor whenUIinSafeState: [ aBlock value. done signal ].
+	done wait
 ! !
 
 !MCPOpenDebuggingSession class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:19:19 pm'!
-'Description Say that the finder answers the block a collection needs'!
-!provides: 'MCPServerTests' 1 30!
+'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:26:11 pm'!
+'Description Close the debugger window that is not on screen yet'!
+!provides: 'MCPServerTests' 1 31!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -2463,6 +2463,22 @@ testSteppingOverDrivesTheDebuggerLeftByAFailure
 	answer := self answerOf: 'smalltalk_debugger_stepover'.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
+!methodProperties: {}!
+testFinishingClosesTheDebuggerWindowThatIsNotOnScreenYet
+
+	"The window is put up by the process that draws morphs, so it is not there yet when the
+	tool that opened it answers. Finishing right then has to close it just the same, or it
+	turns up afterwards with no session holding it and nothing able to close it."
+
+	self answerOfEvaluatingToDebug: self failingCode.
+
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+
+	self assert: self debuggerWindowsOnScreen isEmpty
+
 ! !
 
 !MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
