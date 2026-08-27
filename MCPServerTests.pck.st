@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 3:14:28 pm'!
-'Description Give each group of tools a test case of its own'!
-!provides: 'MCPServerTests' 1 36!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 3:36:21 pm'!
+'Description Ask a class how it files its methods'!
+!provides: 'MCPServerTests' 1 37!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -553,6 +553,37 @@ testBrowseAnswersTheSuperclassOfTheClass
 		assert: ((self jsonAnswerOf: 'smalltalk_browse' with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
 		equals: 'Object'! !
 
+!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!methodProperties: {}!
+testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
+
+	self defineTestSubjectClass.
+	client callTool: 'smalltalk_define_method' with: (self
+		arguments: 'className' being: 'MCPTestSubject class'
+		and: 'source' being: 'saludoDeClase
+
+	^''¡Hola!!'''
+		and: 'category' being: 'saludos').
+
+	self
+		assert: ((self jsonAnswerOf: 'smalltalk_class_organization'
+			with: (self arguments: 'className' being: 'MCPTestSubject class')) at: 'saludos')
+		equals: #('saludoDeClase')
+! !
+
+!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!methodProperties: {}!
+testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+
+	self
+		assert: ((self jsonAnswerOf: 'smalltalk_class_organization'
+			with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'saludos')
+		equals: #('saludo')
+! !
+
 !MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testClassesInCategoryAnswersTheClassesOfThatCategory
@@ -757,6 +788,35 @@ testMethodSourceOfAnUnknownClassFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
 
+!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!methodProperties: {}!
+testMethodsInACategoryAnswerTheSelectorsFiledUnderIt
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+
+	self
+		assert: (self jsonAnswerOf: 'smalltalk_methods_in_category'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'saludos'))
+		equals: #('saludo')
+! !
+
+!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!methodProperties: {}!
+testMethodsInACategoryTheClassDoesNotHaveFails
+
+	self defineTestSubjectClass.
+
+	self
+		should: [ client
+			callTool: 'smalltalk_methods_in_category'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPMetamodelTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
+
+! !
+
 !MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!
 testSubclassesAnswersTheDirectSubclassesOfTheClass
@@ -769,6 +829,16 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 			jsonAnswerOf: 'smalltalk_subclasses' 
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubjectChild')! !
+
+!MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!methodProperties: {}!
+defineTestSubjectMethodIn: aMethodCategory
+
+	^client callTool: 'smalltalk_define_method' with: (self
+		arguments: 'className' being: 'MCPTestSubject'
+		and: 'source' being: self subjectMethodSource
+		and: 'category' being: aMethodCategory)
+! !
 
 !MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!

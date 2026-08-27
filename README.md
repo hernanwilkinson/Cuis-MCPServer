@@ -187,6 +187,8 @@ of version control.
 | --- | --- |
 | `smalltalk_evaluate` | Evaluate an expression and answer its result |
 | `smalltalk_browse` | Superclass, variables and selectors of a class |
+| `smalltalk_class_organization` | Method categories of a class, each with its selectors |
+| `smalltalk_methods_in_category` | Selectors filed under one method category |
 | `smalltalk_method_source` | Source code of a method |
 | `smalltalk_list_classes` | Every class, optionally filtered by prefix |
 | `smalltalk_hierarchy` | A class and all its superclasses |
@@ -199,6 +201,10 @@ of version control.
 | `smalltalk_delete_method` | Remove a method |
 | `smalltalk_screenshot` | Write what the image looks like to a JPEG file |
 | `smalltalk_save_image` | Save the image |
+
+`smalltalk_class_organization`, `smalltalk_methods_in_category`, `smalltalk_method_source` and
+the rest that take a class name also take the class side, named the way it prints:
+`MCPServer class`.
 
 Always use `smalltalk_save_image` to save. Evaluating `Smalltalk saveImage` through
 `smalltalk_evaluate` blocks the server.

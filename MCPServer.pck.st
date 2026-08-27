@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 10:44:53 am'!
-'Description Let a client say how far a refactoring reaches'!
-!provides: 'MCPServer' 1 40!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 3:36:04 pm'!
+'Description Ask a class how it files its methods'!
+!provides: 'MCPServer' 1 41!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2014,6 +2014,26 @@ browseTool
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
 ! !
 
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+classOrganizationTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_class_organization'
+		describedBy: 'List the method categories of a class, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.'
+		properties: { self classProperty }
+		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
+! !
+
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+classProperty
+
+	^MCPClassToolProperty
+		named: 'className'
+		describedBy: 'Name of the class, or of its class side as in MCPServer class'
+! !
+
 !MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 classesInCategoryTool
@@ -2138,6 +2158,50 @@ methodSourceTool
 		executingWith: [ :aMethod | aMethod sourceCode ]
 ! !
 
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+methodsInCategoryTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_methods_in_category'
+		describedBy: 'List the selectors a class files under one of its method categories. Name the class side the way it prints, as in MCPServer class.'
+		properties: {
+			self classProperty.
+			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category' }
+		executingWith: [ :aClass :aMethodCategory |
+			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
+! !
+
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+organizationOf: aClass
+
+	"Answer each method category with the selectors filed under it, keeping the order the class
+	holds them in, which is the order whoever wrote it put them in."
+
+	^aClass organization categories
+		inject: OrderedDictionary new
+		into: [ :anOrganization :eachMethodCategory |
+			anOrganization
+				at: eachMethodCategory asString
+				put: (aClass organization listAtCategoryNamed: eachMethodCategory) asArray sorted;
+				yourself ]
+! !
+
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+selectorsIn: aMethodCategory of: aClass
+
+	"A category the class does not have answers no selector, which reads the same as one that
+	is there and empty, so it is told apart here."
+
+	(aClass organization categories anySatisfy: [ :eachMethodCategory |
+		eachMethodCategory asString = aMethodCategory ])
+			ifFalse: [ self error: (self class methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass) ].
+
+	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
+! !
+
 !MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 subclassesTool
@@ -2151,12 +2215,14 @@ subclassesTool
 
 ! !
 
-!MCPMetamodelTools methodsFor: 'tools' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
+!MCPMetamodelTools methodsFor: 'tools' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer
 		addTool: self browseTool;
+		addTool: self classOrganizationTool;
+		addTool: self methodsInCategoryTool;
 		addTool: self methodSourceTool;
 		addTool: self listClassesTool;
 		addTool: self hierarchyTool;
@@ -2167,6 +2233,14 @@ addToolsTo: anMCPServer
 		addTool: self defineMethodTool;
 		addTool: self deleteClassTool;
 		addTool: self deleteMethodTool
+
+! !
+
+!MCPMetamodelTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
+
+	^'Method category not found: ', aMethodCategory, ' in ', aClass name
 ! !
 
 !MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
