@@ -1,10 +1,30 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:40 pm'!
-'Description Let a package decorate a tool another package serves'!
-!provides: 'MCPServerLiveTyping' 1 7!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:10 pm'!
+'Description Tell the senders that write a selector from the ones that send it'!
+!provides: 'MCPServerLiveTyping' 1 8!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
 
+
+!classDefinition: #MCPActualImplementorsDecorator category: #MCPServerLiveTyping!
+MCPToolDecorator subclass: #MCPActualImplementorsDecorator
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTyping'!
+!classDefinition: 'MCPActualImplementorsDecorator class' category: #MCPServerLiveTyping!
+MCPActualImplementorsDecorator class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPActualSendersDecorator category: #MCPServerLiveTyping!
+MCPToolDecorator subclass: #MCPActualSendersDecorator
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTyping'!
+!classDefinition: 'MCPActualSendersDecorator class' category: #MCPServerLiveTyping!
+MCPActualSendersDecorator class
+	instanceVariableNames: ''!
 
 !classDefinition: #MCPMethodTypesDecorator category: #MCPServerLiveTyping!
 MCPToolDecorator subclass: #MCPMethodTypesDecorator
@@ -27,6 +47,12 @@ MCPLiveTypingTools class
 	instanceVariableNames: ''!
 
 
+!MCPActualImplementorsDecorator commentStamp: '<historical>' prior: 0!
+I add to the methods that implement a selector the ones a send to an object of a named class could really reach.!
+
+!MCPActualSendersDecorator commentStamp: '<historical>' prior: 0!
+I add to the methods that write a selector the ones LiveTyping saw really sending it to an object that implements it, which are the ones a refactoring of the selector has to change.!
+
 !MCPMethodTypesDecorator commentStamp: '<historical>' prior: 0!
 I add to the source of a method the classes LiveTyping saw it answer and saw its parameters and temporaries hold while the image ran.!
 
@@ -34,6 +60,123 @@ I add to the source of a method the classes LiveTyping saw it answer and saw its
 I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
+
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+addedProperties
+
+	^{ MCPPlainToolProperty
+		named: 'className'
+		describedBy: 'Name of the class the selector is sent to. Without it there is nothing to narrow, because every implementor implements it'
+		defaultingTo: '' }
+! !
+
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^self decoratedTool description ,
+		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
+! !
+
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	| answer className |
+
+	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	className := anArguments at: 'className' ifAbsent: [ '' ].
+	className ifNotEmpty: [ :aName |
+		answer at: 'actual' put: (self actualImplementorNamesOf: (anArguments at: 'selector') asSymbol in: aName) ].
+
+	^Json render: answer
+! !
+
+!MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+actualImplementorNamesOf: aSelector in: aClassName
+
+	^(((smalltalk actualImplementorsOf: aSelector in: (smalltalk classNamed: aClassName))
+		reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ])
+		collect: [ :eachImplementor | eachImplementor stringVersion ]) asArray sort
+
+! !
+
+!MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+decoratedToolName
+
+	^'smalltalk_implementors_of'
+! !
+
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!methodProperties: {}!
+addedProperties
+
+	^{ MCPPlainToolProperty
+		named: 'className'
+		describedBy: 'Name of the class the sends to narrow to are sent to. Defaults to every class that implements the selector'
+		defaultingTo: '' }
+! !
+
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^self decoratedTool description ,
+		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object that implements it, which are the ones a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'
+! !
+
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	| answer |
+
+	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	answer at: 'actual' put: (self actualSenderNamesFrom: anArguments).
+
+	^Json render: answer
+! !
+
+!MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+actualSenderNamesFrom: anArguments
+
+	"Every implementor of the selector is asked who LiveTyping saw sending to it, unless a
+	client named the class it cares about."
+
+	| selector |
+
+	selector := (anArguments at: 'selector') asSymbol.
+
+	^((self implementorsOf: selector in: (anArguments at: 'className' ifAbsent: [ '' ]))
+		inject: Set new
+		into: [ :someNames :eachImplementor |
+			someNames
+				addAll: ((smalltalk allActualSendersOn: eachImplementor) first
+					collect: [ :eachSender | eachSender stringVersion ]);
+				yourself ]) asArray sort
+! !
+
+!MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!methodProperties: {}!
+implementorsOf: aSelector in: aClassName
+
+	^aClassName
+		ifEmpty: [ (smalltalk allImplementorsOf: aSelector) collect: [ :eachReference | eachReference compiledMethod ] ]
+		ifNotEmpty: [ :aName |
+			(smalltalk actualImplementorsOf: aSelector in: (smalltalk classNamed: aName))
+				reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]
+! !
+
+!MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!methodProperties: {}!
+decoratedToolName
+
+	^'smalltalk_senders_of'
+! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:14 pm'!
-'Description Let a package decorate a tool another package serves'!
-!provides: 'MCPServer' 1 42!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:48:44 pm'!
+'Description Tell the senders that write a selector from the ones that send it'!
+!provides: 'MCPServer' 1 43!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -136,7 +136,7 @@ MCPPluggableTool class
 
 !classDefinition: #MCPToolDecorator category: 'MCPServer'!
 Object subclass: #MCPToolDecorator
-	instanceVariableNames: 'decoratedTool'
+	instanceVariableNames: 'decoratedTool smalltalk'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -1209,7 +1209,7 @@ addTool: aTool
 	tools at: aTool name put: aTool
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
 !methodProperties: {}!
 decorateToolNamed: aToolName with: aDecoratorClass
 
@@ -1217,7 +1217,8 @@ decorateToolNamed: aToolName with: aDecoratorClass
 	package that has the tool is not loaded."
 
 	tools at: aToolName ifPresent: [ :aTool |
-		tools at: aToolName put: (aDecoratorClass decorating: aTool) ]
+		tools at: aToolName put: (aDecoratorClass decorating: aTool in: smalltalk) ]
+
 ! !
 
 !MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
@@ -1922,11 +1923,12 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties execu
 		executingWith: aBlock
 ! !
 
-!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
 !methodProperties: {}!
-initializeDecorating: aTool
+initializeDecorating: aTool in: aSmalltalk
 
-	decoratedTool := aTool
+	decoratedTool := aTool.
+	smalltalk := aSmalltalk
 ! !
 
 !MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
@@ -1936,11 +1938,27 @@ decoratedTool
 	^decoratedTool
 ! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!methodProperties: {}!
+addedProperties
+
+	"The properties I add to the ones the tool I decorate already takes. A decorator that needs
+	nothing of its own adds none."
+
+	^#()
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 definition
 
-	^decoratedTool definition
+	| definition |
+
+	definition := decoratedTool definition.
+	self addedProperties do: [ :eachProperty |
+		eachProperty addTo: ((definition at: 'inputSchema') at: 'properties') ].
+
+	^definition
 ! !
 
 !MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
@@ -1964,11 +1982,11 @@ valueWithArguments: anArguments
 	^self subclassResponsibility
 ! !
 
-!MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:45:50 pm (UTC)'!
 !methodProperties: {}!
-decorating: aTool
+decorating: aTool in: aSmalltalk
 
-	^self new initializeDecorating: aTool
+	^self new initializeDecorating: aTool in: aSmalltalk
 ! !
 
 !MCPToolDecorator class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
@@ -3526,13 +3544,13 @@ findMessagesByExampleTool
 				expecting: anExpectedSource) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 implementorsOfTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_implementors_of'
-		describedBy: 'List the methods that implement a selector.'
+		describedBy: 'List the methods that implement a selector, in the methods field of the answer.'
 		properties: {
 			MCPPluggableToolProperty
 				named: 'selector'
@@ -3618,14 +3636,16 @@ renderMessagesFound: someMethodEvaluationReferences
 			yourself ]) asArray
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 renderReferences: aCollectionOfMethodReferences
 
-	"Answer the methods a search found, each named the way a browser names it."
+	"Answer the methods a search found in a field of their own, so that a package loaded
+	afterwards can add what it knows about them beside it."
 
-	^Json render: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
-
+	^Json render: (OrderedDictionary new
+		at: 'methods' put: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort);
+		yourself)
 ! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
@@ -3669,13 +3689,13 @@ selectorsContaining: aText
 	^messageNames computeSelectorListFromSearchString
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 sendersOfTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_senders_of'
-		describedBy: 'List the methods that send a selector.'
+		describedBy: 'List the methods that send a selector, in the methods field of the answer. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.'
 		properties: {
 			MCPPluggableToolProperty
 				named: 'selector'

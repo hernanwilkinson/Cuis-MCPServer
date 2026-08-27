@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:48 pm'!
-'Description Let a package decorate a tool another package serves'!
-!provides: 'MCPServerLiveTypingTests' 1 6!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:19 pm'!
+'Description Tell the senders that write a selector from the ones that send it'!
+!provides: 'MCPServerLiveTypingTests' 1 7!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -203,6 +203,45 @@ testTheActualSendersAreTheOnesSeenSendingItToThisClass
 		equals: #('MCPLiveTypingProbe mcpCaller')
 ! !
 
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!methodProperties: {}!
+testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
+
+	self defineProbeHierarchy.
+
+	self
+		deny: ((self answerOf: 'smalltalk_implementors_of' with: (Dictionary new
+			at: 'selector' put: 'mcpAnswered';
+			yourself)) includesKey: 'actual')
+
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!methodProperties: {}!
+testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
+
+	"The stranger writes the same selector and is in no hierarchy with the probe, so a send to
+	a probe cannot reach it however much the name matches."
+
+	| strangerClass |
+
+	self defineProbeHierarchy.
+	strangerClass := Object subclass: #MCPLiveTypingStranger
+		instanceVariableNames: ''
+		classVariableNames: ''
+		poolDictionaries: ''
+		category: self classCategoryOfTestData.
+	strangerClass compile: 'mcpAnswered
+
+	^3' classified: 'probing'.
+
+	self
+		deny: (((self answerOf: 'smalltalk_implementors_of' with: (Dictionary new
+			at: 'selector' put: 'mcpAnswered';
+			at: 'className' put: 'MCPLiveTypingProbe';
+			yourself)) at: 'actual') includes: 'MCPLiveTypingStranger mcpAnswered')
+! !
+
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
 !methodProperties: {}!
 testTheReturnTypesOfAMethodAreTheClassesItAnswered
@@ -215,6 +254,36 @@ testTheReturnTypesOfAMethodAreTheClassesItAnswered
 			at: 'selector' put: 'mcpHold:';
 			yourself))
 		equals: #('SmallInteger')
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!methodProperties: {}!
+testTheSendersOfASelectorAreStillAnsweredWhenTheActualOnesAreAddedToThem
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (((self answerOf: 'smalltalk_senders_of' with: (Dictionary new
+			at: 'selector' put: 'mcpAnswered';
+			at: 'className' put: 'MCPLiveTypingProbe';
+			yourself)) at: 'methods') includes: 'MCPLiveTypingProbe mcpCaller')
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!methodProperties: {}!
+testTheSendersOfASelectorCarryTheOnesReallySendingIt
+
+	"The caller writes the selector twice, and only one of them is a send to an object that
+	implements it, so listing the senders finds it once and the actual ones tell which."
+
+	self defineProbeHierarchy.
+
+	self
+		assert: ((self answerOf: 'smalltalk_senders_of' with: (Dictionary new
+			at: 'selector' put: 'mcpAnswered';
+			at: 'className' put: 'MCPLiveTypingProbe';
+			yourself)) at: 'actual')
+		equals: #('MCPLiveTypingProbe mcpCaller')
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!

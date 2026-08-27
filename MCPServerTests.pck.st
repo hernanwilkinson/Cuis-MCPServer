@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:31 pm'!
-'Description Let a package decorate a tool another package serves'!
-!provides: 'MCPServerTests' 1 38!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:01 pm'!
+'Description Tell the senders that write a selector from the ones that send it'!
+!provides: 'MCPServerTests' 1 39!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -2144,7 +2144,7 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
 
@@ -2154,11 +2154,11 @@ testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
 	^42'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_implementors_of' with: (self arguments: 'selector' being: 'mcpProbe'))
+		assert: (self methodsFoundBy: 'smalltalk_implementors_of' with: (self arguments: 'selector' being: 'mcpProbe'))
 		equals: #('MCPTestSubject mcpProbe')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testReferencesToAClassAnswerEveryMethodThatNamesIt
 
@@ -2168,11 +2168,11 @@ testReferencesToAClassAnswerEveryMethodThatNamesIt
 	^MCPTestSubject'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_references_to_class' with: (self arguments: 'className' being: 'MCPTestSubject'))
+		assert: (self methodsFoundBy: 'smalltalk_references_to_class' with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: #('MCPTestSubject mcpProbeNamingItsClass')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 
@@ -2190,7 +2190,7 @@ testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 	^ProbeVariable'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_references_to_class_variable'
+		assert: (self methodsFoundBy: 'smalltalk_references_to_class_variable'
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'ProbeVariable'))
 		equals: #('MCPTestSubject mcpProbeWriting' 'MCPTestSubjectChild mcpProbeReading')
 
@@ -2212,7 +2212,7 @@ testReferencesToAClassVariableTheClassDoesNotHaveFails
 
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testReferencesToAnInstanceVariableIncludeTheSubclassesThatSeeIt
 
@@ -2230,7 +2230,7 @@ testReferencesToAnInstanceVariableIncludeTheSubclassesThatSeeIt
 	^probeVariable printString'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_references_to_instance_variable'
+		assert: (self methodsFoundBy: 'smalltalk_references_to_instance_variable'
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'probeVariable'))
 		equals: #('[read] - MCPTestSubjectChild mcpProbeReading' '[write] - MCPTestSubject mcpProbeWriting')
 ! !
@@ -2269,7 +2269,7 @@ testSearchingSelectorsAnswersTheOnesWhoseNameContainsTheText
 		equals: #('pluralize:')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 
@@ -2284,12 +2284,12 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 	^42'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_search_source' with: (self arguments: 'text' being: phrase))
+		assert: (self methodsFoundBy: 'smalltalk_search_source' with: (self arguments: 'text' being: phrase))
 		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')
 
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 testSendersOfAnswersEveryMethodThatSendsTheSelector
 
@@ -2302,7 +2302,7 @@ testSendersOfAnswersEveryMethodThatSendsTheSelector
 	^self mcpProbe'.
 
 	self
-		assert: (self sortedAnswerOf: 'smalltalk_senders_of' with: (self arguments: 'selector' being: 'mcpProbe'))
+		assert: (self methodsFoundBy: 'smalltalk_senders_of' with: (self arguments: 'selector' being: 'mcpProbe'))
 		equals: #('MCPTestSubject mcpProbeCaller')
 ! !
 
@@ -2322,6 +2322,14 @@ messagesFoundWith: anArguments
 
 	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
+! !
+
+!MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!methodProperties: {}!
+methodsFoundBy: aToolName with: anArguments
+
+	^((self jsonAnswerOf: aToolName with: anArguments) at: 'methods') asSortedCollection asArray
+
 ! !
 
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!

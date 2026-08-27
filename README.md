@@ -216,9 +216,14 @@ subclasses `MCPToolDecorator`, says which tool it decorates, and a server wraps 
 once every tool is in place — the same way a package that has tools subclasses `MCPToolGroup`. A
 decorator whose tool is not loaded decorates nothing.
 
-`MCPServerLiveTyping` uses it: with LiveTyping loaded, `smalltalk_method_source` answers `returns`
-and `variables` next to `source`, holding the classes LiveTyping saw the method answer and its
-parameters and temporaries hold. Without it, the answer is the source alone.
+`MCPServerLiveTyping` uses it three times. With LiveTyping loaded, `smalltalk_method_source`
+answers `returns` and `variables` next to `source`, holding the classes LiveTyping saw the method
+answer and its parameters and temporaries hold. `smalltalk_senders_of` answers `actual` next to
+`methods`: the ones it saw really sending the selector to an object that implements it, which in a
+dynamically typed image is a small part of everything that writes it — 165 methods write
+`classNamed:`, 4 send it to `MCPRefactoringToolGroup`. `smalltalk_implementors_of` answers `actual`
+when a class is named: the ones a send to that class could reach. Both add the `className` they
+need to the tool they decorate, so without LiveTyping the parameter is not there either.
 
 ### Search
 
