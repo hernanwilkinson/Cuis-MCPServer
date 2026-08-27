@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:10 pm'!
-'Description Tell the senders that write a selector from the ones that send it'!
-!provides: 'MCPServerLiveTyping' 1 8!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 6:50:44 pm'!
+'Description Count the tools that are called and stop naming Smalltalk'!
+!provides: 'MCPServerLiveTyping' 1 10!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -79,13 +79,13 @@ description
 		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:26:20 pm (UTC)'!
 !methodProperties: {}!
 valueWithArguments: anArguments
 
 	| answer className |
 
-	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	answer := self decorateeAnswerFor: anArguments.
 	className := anArguments at: 'className' ifAbsent: [ '' ].
 	className ifNotEmpty: [ :aName |
 		answer at: 'actual' put: (self actualImplementorNamesOf: (anArguments at: 'selector') asSymbol in: aName) ].
@@ -128,13 +128,13 @@ description
 		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object that implements it, which are the ones a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'
 ! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:15 pm (UTC)'!
 !methodProperties: {}!
 valueWithArguments: anArguments
 
 	| answer |
 
-	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	answer := self decorateeAnswerFor: anArguments.
 	answer at: 'actual' put: (self actualSenderNamesFrom: anArguments).
 
 	^Json render: answer
@@ -186,14 +186,14 @@ description
 		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and the ones each parameter and temporary held, in variables. A method that has not run has none of either.'
 ! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:34 pm (UTC)'!
 !methodProperties: {}!
 valueWithArguments: anArguments
 
 	| method answer |
 
 	method := MCPMethodProperty newDefault valueFrom: anArguments.
-	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	answer := self decorateeAnswerFor: anArguments.
 	answer
 		at: 'returns' put: (self returnTypeNamesOf: method);
 		at: 'variables' put: (self variableTypeNamesOf: method).

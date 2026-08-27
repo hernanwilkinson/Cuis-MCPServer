@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:56:28 pm'!
-'Description Let a tool be what a server serves and not how it is built'!
-!provides: 'MCPServer' 1 44!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 6:50:40 pm'!
+'Description Count the tools that are called and stop naming Smalltalk'!
+!provides: 'MCPServer' 1 46!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -76,7 +76,7 @@ MCPHttpSession class
 
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk'
+	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk calledTools'
 	classVariableNames: 'RunningInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -812,15 +812,18 @@ identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 9:44:59 pm (UTC)'!
 !methodProperties: {}!
 initializeServingOver: aTransport smalltalk: aSmalltalk
 
 	transport := aTransport.
 	smalltalk := aSmalltalk.
 	running := false.
-	self initializeTools.
-	self doNotLogMessages
+	calledTools := Bag new.
+	
+	self 
+		initializeTools;
+		doNotLogMessages
 ! !
 
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
@@ -1109,10 +1112,12 @@ toolDefinitions
 	^tools values collect: [ :eachTool | eachTool definition ]
 ! !
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:46:29 am (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 27/Aug/2026, 9:45:29 pm (UTC)'!
 !methodProperties: {}!
 executeTool: aToolName arguments: anArguments
 
+	calledTools add: aToolName.
+	
 	^(self toolNamed: aToolName) valueWithArguments: anArguments
 
 ! !
@@ -1191,16 +1196,16 @@ addMiscTools
 
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 8:58:38 pm (UTC)'!
 !methodProperties: {}!
 addProvidedTools
 
 	"Ask every group of tools there is for the ones it has. A package that has tools has a
 	subclass of MCPToolGroup, so a package that is not loaded adds none."
 
-	MCPToolGroup allSubclasses do: [ :eachToolGroupClass |
-		eachToolGroupClass isAbstract ifFalse: [
-			(eachToolGroupClass for: smalltalk) addToolsTo: self ] ]
+	MCPToolGroup allSubclasses 
+		reject: [ :eachToolGroupClass | eachToolGroupClass isAbstract ]
+		thenDo: [ :eachToolGroupClass | (eachToolGroupClass for: smalltalk) addToolsTo: self ]
 
 ! !
 
@@ -1234,7 +1239,7 @@ decorateToolNamed: aToolName with: aDecoratorClass
 
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 8:58:00 pm (UTC)'!
 !methodProperties: {}!
 decorateTools
 
@@ -1242,9 +1247,12 @@ decorateTools
 	A package that decorates a tool has a subclass of MCPToolDecorator, so a package that is
 	not loaded decorates none."
 
-	MCPToolDecorator allSubclasses do: [ :eachDecoratorClass |
-		eachDecoratorClass isAbstract ifFalse: [
-			self decorateToolNamed: eachDecoratorClass decoratedToolName with: eachDecoratorClass ] ]
+	MCPToolDecorator allSubclasses 
+		reject: [ :eachDecoratorClass | eachDecoratorClass isAbstract ]
+		thenDo: [:eachDecoratorClass |
+			self 
+				decorateToolNamed: eachDecoratorClass decoratedToolName 
+				with: eachDecoratorClass ] 
 ! !
 
 !MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
@@ -1326,7 +1334,7 @@ runTestsIn: aTestSuite
 		at: 'errors' put: (self namesOfTests: result errors);
 		yourself)! !
 
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
+!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 27/Aug/2026, 9:04:10 pm (UTC)'!
 !methodProperties: {}!
 runTestsInCategoryTool
 
@@ -1335,7 +1343,7 @@ runTestsInCategoryTool
 		describedBy: 'Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
 		properties: { MCPPlainToolProperty named: 'categoryName' describedBy: 'Name of the class category' }
 		executingWith: [ :aCategoryName |
-			self runTestsIn: (TestSuite forSystemCategoryNamed: aCategoryName using: SystemOrganization) ]
+			self runTestsIn: (TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization) ]
 ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
@@ -1670,18 +1678,23 @@ addedProperties
 	^#()
 ! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:43 pm (UTC)'!
+!methodProperties: {}!
+decorateeAnswerFor: anArguments
+
+	^ Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:49:39 pm (UTC)'!
 !methodProperties: {}!
 definition
 
-	| definition |
+	| definition properties |
 
 	definition := decoratedTool definition.
-	self addedProperties do: [ :eachProperty |
-		eachProperty addTo: ((definition at: 'inputSchema') at: 'properties') ].
+	properties := (definition at: 'inputSchema') at: 'properties'.
+	self addedProperties do: [ :eachProperty | eachProperty addTo: properties ].
 
-	^definition
-! !
+	^definition! !
 
 !MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
