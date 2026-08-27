@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 3:36:04 pm'!
-'Description Ask a class how it files its methods'!
-!provides: 'MCPServer' 1 41!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:14 pm'!
+'Description Let a package decorate a tool another package serves'!
+!provides: 'MCPServer' 1 42!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -132,6 +132,16 @@ MCPTool subclass: #MCPPluggableTool
 	category: 'MCPServer'!
 !classDefinition: 'MCPPluggableTool class' category: 'MCPServer'!
 MCPPluggableTool class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPToolDecorator category: 'MCPServer'!
+Object subclass: #MCPToolDecorator
+	instanceVariableNames: 'decoratedTool'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPToolDecorator class' category: 'MCPServer'!
+MCPToolDecorator class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolGroup category: 'MCPServer'!
@@ -328,6 +338,11 @@ I am a class of my own because I run the evaluation in a process of its own, so 
 I am a tool whose work is the block I was created with.
 
 I read my properties out of the arguments of a request and evaluate my block with their values, so the block takes one parameter per property, in the order they were given to me. I answer valueWithArguments: the way my block does, which is why the two read alike.!
+
+!MCPToolDecorator commentStamp: '<historical>' prior: 0!
+I am a tool that adds something to what another tool answers, which is how a package that is not always loaded reaches the tools of one that always is.
+
+Every subclass of mine says which tool it decorates, and a server wraps that tool with it once every tool is in place. A decorator of a tool that is not there decorates nothing.!
 
 !MCPToolGroup commentStamp: '<historical>' prior: 0!
 I am a group of tools a server offers.
@@ -795,7 +810,7 @@ initializeServingOver: aTransport smalltalk: aSmalltalk
 	self doNotLogMessages
 ! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
 initializeTools
 
@@ -803,8 +818,8 @@ initializeTools
 	self
 		addTestTools;
 		addMiscTools;
-		addProvidedTools
-
+		addProvidedTools;
+		decorateTools
 ! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
@@ -1192,6 +1207,30 @@ addTestTools
 addTool: aTool
 
 	tools at: aTool name put: aTool
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+decorateToolNamed: aToolName with: aDecoratorClass
+
+	"A decorator of a tool that is not there decorates nothing, which is what happens when the
+	package that has the tool is not loaded."
+
+	tools at: aToolName ifPresent: [ :aTool |
+		tools at: aToolName put: (aDecoratorClass decorating: aTool) ]
+! !
+
+!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+decorateTools
+
+	"Ask every decorator there is to wrap the tool it decorates, once every tool is in place.
+	A package that decorates a tool has a subclass of MCPToolDecorator, so a package that is
+	not loaded decorates none."
+
+	MCPToolDecorator allSubclasses do: [ :eachDecoratorClass |
+		eachDecoratorClass isAbstract ifFalse: [
+			self decorateToolNamed: eachDecoratorClass decoratedToolName with: eachDecoratorClass ] ]
 ! !
 
 !MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
@@ -1883,6 +1922,69 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties execu
 		executingWith: aBlock
 ! !
 
+!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+initializeDecorating: aTool
+
+	decoratedTool := aTool
+! !
+
+!MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+decoratedTool
+
+	^decoratedTool
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+definition
+
+	^decoratedTool definition
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^decoratedTool description
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+name
+
+	^decoratedTool name
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	^self subclassResponsibility
+! !
+
+!MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+decorating: aTool
+
+	^self new initializeDecorating: aTool
+! !
+
+!MCPToolDecorator class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+isAbstract
+
+	^self == MCPToolDecorator
+! !
+
+!MCPToolDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+decoratedToolName
+
+	^self subclassResponsibility
+! !
+
 !MCPToolGroup methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 !methodProperties: {}!
 initializeFor: aSmalltalk
@@ -2147,15 +2249,16 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
 methodSourceTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_method_source'
-		describedBy: 'Get the source code of a specific method.'
+		describedBy: 'Get the source code of a specific method, as the source field of the answer.'
 		properties: { MCPMethodProperty newDefault }
-		executingWith: [ :aMethod | aMethod sourceCode ]
+		executingWith: [ :aMethod |
+			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
 ! !
 
 !MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!

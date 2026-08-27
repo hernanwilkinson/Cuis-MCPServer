@@ -1,10 +1,20 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:51:04 pm'!
-'Description Report the source a refactoring really saved'!
-!provides: 'MCPServerLiveTyping' 1 6!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:40 pm'!
+'Description Let a package decorate a tool another package serves'!
+!provides: 'MCPServerLiveTyping' 1 7!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
 
+
+!classDefinition: #MCPMethodTypesDecorator category: #MCPServerLiveTyping!
+MCPToolDecorator subclass: #MCPMethodTypesDecorator
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTyping'!
+!classDefinition: 'MCPMethodTypesDecorator class' category: #MCPServerLiveTyping!
+MCPMethodTypesDecorator class
+	instanceVariableNames: ''!
 
 !classDefinition: #MCPLiveTypingTools category: #MCPServerLiveTyping!
 MCPToolGroup subclass: #MCPLiveTypingTools
@@ -17,10 +27,66 @@ MCPLiveTypingTools class
 	instanceVariableNames: ''!
 
 
+!MCPMethodTypesDecorator commentStamp: '<historical>' prior: 0!
+I add to the source of a method the classes LiveTyping saw it answer and saw its parameters and temporaries hold while the image ran.!
+
 !MCPLiveTypingTools commentStamp: '<historical>' prior: 0!
 I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
+
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^self decoratedTool description ,
+		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and the ones each parameter and temporary held, in variables. A method that has not run has none of either.'
+! !
+
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+valueWithArguments: anArguments
+
+	| method answer |
+
+	method := MCPMethodProperty newDefault valueFrom: anArguments.
+	answer := Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream.
+	answer
+		at: 'returns' put: (self returnTypeNamesOf: method);
+		at: 'variables' put: (self variableTypeNamesOf: method).
+
+	^Json render: answer
+! !
+
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+returnTypeNamesOf: aMethod
+
+	^(aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort
+! !
+
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+variableTypeNamesOf: aMethod
+
+	| typesByVariable |
+
+	typesByVariable := OrderedDictionary new.
+	aMethod methodVariablesTypes typesInfoDo: [ :eachTypeInfo |
+		typesByVariable
+			at: eachTypeInfo variableName asString
+			put: ((eachTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort) ].
+
+	^typesByVariable
+
+! !
+
+!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!methodProperties: {}!
+decoratedToolName
+
+	^'smalltalk_method_source'
+! !
 
 !MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
 !methodProperties: {}!

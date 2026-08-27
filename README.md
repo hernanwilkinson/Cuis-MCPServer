@@ -189,7 +189,7 @@ of version control.
 | `smalltalk_browse` | Superclass, variables and selectors of a class |
 | `smalltalk_class_organization` | Method categories of a class, each with its selectors |
 | `smalltalk_methods_in_category` | Selectors filed under one method category |
-| `smalltalk_method_source` | Source code of a method |
+| `smalltalk_method_source` | Source code of a method, in the source field of the answer |
 | `smalltalk_list_classes` | Every class, optionally filtered by prefix |
 | `smalltalk_hierarchy` | A class and all its superclasses |
 | `smalltalk_subclasses` | Direct subclasses of a class |
@@ -208,6 +208,17 @@ the rest that take a class name also take the class side, named the way it print
 
 Always use `smalltalk_save_image` to save. Evaluating `Smalltalk saveImage` through
 `smalltalk_evaluate` blocks the server.
+
+### Decorating a tool
+
+A package can add to what a tool of another package answers, without either naming the other. It
+subclasses `MCPToolDecorator`, says which tool it decorates, and a server wraps that tool with it
+once every tool is in place — the same way a package that has tools subclasses `MCPToolGroup`. A
+decorator whose tool is not loaded decorates nothing.
+
+`MCPServerLiveTyping` uses it: with LiveTyping loaded, `smalltalk_method_source` answers `returns`
+and `variables` next to `source`, holding the classes LiveTyping saw the method answer and its
+parameters and temporaries hold. Without it, the answer is the source alone.
 
 ### Search
 

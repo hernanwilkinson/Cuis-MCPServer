@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:36:08 pm'!
-'Description Change superclass to DynamicallyCodeCreatingTest'!
-!provides: 'MCPServerLiveTypingTests' 1 5!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:48 pm'!
+'Description Let a package decorate a tool another package serves'!
+!provides: 'MCPServerLiveTypingTests' 1 6!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -76,6 +76,16 @@ defineProbeHierarchy
 	probeClass new mcpCaller.
 
 	^childClass
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
+!methodProperties: {}!
+sourceAnswerOfTheProbe
+
+	^Json readFrom: ((self toolNamed: 'smalltalk_method_source') valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPLiveTypingProbe';
+		at: 'selector' put: 'mcpHold:';
+		yourself)) readStream
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:14 am (UTC)'!
@@ -205,6 +215,36 @@ testTheReturnTypesOfAMethodAreTheClassesItAnswered
 			at: 'selector' put: 'mcpHold:';
 			yourself))
 		equals: #('SmallInteger')
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
+!methodProperties: {}!
+testTheSourceOfAMethodCarriesTheClassesItAnswered
+
+	probeClass new mcpHold: 42.
+
+	self assert: (self sourceAnswerOfTheProbe at: 'returns') equals: #('SmallInteger')
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
+!methodProperties: {}!
+testTheSourceOfAMethodCarriesTheClassesItsParametersHeld
+
+	probeClass new mcpHold: 42.
+
+	self assert: ((self sourceAnswerOfTheProbe at: 'variables') at: 'anObject') equals: #('SmallInteger')
+
+! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
+!methodProperties: {}!
+testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
+
+	probeClass new mcpHold: 42.
+
+	self
+		assert: (self sourceAnswerOfTheProbe at: 'source')
+		equals: (probeClass sourceCodeAt: #mcpHold:) asString
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!

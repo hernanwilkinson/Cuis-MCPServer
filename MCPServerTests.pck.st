@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 3:36:21 pm'!
-'Description Ask a class how it files its methods'!
-!provides: 'MCPServerTests' 1 37!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:09:31 pm'!
+'Description Let a package decorate a tool another package serves'!
+!provides: 'MCPServerTests' 1 38!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -764,7 +764,7 @@ testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 			with: (self arguments: 'prefix' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
@@ -772,10 +772,11 @@ testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 	self defineTestSubjectMethod.
 
 	self
-		assert: (client 
-			callTool: 'smalltalk_method_source' 
-			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo'))
-		equals: self subjectMethodSource! !
+		assert: ((self jsonAnswerOf: 'smalltalk_method_source'
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo')) at: 'source')
+		equals: self subjectMethodSource
+
+! !
 
 !MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
