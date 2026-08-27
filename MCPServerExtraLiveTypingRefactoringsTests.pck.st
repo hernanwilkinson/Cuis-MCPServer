@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 4:38:37 pm'!
-'Description Let a method say its own name in every report'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 3!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:39:36 pm'!
+'Description Change superclass to DynamicallyCodeCreatingTest'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 4!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
 
 
 !classDefinition: #MCPExtraLiveTypingRefactoringToolsTest category: #MCPServerExtraLiveTypingRefactoringsTests!
-DynamicallyCodeCreationTest subclass: #MCPExtraLiveTypingRefactoringToolsTest
+DynamicallyCodeCreatingTest subclass: #MCPExtraLiveTypingRefactoringToolsTest
 	instanceVariableNames: 'probeClass'
 	classVariableNames: ''
 	poolDictionaries: ''

@@ -1,7 +1,7 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 10:45:05 am'!
-'Description Let a client say how far a refactoring reaches'!
-!provides: 'MCPServerTests' 1 33!
-!requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:57:41 pm'!
+'Description Change superclass to DynamicallyCodeCreatingTest'!
+!provides: 'MCPServerTests' 1 35!
+!requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
 
@@ -36,7 +36,7 @@ MCPMockClient class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolsTest category: 'MCPServerTests'!
-DynamicallyCodeCreationTest subclass: #MCPToolsTest
+DynamicallyCodeCreatingTest subclass: #MCPToolsTest
 	instanceVariableNames: 'client server'
 	classVariableNames: ''
 	poolDictionaries: ''

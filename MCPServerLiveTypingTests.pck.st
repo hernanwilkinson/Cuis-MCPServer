@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 12:46:50 pm'!
-'Description Answer the changes a refactoring made'!
-!provides: 'MCPServerLiveTypingTests' 1 4!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:36:08 pm'!
+'Description Change superclass to DynamicallyCodeCreatingTest'!
+!provides: 'MCPServerLiveTypingTests' 1 5!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
 
 
 !classDefinition: #MCPLiveTypingToolsTest category: #MCPServerLiveTypingTests!
-DynamicallyCodeCreationTest subclass: #MCPLiveTypingToolsTest
+DynamicallyCodeCreatingTest subclass: #MCPLiveTypingToolsTest
 	instanceVariableNames: 'probeClass'
 	classVariableNames: ''
 	poolDictionaries: ''
