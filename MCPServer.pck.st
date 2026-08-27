@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 6:50:40 pm'!
-'Description Count the tools that are called and stop naming Smalltalk'!
-!provides: 'MCPServer' 1 46!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:38 pm'!
+'Description Let having subclasses be what makes a class abstract'!
+!provides: 'MCPServer' 1 47!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -96,7 +96,7 @@ MCPTool class
 
 !classDefinition: #MCPToolDecorator category: 'MCPServer'!
 MCPTool subclass: #MCPToolDecorator
-	instanceVariableNames: 'decoratedTool smalltalk'
+	instanceVariableNames: 'decoratee smalltalk'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -1646,26 +1646,26 @@ valueWithArguments: anArguments
 
 ! !
 
-!MCPTool class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 7:50:46 pm (UTC)'!
+!MCPTool class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:10:11 pm (UTC)'!
 !methodProperties: {}!
 isAbstract
 
-	^self == MCPTool
+	^self hasSubclasses 
 ! !
 
-!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 !methodProperties: {}!
 initializeDecorating: aTool in: aSmalltalk
 
-	decoratedTool := aTool.
+	decoratee := aTool.
 	smalltalk := aSmalltalk
 ! !
 
-!MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
 !methodProperties: {}!
-decoratedTool
+decoratee
 
-	^decoratedTool
+	^decoratee
 ! !
 
 !MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
@@ -1678,36 +1678,36 @@ addedProperties
 	^#()
 ! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:43 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 !methodProperties: {}!
 decorateeAnswerFor: anArguments
 
-	^ Json readFrom: (self decoratedTool valueWithArguments: anArguments) readStream! !
+	^ Json readFrom: (decoratee valueWithArguments: anArguments) readStream! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:49:39 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 !methodProperties: {}!
 definition
 
 	| definition properties |
 
-	definition := decoratedTool definition.
+	definition := decoratee definition.
 	properties := (definition at: 'inputSchema') at: 'properties'.
 	self addedProperties do: [ :eachProperty | eachProperty addTo: properties ].
 
 	^definition! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 !methodProperties: {}!
 description
 
-	^decoratedTool description
+	^decoratee description
 ! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 !methodProperties: {}!
 name
 
-	^decoratedTool name
+	^decoratee name
 ! !
 
 !MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:45:50 pm (UTC)'!
@@ -1715,13 +1715,6 @@ name
 decorating: aTool in: aSmalltalk
 
 	^self new initializeDecorating: aTool in: aSmalltalk
-! !
-
-!MCPToolDecorator class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
-!methodProperties: {}!
-isAbstract
-
-	^self == MCPToolDecorator
 ! !
 
 !MCPToolDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
@@ -2078,14 +2071,11 @@ for: aSmalltalk
 
 	^self new initializeFor: aSmalltalk! !
 
-!MCPToolGroup class methodsFor: 'testing' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!MCPToolGroup class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:10:27 pm (UTC)'!
 !methodProperties: {}!
 isAbstract
 
-	"Answer whether I only group other groups instead of having tools of my own. A server asks
-	this before it looks for tools, because only a group that has them can be asked for them."
-
-	^self == MCPToolGroup
+	^self hasSubclasses 
 ! !
 
 !MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
@@ -2743,13 +2733,6 @@ scopeProperty
 		named: 'scope'
 		describedBy: 'Where the sends to change are looked for: class, hierarchy, category, hierarchyAndCategories or system. Every one but system needs className too. category is the whole tree of the root class category, which is what a package usually is, but a class category tree does not always have a package of its own. Defaults to system'
 		defaultingTo: 'system'
-! !
-
-!MCPRefactoringToolGroup class methodsFor: 'testing' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
-!methodProperties: {}!
-isAbstract
-
-	^self == MCPRefactoringToolGroup
 ! !
 
 !MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
@@ -3854,13 +3837,6 @@ notProvidedErrorDescription
 	^'No ', name, ' provided'
 ! !
 
-!MCPToolProperty methodsFor: 'testing' stamp: 'HAW 21/Aug/2026, 5:03:59 pm (UTC)'!
-!methodProperties: {}!
-isRequired
-
-	^required
-! !
-
 !MCPToolProperty methodsFor: 'error signaling' stamp: 'HAW 21/Aug/2026, 5:17:28 pm (UTC)'!
 !methodProperties: {}!
 signalNotProvided
@@ -3970,16 +3946,6 @@ addTo: aProperties
 	"A client sends a class and a selector, so that is what it is shown."
 
 	^selectorProperty addTo: (classProperty addTo: aProperties)
-! !
-
-!MCPMethodProperty methodsFor: 'tool definition' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
-!methodProperties: {}!
-isRequired
-
-	"I am required when either of the two is: a client that leaves out the one that has to be
-	sent has left out something required."
-
-	^classProperty isRequired or: [ selectorProperty isRequired ]
 ! !
 
 !MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 25/Aug/2026, 11:53:10 am (UTC)'!

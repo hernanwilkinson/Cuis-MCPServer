@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 6:50:44 pm'!
-'Description Count the tools that are called and stop naming Smalltalk'!
-!provides: 'MCPServerLiveTyping' 1 10!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:51 pm'!
+'Description Let having subclasses be what makes a class abstract'!
+!provides: 'MCPServerLiveTyping' 1 11!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -71,11 +71,11 @@ addedProperties
 		defaultingTo: '' }
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
 !methodProperties: {}!
 description
 
-	^self decoratedTool description ,
+	^self decoratee description ,
 		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
 ! !
 
@@ -120,11 +120,11 @@ addedProperties
 		defaultingTo: '' }
 ! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
 !methodProperties: {}!
 description
 
-	^self decoratedTool description ,
+	^self decoratee description ,
 		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object that implements it, which are the ones a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'
 ! !
 
@@ -178,11 +178,11 @@ decoratedToolName
 	^'smalltalk_senders_of'
 ! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
 !methodProperties: {}!
 description
 
-	^self decoratedTool description ,
+	^self decoratee description ,
 		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and the ones each parameter and temporary held, in variables. A method that has not run has none of either.'
 ! !
 

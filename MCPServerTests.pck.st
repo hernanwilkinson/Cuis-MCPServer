@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:01 pm'!
-'Description Tell the senders that write a selector from the ones that send it'!
-!provides: 'MCPServerTests' 1 39!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:41 pm'!
+'Description Let having subclasses be what makes a class abstract'!
+!provides: 'MCPServerTests' 1 40!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -534,14 +534,11 @@ classCategoryOfTestData
 
 ! !
 
-!MCPToolsTest class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 6:08:34 pm (UTC)'!
+!MCPToolsTest class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:11:09 pm (UTC)'!
 !methodProperties: {}!
 isAbstract
 
-	"I am the fixture every test of a tool the server serves runs in, and I hold no test of my
-	own: each group of tools is tested by a subclass of mine."
-
-	^ thisContext methodClass == self class! !
+	^self hasSubclasses ! !
 
 !MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!

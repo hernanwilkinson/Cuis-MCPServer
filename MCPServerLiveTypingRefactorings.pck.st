@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:48:41 pm'!
-'Description Sort the tool group protocol into what it is for'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 6!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:54 pm'!
+'Description Let having subclasses be what makes a class abstract'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 7!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -66,13 +66,6 @@ refactoringOn: aSelector in: aClass using: aRefactoringClass keepingPossibleSend
 					and: [ aMethodReference isPossibleSender not or: [ aBoolean ] ] ]
 			thenCollect: [ :aMethodReference | aMethodReference compiledMethod ]) asIdentitySet)
 
-! !
-
-!MCPActualScopeRefactoringToolGroup class methodsFor: 'testing' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
-!methodProperties: {}!
-isAbstract
-
-	^self == MCPActualScopeRefactoringToolGroup
 ! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
