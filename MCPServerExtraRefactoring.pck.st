@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:12:37 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerExtraRefactoring' 1 7!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 10:45:02 am'!
+'Description Let a client say how far a refactoring reaches'!
+!provides: 'MCPServerExtraRefactoring' 1 8!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -51,32 +51,37 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
 !methodProperties: {}!
 extractParameterObjectTool
 
 	^MCPPluggableTool
 		named: 'smalltalk_refactor_extract_parameter_object'
-		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place. The parameters are named, not numbered: where each one stands is what the method already says.'
+		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
 			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
-		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
+			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
+			self scopeProperty }
+		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory :aScopeName |
 			| parameterNames |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
-			self applyReportingChanges: (self refactoringOn: aMethod selector builtWith: [ :implementors :senders |
-				ExtractParameterObject
-					from: aMethod
-					toClassNamed: aNewClassName asSymbol
-					subclassing: (self classNamed: aSuperclassName) name
-					onCategory: (self categoryFor: aCategory of: aMethod methodClass)
-					withParameters: parameterNames
-					placedAt: (self positionsIn: aMethod of: parameterNames)
-					implementors: implementors
-					senders: senders ]) ]
+			self applyReportingChanges: (self
+				refactoringOn: aMethod selector
+				around: aMethod methodClass name
+				within: aScopeName
+				builtWith: [ :implementors :senders |
+					ExtractParameterObject
+						from: aMethod
+						toClassNamed: aNewClassName asSymbol
+						subclassing: (self classNamed: aSuperclassName) name
+						onCategory: (self categoryFor: aCategory of: aMethod methodClass)
+						withParameters: parameterNames
+						placedAt: (self positionsIn: aMethod of: parameterNames)
+						implementors: implementors
+						senders: senders ]) ]
 
 ! !
 

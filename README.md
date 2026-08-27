@@ -227,6 +227,26 @@ the receiver is a collection it also looks for an enumerating message taking a b
 expression is the only place the block shows: asking for `#(1 2 3 4)` expecting `#(1 3)` answers
 `#(1 2 3 4) select: [:aSmallInteger | aSmallInteger odd]` and the `reject:` that sends `even`.
 
+### Refactoring scope
+
+A refactoring of a selector used to change every implementor and every sender in the image. The
+six that work on a selector now take a `scope`, defaulting to `system` so nothing changes unless
+it is asked for. Every scope but `system` also needs a `className` to look around.
+
+| Scope | |
+| --- | --- |
+| `class` | The class and its metaclass |
+| `hierarchy` | The class and all its subclasses |
+| `category` | Every class of the root class category tree the class is in |
+| `hierarchyAndCategories` | The hierarchy, and the category tree of every class in it |
+| `system` | Every class in the image |
+
+`category` is the whole tree under the root class category, which is usually the package the class
+belongs to — though a class category tree does not always have a package of its own.
+
+The scope matters most where the type does not say who the receiver is: two unrelated classes can
+implement the same selector, and renaming it across the image renames both.
+
 ### Tests
 
 Each of these answers how many tests passed, failed and signalled an error, and names the ones

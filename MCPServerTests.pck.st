@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 7:59:48 pm'!
-'Description Run the tests without leaving the image'!
-!provides: 'MCPServerTests' 1 32!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 10:45:05 am'!
+'Description Let a client say how far a refactoring reaches'!
+!provides: 'MCPServerTests' 1 33!
 !requires: 'BaseImageTests-DynamicallyCodeCreation' 1 1 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -431,6 +431,19 @@ defineTestSubjectMethod
 
 	^client callTool: 'smalltalk_define_method' with:
 		(self arguments: 'className' being: 'MCPTestSubject' and: 'source' being: self subjectMethodSource)! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 11:49:28 am (UTC)'!
+!methodProperties: {}!
+defineTestSubjectSiblingImplementingProbe
+
+	"A class of its own implementing the same selector, which is what a scope narrower than
+	the system has to leave alone."
+
+	self defineClassWith: (self definitionOf: 'MCPTestSibling' subclassOf: 'Object').
+	self defineMethodIn: 'MCPTestSibling' source: 'mcpProbe
+
+	^42'
+! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 6:06:41 pm (UTC)'!
 !methodProperties: {}!
@@ -1404,7 +1417,60 @@ testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 11:09:40 pm (UTC)'!
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^3 + 4'.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbeInTheChild
+
+	^3 + 4'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_method'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted'
+			and: 'text' being: '3 + 4')
+				at: 'replacing' put: 'class';
+				yourself).
+
+	self assert: (((Smalltalk classNamed: 'MCPTestSubjectChild') sourceCodeAt: 'mcpProbeInTheChild' asSymbol)
+		includesSubstring: '^3 + 4' caseSensitive: true)
+
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
+!methodProperties: {}!
+testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^3 + 4'.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbeInTheChild
+
+	^3 + 4'.
+
+	self applyRefactoring: 'smalltalk_refactor_extract_method'
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted'
+			and: 'text' being: '3 + 4')
+				at: 'replacing' put: 'hierarchy';
+				yourself).
+
+	self assert: (((Smalltalk classNamed: 'MCPTestSubjectChild') sourceCodeAt: 'mcpProbeInTheChild' asSymbol)
+		includesSubstring: 'self mcpExtracted' caseSensitive: true)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 11:49:50 am (UTC)'!
 !methodProperties: {}!
 testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 
@@ -1419,7 +1485,7 @@ testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 			and: 'selector' being: 'mcpProbe'
 			and: 'newSelector' being: 'mcpExtracted'
 			and: 'text' being: '3 + 4')
-				at: 'scope' put: 'method';
+				at: 'replacing' put: 'method';
 				yourself).
 
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
@@ -2070,6 +2136,81 @@ MCPTestSubject>>#mcpProbeRenamed
 1 method removed:
 MCPTestSubject>>#mcpProbe'
 
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 11:49:28 am (UTC)'!
+!methodProperties: {}!
+testRenameSelectorRefactoringInAScopeNarrowerThanTheSystemNeedsAClassName
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+
+	self
+		should: [ self applyRefactoring: 'smalltalk_refactor_rename_selector'
+			with: (self
+				arguments: 'selector' being: 'mcpProbe'
+				and: 'newSelector' being: 'mcpProbeRenamed'
+				and: 'scope' being: 'hierarchy') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: MCPRefactoringToolGroup classNameNeededErrorDescription)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 11:49:28 am (UTC)'!
+!methodProperties: {}!
+testRenameSelectorRefactoringInAnUnknownScopeFails
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+
+	self
+		should: [ self applyRefactoring: 'smalltalk_refactor_rename_selector'
+			with: (self
+				arguments: 'selector' being: 'mcpProbe'
+				and: 'newSelector' being: 'mcpProbeRenamed'
+				and: 'scope' being: 'package'
+				and: 'className' being: 'MCPTestSubject') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: (MCPRefactoringToolGroup unknownScopeErrorDescriptionFor: 'package'))
+
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 11:49:28 am (UTC)'!
+!methodProperties: {}!
+testRenameSelectorRefactoringInTheClassScopeLeavesTheOtherClassesAlone
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+	self defineTestSubjectSiblingImplementingProbe.
+
+	self applyRefactoring: 'smalltalk_refactor_rename_selector'
+		with: (self
+			arguments: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpProbeRenamed'
+			and: 'scope' being: 'class'
+			and: 'className' being: 'MCPTestSubject').
+
+	self assert: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)
+! !
+
+!MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 27/Aug/2026, 11:49:28 am (UTC)'!
+!methodProperties: {}!
+testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^43'.
+
+	self applyRefactoring: 'smalltalk_refactor_rename_selector'
+		with: (self
+			arguments: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpProbeRenamed'
+			and: 'scope' being: 'hierarchy'
+			and: 'className' being: 'MCPTestSubject').
+
+	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbeRenamed' asSymbol)
 ! !
 
 !MCPToolsTest methodsFor: 'tests refactorings' stamp: 'HAW 24/Aug/2026, 6:36:43 pm (UTC)'!
