@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:32:41 pm'!
-'Description Name a tool by what it declares and a group by what it reaches'!
-!provides: 'MCPServer' 1 48!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:53:04 pm'!
+'Description Let every tool live in a group and every group have its test'!
+!provides: 'MCPServer' 1 49!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -174,6 +174,16 @@ MCPToolGroup subclass: #MCPDebugTools
 MCPDebugTools class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPImageTools category: 'MCPServer'!
+MCPToolGroup subclass: #MCPImageTools
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPImageTools class' category: 'MCPServer'!
+MCPImageTools class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPModelStructureTools category: 'MCPServer'!
 MCPToolGroup subclass: #MCPModelStructureTools
 	instanceVariableNames: ''
@@ -212,6 +222,16 @@ MCPToolGroup subclass: #MCPSearchTools
 	category: 'MCPServer'!
 !classDefinition: 'MCPSearchTools class' category: 'MCPServer'!
 MCPSearchTools class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPTestRunningTools category: 'MCPServer'!
+MCPToolGroup subclass: #MCPTestRunningTools
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPTestRunningTools class' category: 'MCPServer'!
+MCPTestRunningTools class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolProperty category: 'MCPServer'!
@@ -365,6 +385,9 @@ Every subclass of mine is asked to add its tools, so a package that has some is 
 !MCPDebugTools commentStamp: '<historical>' prior: 0!
 I am the tools that open a debugger on code that fails and drive the one that is open.!
 
+!MCPImageTools commentStamp: '<historical>' prior: 0!
+I am the tools that act on the image itself: evaluating code in it, seeing what it looks like, and saving it.!
+
 !MCPModelStructureTools commentStamp: '<historical>' prior: 0!
 I am the tools that read and change the metamodel: classes, their categories, their hierarchy and their methods.!
 
@@ -382,6 +405,9 @@ A server asks me for my tools and offers them; what a refactoring needs to be bu
 
 !MCPSearchTools commentStamp: '<historical>' prior: 0!
 I am the tools that look for what the image already holds: who sends a selector, who implements it, what names a class or a variable, what a source text says, and what message answers a result that is already known.!
+
+!MCPTestRunningTools commentStamp: '<historical>' prior: 0!
+I am the tools that run tests, one of them or a whole suite, and answer how they went.!
 
 !MCPToolProperty commentStamp: '<historical>' prior: 0!
 I am a property a client can send to an MCP tool.
@@ -826,16 +852,15 @@ initializeServingOver: aTransport smalltalk: aSmalltalk
 		doNotLogMessages
 ! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
 !methodProperties: {}!
 initializeTools
 
 	tools := Dictionary new.
 	self
-		addTestTools;
-		addMiscTools;
 		addProvidedTools;
 		decorateTools
+
 ! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
@@ -1136,67 +1161,7 @@ toolNamed: aToolName
 	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
 ! !
 
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 11:49:22 am (UTC)'!
-!methodProperties: {}!
-evaluateTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_evaluate'
-		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
-		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
-		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
-! !
-
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 24/Aug/2026, 1:56:00 pm (UTC)'!
-!methodProperties: {}!
-saveImageTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_save_image'
-		describedBy: 'Save the Smalltalk image to disk.'
-		properties: #()
-		executingWith: [
-			[ smalltalk saveImage ] fork.
-			(Delay forSeconds: 1) wait.
-			'Image saved: ', smalltalk imageName ]
-! !
-
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
-!methodProperties: {}!
-screenshotTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_screenshot'
-		describedBy: 'Write what the image looks like right now to a JPEG file and answer the name of the file, so that a change to something on screen can be looked at instead of guessed at.'
-		properties: { MCPPlainToolProperty named: 'fileName' describedBy: 'Absolute path of the JPEG file to write' }
-		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
-! !
-
-!MCPServer methodsFor: 'tool creation - misc' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
-!methodProperties: {}!
-writeScreenshotTo: aFileName
-
-	"The world is drawn by the process that draws morphs, so the picture is taken there, and
-	this answers once the file has been written."
-
-	self class whenTheUserInterfaceHasDone: [
-		(UISupervisor ui imageForm: 32) writeJPEGfileNamed: aFileName ].
-
-	^aFileName
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
-!methodProperties: {}!
-addMiscTools
-
-	self
-		addTool: self evaluateTool;
-		addTool: self screenshotTool;
-		addTool: self saveImageTool
-
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 8:58:38 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 8:58:38 pm (UTC)'!
 !methodProperties: {}!
 addProvidedTools
 
@@ -1209,25 +1174,14 @@ addProvidedTools
 
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-addTestTools
-
-	self
-		addTool: self runTestMethodTool;
-		addTool: self runTestClassTool;
-		addTool: self runTestsInCategoryTool;
-		addTool: self runTestsForClassesTool
-! !
-
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
 !methodProperties: {}!
 addTool: aTool
 
 	tools at: aTool name put: aTool
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
 !methodProperties: {}!
 decorateToolNamed: aToolName with: aDecoratorClass
 
@@ -1239,7 +1193,7 @@ decorateToolNamed: aToolName with: aDecoratorClass
 
 ! !
 
-!MCPServer methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 8:58:00 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 8:58:00 pm (UTC)'!
 !methodProperties: {}!
 decorateTools
 
@@ -1253,97 +1207,6 @@ decorateTools
 			self 
 				decorateToolNamed: eachDecoratorClass decoratedToolName 
 				with: eachDecoratorClass ] 
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-classesNamed: aCommaSeparatedText
-
-	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName |
-		| className |
-		className := eachName withBlanksTrimmed.
-		(smalltalk classNamed: className)
-			ifNil: [ self error: (MCPClassToolProperty classNotFoundErrorDescriptionFor: className) ] ]
-
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-namesOfTests: someTests
-
-	"A test says its own name, which is the class that holds it and the selector it is run by."
-
-	^(someTests collect: [ :eachTest | eachTest printString ]) asSortedCollection asArray
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-runTestClassTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_run_test_class'
-		describedBy: 'Run every test of a test case class and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the test case class' }
-		executingWith: [ :aClass | self runTestsIn: (TestSuite forTestCaseClass: aClass) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-runTestMethodTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_run_test_method'
-		describedBy: 'Run one test and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
-		properties: { MCPMethodProperty newDefault }
-		executingWith: [ :aMethod | self runTestsIn: (TestSuite forTestMethod: aMethod) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:57:37 pm (UTC)'!
-!methodProperties: {}!
-runTestsForClassesTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_run_tests_for_classes'
-		describedBy: 'Run the tests of several classes as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A class that is not a test case class contributes the tests that exercise it.'
-		properties: { MCPPlainToolProperty named: 'classNames' describedBy: 'Names of the classes, separated by commas' }
-		executingWith: [ :someClassNames |
-			self runTestsIn: (TestSuite
-				forClasses: (self classesNamed: someClassNames)
-				named: someClassNames) ]
-! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 26/Aug/2026, 10:58:36 pm (UTC)'!
-!methodProperties: {}!
-runTestsIn: aTestSuite
-
-	"The suite is run in a process of its own. A test that signals is recorded as an error only
-	when what it signalled reaches the default handler, and the handler that turns an error
-	into an answer for a client is on the stack of the process answering the request."
-
-	| result done |
-
-	done := Semaphore new.
-	[ result := aTestSuite run. done signal ] fork.
-	done wait.
-
-	^Json render: (OrderedDictionary new
-		at: 'passedCount' put: result passedCount;
-		at: 'failedCount' put: result failureCount;
-		at: 'errorCount' put: result errorCount;
-		at: 'failed' put: (self namesOfTests: result failures);
-		at: 'errors' put: (self namesOfTests: result errors);
-		yourself)! !
-
-!MCPServer methodsFor: 'tool creation - tests' stamp: 'HAW 27/Aug/2026, 9:04:10 pm (UTC)'!
-!methodProperties: {}!
-runTestsInCategoryTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_run_tests_in_category'
-		describedBy: 'Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
-		properties: { MCPPlainToolProperty named: 'categoryName' describedBy: 'Name of the class category' }
-		executingWith: [ :aCategoryName |
-			self runTestsIn: (TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization) ]
 ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
@@ -2167,6 +2030,65 @@ addToolsTo: anMCPServer
 		addTool: self debuggerProceedTool;
 		addTool: self debuggerRestartTool;
 		addTool: self finishDebuggingTool
+! !
+
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+evaluateTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_evaluate'
+		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
+		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
+		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
+! !
+
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+saveImageTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_save_image'
+		describedBy: 'Save the Smalltalk image to disk.'
+		properties: #()
+		executingWith: [
+			[ smalltalk saveImage ] fork.
+			(Delay forSeconds: 1) wait.
+			'Image saved: ', smalltalk imageName ]
+! !
+
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+screenshotTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_screenshot'
+		describedBy: 'Write what the image looks like right now to a JPEG file and answer the name of the file, so that a change to something on screen can be looked at instead of guessed at.'
+		properties: { MCPPlainToolProperty named: 'fileName' describedBy: 'Absolute path of the JPEG file to write' }
+		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
+! !
+
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+writeScreenshotTo: aFileName
+
+	"The world is drawn by the process that draws morphs, so the picture is taken there, and
+	this answers once the file has been written."
+
+	MCPServer whenTheUserInterfaceHasDone: [
+		(UISupervisor ui imageForm: 32) writeJPEGfileNamed: aFileName ].
+
+	^aFileName
+! !
+
+!MCPImageTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
+!methodProperties: {}!
+addToolsTo: anMCPServer
+
+	anMCPServer
+		addTool: self evaluateTool;
+		addTool: self screenshotTool;
+		addTool: self saveImageTool
 ! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
@@ -3755,6 +3677,108 @@ addToolsTo: anMCPServer
 		addTool: self searchSourceTool;
 		addTool: self searchSelectorsTool;
 		addTool: self findMessagesByExampleTool
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+classesNamed: aCommaSeparatedText
+
+	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName |
+		| className |
+		className := eachName withBlanksTrimmed.
+		(smalltalk classNamed: className)
+			ifNil: [ self error: (MCPClassToolProperty classNotFoundErrorDescriptionFor: className) ] ]
+
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+namesOfTests: someTests
+
+	"A test says its own name, which is the class that holds it and the selector it is run by."
+
+	^(someTests collect: [ :eachTest | eachTest printString ]) asSortedCollection asArray
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+runTestClassTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_run_test_class'
+		describedBy: 'Run every test of a test case class and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
+		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the test case class' }
+		executingWith: [ :aClass | self runTestsIn: (TestSuite forTestCaseClass: aClass) ]
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+runTestMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_run_test_method'
+		describedBy: 'Run one test and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
+		properties: { MCPMethodProperty newDefault }
+		executingWith: [ :aMethod | self runTestsIn: (TestSuite forTestMethod: aMethod) ]
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+runTestsForClassesTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_run_tests_for_classes'
+		describedBy: 'Run the tests of several classes as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A class that is not a test case class contributes the tests that exercise it.'
+		properties: { MCPPlainToolProperty named: 'classNames' describedBy: 'Names of the classes, separated by commas' }
+		executingWith: [ :someClassNames |
+			self runTestsIn: (TestSuite
+				forClasses: (self classesNamed: someClassNames)
+				named: someClassNames) ]
+! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+runTestsIn: aTestSuite
+
+	"The suite is run in a process of its own. A test that signals is recorded as an error only
+	when what it signalled reaches the default handler, and the handler that turns an error
+	into an answer for a client is on the stack of the process answering the request."
+
+	| result done |
+
+	done := Semaphore new.
+	[ result := aTestSuite run. done signal ] fork.
+	done wait.
+
+	^Json render: (OrderedDictionary new
+		at: 'passedCount' put: result passedCount;
+		at: 'failedCount' put: result failureCount;
+		at: 'errorCount' put: result errorCount;
+		at: 'failed' put: (self namesOfTests: result failures);
+		at: 'errors' put: (self namesOfTests: result errors);
+		yourself)! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+runTestsInCategoryTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_run_tests_in_category'
+		describedBy: 'Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
+		properties: { MCPPlainToolProperty named: 'categoryName' describedBy: 'Name of the class category' }
+		executingWith: [ :aCategoryName |
+			self runTestsIn: (TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization) ]
+! !
+
+!MCPTestRunningTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
+!methodProperties: {}!
+addToolsTo: anMCPServer
+
+	anMCPServer
+		addTool: self runTestMethodTool;
+		addTool: self runTestClassTool;
+		addTool: self runTestsInCategoryTool;
+		addTool: self runTestsForClassesTool
 ! !
 
 !MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!

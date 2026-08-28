@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:32:50 pm'!
-'Description Name a tool by what it declares and a group by what it reaches'!
-!provides: 'MCPServerTests' 1 41!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:53:14 pm'!
+'Description Let every tool live in a group and every group have its test'!
+!provides: 'MCPServerTests' 1 42!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -45,6 +45,26 @@ DynamicallyCodeCreatingTest subclass: #MCPToolsTest
 MCPToolsTest class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPDebuggingToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPDebuggingToolsTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPDebuggingToolsTest class' category: 'MCPServerTests'!
+MCPDebuggingToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPImageToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPImageToolsTest
+	instanceVariableNames: 'savedImageCount'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPImageToolsTest class' category: 'MCPServerTests'!
+MCPImageToolsTest class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPModelStructureToolsTest category: 'MCPServerTests'!
 MCPToolsTest subclass: #MCPModelStructureToolsTest
 	instanceVariableNames: ''
@@ -85,6 +105,16 @@ MCPToolsTest subclass: #MCPServerToolsTest
 MCPServerToolsTest class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPTestRunningToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPTestRunningToolsTest
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPTestRunningToolsTest class' category: 'MCPServerTests'!
+MCPTestRunningToolsTest class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPAuthenticationTest category: 'MCPServerTests'!
 TestCase subclass: #MCPAuthenticationTest
 	instanceVariableNames: 'headers'
@@ -95,16 +125,6 @@ TestCase subclass: #MCPAuthenticationTest
 MCPAuthenticationTest class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPDebuggingToolsTest category: 'MCPServerTests'!
-TestCase subclass: #MCPDebuggingToolsTest
-	instanceVariableNames: 'server'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServerTests'!
-!classDefinition: 'MCPDebuggingToolsTest class' category: 'MCPServerTests'!
-MCPDebuggingToolsTest class
-	instanceVariableNames: ''!
-
 !classDefinition: #MCPMethodPropertyTest category: 'MCPServerTests'!
 TestCase subclass: #MCPMethodPropertyTest
 	instanceVariableNames: ''
@@ -113,16 +133,6 @@ TestCase subclass: #MCPMethodPropertyTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPMethodPropertyTest class' category: 'MCPServerTests'!
 MCPMethodPropertyTest class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPSaveImageToolTest category: 'MCPServerTests'!
-TestCase subclass: #MCPSaveImageToolTest
-	instanceVariableNames: 'savedImageCount'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServerTests'!
-!classDefinition: 'MCPSaveImageToolTest class' category: 'MCPServerTests'!
-MCPSaveImageToolTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPTransportTextTest category: 'MCPServerTests'!
@@ -146,6 +156,13 @@ I am the fixture a test of the tools a server serves runs in: a server over a mo
 
 I hold no test of my own. Each group of tools is tested by a subclass of mine, and the classes and methods a test makes are made through the server, in a class category I take away when the test ends.!
 
+!MCPDebuggingToolsTest commentStamp: '<historical>' prior: 0!
+I test the seven tools that drive a debugger.
+
+Six of my tests ask each tool what it answers when no debugger is open, which is what a client sees when it drives one out of turn. The rest let a real failure leave a real debugger open and drive that, so what they exercise is the debugger the server really opens.
+
+My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
+
 !MCPModelStructureToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of MCPMetamodelTools, which read and change classes, their categories, their hierarchy and their methods.!
 
@@ -157,18 +174,6 @@ I am the tests of MCPSearchTools, which look through the image for who sends, wh
 
 !MCPServerToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of the tools a server serves itself rather than through a group of them, which are evaluating code and running tests, and of the protocol it answers.!
-
-!MCPDebuggingToolsTest commentStamp: '<historical>' prior: 0!
-I test the seven tools that drive a debugger.
-
-Six of my tests ask each tool what it answers when no debugger is open, which is what a client sees when it drives one out of turn. The rest let a real failure leave a real debugger open and drive that, so what they exercise is the debugger the server really opens.
-
-My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
-
-!MCPSaveImageToolTest commentStamp: '<historical>' prior: 0!
-I test that a server saves the image it was given rather than the one it is running in.
-
-I am that image myself: I answer saveImage and imageName, and the server under test is created with me as its smalltalk, so no class is needed to stand in for one.!
 
 !MCPTransportTextTest commentStamp: '<historical>' prior: 0!
 I test MCPTransportText by serving it a script of requests and reading what it writes out.
@@ -343,7 +348,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:51:27 am (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:47:57 am (UTC)'!
 !methodProperties: {}!
 setUp
 
@@ -355,10 +360,9 @@ setUp
 	super setUp.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
-	server := self serverClass servingOver: transport.
+	server := self serverClass servingOver: transport smalltalk: self smalltalkForTheServer.
 	transport serveRequestsFor: server.
-	client := MCPMockClient sendingThrough: transport
-! !
+	client := MCPMockClient sendingThrough: transport! !
 
 !MCPToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:36 pm (UTC)'!
 !methodProperties: {}!
@@ -369,6 +373,12 @@ tearDown
 
 	Smalltalk removeKey: self class sideEffectGlobalName ifAbsent: [ nil ].
 	super tearDown! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:48:02 am (UTC)'!
+!methodProperties: {}!
+answerOf: aToolName
+
+	^client callTool: aToolName with: Dictionary new! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 5:54:06 pm (UTC)'!
 !methodProperties: {}!
@@ -490,6 +500,15 @@ serverErrorTextFor: anErrorDescription
 
 	^'Error: ', anErrorDescription! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:47:50 am (UTC)'!
+!methodProperties: {}!
+smalltalkForTheServer
+
+	"The image the server I serve works on. A test that watches what the server does to the
+	image answers itself instead, and plays the part."
+
+	^Smalltalk! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:52 pm (UTC)'!
 !methodProperties: {}!
 subjectClassDefinition
@@ -539,6 +558,322 @@ classCategoryOfTestData
 isAbstract
 
 	^self hasSubclasses ! !
+
+!MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:49:13 am (UTC)'!
+!methodProperties: {}!
+tearDown
+
+	"Leave no debugger open behind me, whatever the test did with one."
+
+	MCPDebuggingSession finishCurrent.
+
+	super tearDown! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:49:19 am (UTC)'!
+!methodProperties: {}!
+answerOfEvaluatingToDebug: aCodeString
+
+	^client
+		callTool: 'smalltalk_evaluate_to_debug_on_error'
+		with: (self arguments: 'code' being: aCodeString)! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
+!methodProperties: {}!
+debuggerWindowsOnScreen
+
+	^DebuggerWindow allInstances select: [ :eachWindow |
+		eachWindow world notNil and: [ eachWindow label = MCPOpenDebuggingSession debuggerLabel ] ]
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+failingCode
+
+	^'nil error: ''boom'''
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:51:26 pm (UTC)'!
+!methodProperties: {}!
+openADebugger
+
+	| answer |
+
+	answer := self answerOfEvaluatingToDebug: self failingCode.
+	self waitForTheDebuggerWindow.
+	
+	^answer 
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:23:18 pm (UTC)'!
+!methodProperties: {}!
+waitForTheDebuggerWindow
+
+	"The window is put on screen by the process that draws morphs and not by the one that
+	answered the request, so it is not there the moment the tool answers. Finishing cannot
+	close a window that has not been put up yet, which is why every test that leaves a
+	debugger waits for it before it ends."
+
+	| attempts |
+
+	attempts := 0.
+	[ self debuggerWindowsOnScreen isEmpty and: [ attempts < 200 ] ] whileTrue: [
+		attempts := attempts + 1.
+		(Delay forMilliseconds: 20) wait ]
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testFinishingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_finish_debugging')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'finish')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testGoingThroughWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_through')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'through')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testProceedingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_proceed')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'proceed')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testRestartingWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_restart')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'restart')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testSteppingIntoWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepinto')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepInto')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testSteppingOverWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatDoesNotFailAnswersItsResult
+
+	self assert: (self answerOfEvaluatingToDebug: '6 * 7') equals: '42'
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatDoesNotFailLeavesNoDebugger
+
+	self answerOfEvaluatingToDebug: '6 * 7'.
+
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:52:08 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatFailsAnswersTheErrorItRaised
+
+	| answer |
+
+	answer := self openADebugger.
+
+	self assert: answer equals: 'Error: boom' printString
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
+!methodProperties: {}!
+testEvaluatingCodeThatFailsOpensADebugger
+
+	self openADebugger.
+
+	self assert: self debuggerWindowsOnScreen size equals: 1
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:35:06 pm (UTC)'!
+!methodProperties: {}!
+testFinishingClosesTheDebuggerWindow
+
+	self openADebugger.
+	
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+
+	self assert: self debuggerWindowsOnScreen isEmpty
+
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testFinishingLeavesNoDebuggerToDrive
+
+	self openADebugger.
+
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+	self
+		assert: (self answerOf: 'smalltalk_debugger_stepover')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testGoingThroughDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_through'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testProceedingRunsTheDebuggedProcessToItsEnd
+
+	self openADebugger.
+
+	self assert: (self answerOf: 'smalltalk_debugger_proceed') equals: 'Proceeded'
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testRestartingDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_restart'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testSteppingIntoDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_stepinto'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!methodProperties: {}!
+testSteppingOverDrivesTheDebuggerLeftByAFailure
+
+	| answer |
+
+	self openADebugger.
+	answer := self answerOf: 'smalltalk_debugger_stepover'.
+
+	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
+! !
+
+!MCPDebuggingToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
+!methodProperties: {}!
+testFinishingClosesTheDebuggerWindowThatIsNotOnScreenYet
+
+	"The window is put up by the process that draws morphs, so it is not there yet when the
+	tool that opened it answers. Finishing right then has to close it just the same, or it
+	turns up afterwards with no session holding it and nothing able to close it."
+
+	self answerOfEvaluatingToDebug: self failingCode.
+
+	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
+
+	self assert: self debuggerWindowsOnScreen isEmpty
+
+! !
+
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+testEvaluateAnswersThePrintStringOfTheResult
+
+	self assert: (self evaluate: '3 + 4') equals: '7'! !
+
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+testEvaluateDecodesNonAsciiCharacters
+
+	"An accented character travels as the two bytes of its utf8 encoding. Unless the
+	transport decodes them, the compiler reads a two character string instead of one."
+
+	self assert: (self evaluate: '''é'' size') equals: '1'! !
+
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:48:42 am (UTC)'!
+!methodProperties: {}!
+testSavingTheImageAnswersTheNameOfTheImageItSaved
+
+	self assert: (self answerOf: 'smalltalk_save_image') equals: 'Image saved: ', self imageName! !
+
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:48:47 am (UTC)'!
+!methodProperties: {}!
+testSavingTheImageSavesItOnce
+
+	self answerOf: 'smalltalk_save_image'.
+
+	self assert: savedImageCount equals: 1! !
+
+!MCPImageToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
+evaluate: aCodeString
+
+	^client callTool: 'smalltalk_evaluate' with: (self arguments: 'code' being: aCodeString)! !
+
+!MCPImageToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:48:22 am (UTC)'!
+!methodProperties: {}!
+smalltalkForTheServer
+
+	"I am the image the server saves, so that saving it in a test writes nothing to disk and I
+	can be asked afterwards what the server did to me."
+
+	^self! !
+
+!MCPImageToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:48:15 am (UTC)'!
+!methodProperties: {}!
+setUp
+
+	super setUp.
+	savedImageCount := 0! !
+
+!MCPImageToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 28/Aug/2026, 12:48:28 am (UTC)'!
+!methodProperties: {}!
+imageName
+
+	^'/somewhere/Cuis-UnderTest.image'! !
+
+!MCPImageToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 28/Aug/2026, 12:48:35 am (UTC)'!
+!methodProperties: {}!
+saveImage
+
+	savedImageCount := savedImageCount + 1! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
@@ -2361,21 +2696,6 @@ testCallingAnUnknownToolFails
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!
-testEvaluateAnswersThePrintStringOfTheResult
-
-	self assert: (self evaluate: '3 + 4') equals: '7'! !
-
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
-!methodProperties: {}!
-testEvaluateDecodesNonAsciiCharacters
-
-	"An accented character travels as the two bytes of its utf8 encoding. Unless the
-	transport decodes them, the compiler reads a two character string instead of one."
-
-	self assert: (self evaluate: '''é'' size') equals: '1'! !
-
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
-!methodProperties: {}!
 testEveryAdvertisedToolHasADescriptionAndAnInputSchema
 
 	self assert: (
@@ -2406,6 +2726,16 @@ testInvalidJsonAnswersAParseError
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!
+testUnknownMethodAnswersAMethodNotFoundError
+
+	| response |
+
+	response := client sendMethod: 'no/such/method'.
+
+	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
+
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!methodProperties: {}!
 testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
 
 	self defineTestCaseProbe.
@@ -2416,7 +2746,7 @@ testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
 		equals: #(1 1 1)
 ! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
 
@@ -2432,7 +2762,7 @@ testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
 		equals: #(#('MCPTestProbeCase>>#testThatFails') #('MCPTestProbeCase>>#testThatSignals'))
 ! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 testRunningOneTestMethodRunsThatOneAlone
 
@@ -2444,7 +2774,7 @@ testRunningOneTestMethodRunsThatOneAlone
 		equals: #(1 0 0)
 ! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
 
@@ -2461,7 +2791,7 @@ testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
 
 ! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
 
@@ -2473,17 +2803,7 @@ testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
 		equals: #(1 1 1)
 ! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
-!methodProperties: {}!
-testUnknownMethodAnswersAMethodNotFoundError
-
-	| response |
-
-	response := client sendMethod: 'no/such/method'.
-
-	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
-
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 countsOfRunning: aToolName with: anArguments
 
@@ -2497,7 +2817,7 @@ countsOfRunning: aToolName with: anArguments
 		with: (answer at: 'errorCount')
 ! !
 
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!
 defineTestCaseProbe
 
@@ -2515,12 +2835,6 @@ defineTestCaseProbe
 
 	self error: ''probing'''
 ! !
-
-!MCPServerToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
-!methodProperties: {}!
-evaluate: aCodeString
-
-	^client callTool: 'smalltalk_evaluate' with: (self arguments: 'code' being: aCodeString)! !
 
 !MCPAuthenticationTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
 !methodProperties: {}!
@@ -2600,272 +2914,6 @@ testTheCommandLineCanTurnAuthenticationOffWhateverTheEnvironmentSays
 	self assert: (authentication authorizes: self)
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-setUp
-
-	server := MCPServer servingOver: MCPTransportMock new
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-tearDown
-
-	"Leave no debugger open behind me, whatever the test did with one."
-
-	MCPDebuggingSession finishCurrent
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-answerOf: aToolName
-
-	^(server toolNamed: aToolName) valueWithArguments: Dictionary new
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-answerOfEvaluatingToDebug: aCodeString
-
-	^(server toolNamed: 'smalltalk_evaluate_to_debug_on_error')
-		valueWithArguments: (Dictionary new at: 'code' put: aCodeString; yourself)
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
-!methodProperties: {}!
-debuggerWindowsOnScreen
-
-	^DebuggerWindow allInstances select: [ :eachWindow |
-		eachWindow world notNil and: [ eachWindow label = MCPOpenDebuggingSession debuggerLabel ] ]
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-failingCode
-
-	^'nil error: ''boom'''
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:51:26 pm (UTC)'!
-!methodProperties: {}!
-openADebugger
-
-	| answer |
-
-	answer := self answerOfEvaluatingToDebug: self failingCode.
-	self waitForTheDebuggerWindow.
-	
-	^answer 
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:23:18 pm (UTC)'!
-!methodProperties: {}!
-waitForTheDebuggerWindow
-
-	"The window is put on screen by the process that draws morphs and not by the one that
-	answered the request, so it is not there the moment the tool answers. Finishing cannot
-	close a window that has not been put up yet, which is why every test that leaves a
-	debugger waits for it before it ends."
-
-	| attempts |
-
-	attempts := 0.
-	[ self debuggerWindowsOnScreen isEmpty and: [ attempts < 200 ] ] whileTrue: [
-		attempts := attempts + 1.
-		(Delay forMilliseconds: 20) wait ]
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testFinishingWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_finish_debugging')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'finish')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testGoingThroughWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_through')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'through')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testProceedingWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_proceed')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'proceed')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testRestartingWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_restart')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'restart')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testSteppingIntoWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_stepinto')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepInto')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testSteppingOverWithoutADebuggerSaysThereIsNone
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_stepover')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testEvaluatingCodeThatDoesNotFailAnswersItsResult
-
-	self assert: (self answerOfEvaluatingToDebug: '6 * 7') equals: '42'
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
-!methodProperties: {}!
-testEvaluatingCodeThatDoesNotFailLeavesNoDebugger
-
-	self answerOfEvaluatingToDebug: '6 * 7'.
-
-	self
-		assert: (self answerOf: 'smalltalk_debugger_stepover')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:52:08 pm (UTC)'!
-!methodProperties: {}!
-testEvaluatingCodeThatFailsAnswersTheErrorItRaised
-
-	| answer |
-
-	answer := self openADebugger.
-
-	self assert: answer equals: 'Error: boom' printString
-
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
-!methodProperties: {}!
-testEvaluatingCodeThatFailsOpensADebugger
-
-	self openADebugger.
-
-	self assert: self debuggerWindowsOnScreen size equals: 1
-
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:35:06 pm (UTC)'!
-!methodProperties: {}!
-testFinishingClosesTheDebuggerWindow
-
-	self openADebugger.
-	
-	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
-
-	self assert: self debuggerWindowsOnScreen isEmpty
-
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testFinishingLeavesNoDebuggerToDrive
-
-	self openADebugger.
-
-	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
-	self
-		assert: (self answerOf: 'smalltalk_debugger_stepover')
-		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testGoingThroughDrivesTheDebuggerLeftByAFailure
-
-	| answer |
-
-	self openADebugger.
-	answer := self answerOf: 'smalltalk_debugger_through'.
-
-	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testProceedingRunsTheDebuggedProcessToItsEnd
-
-	self openADebugger.
-
-	self assert: (self answerOf: 'smalltalk_debugger_proceed') equals: 'Proceeded'
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testRestartingDrivesTheDebuggerLeftByAFailure
-
-	| answer |
-
-	self openADebugger.
-	answer := self answerOf: 'smalltalk_debugger_restart'.
-
-	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testSteppingIntoDrivesTheDebuggerLeftByAFailure
-
-	| answer |
-
-	self openADebugger.
-	answer := self answerOf: 'smalltalk_debugger_stepinto'.
-
-	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
-!methodProperties: {}!
-testSteppingOverDrivesTheDebuggerLeftByAFailure
-
-	| answer |
-
-	self openADebugger.
-	answer := self answerOf: 'smalltalk_debugger_stepover'.
-
-	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
-! !
-
-!MCPDebuggingToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 10:24:11 pm (UTC)'!
-!methodProperties: {}!
-testFinishingClosesTheDebuggerWindowThatIsNotOnScreenYet
-
-	"The window is put up by the process that draws morphs, so it is not there yet when the
-	tool that opened it answers. Finishing right then has to close it just the same, or it
-	turns up afterwards with no session holding it and nothing able to close it."
-
-	self answerOfEvaluatingToDebug: self failingCode.
-
-	self assert: (self answerOf: 'smalltalk_finish_debugging') equals: 'Finished'.
-
-	self assert: self debuggerWindowsOnScreen isEmpty
-
-! !
-
 !MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
 !methodProperties: {}!
 argumentsForClassNamed: aClassName selector: aSelector
@@ -2943,58 +2991,6 @@ testBothOfThePartsOfAMethodPropertyAreRequired
 	required := (self toolTakingAMethod inputSchema) at: 'required'.
 
 	self assert: required asSortedCollection asArray equals: #('className' 'selector')
-! !
-
-!MCPSaveImageToolTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-setUp
-
-	savedImageCount := 0
-! !
-
-!MCPSaveImageToolTest methodsFor: 'smalltalk protocol' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-imageName
-
-	^'/somewhere/Cuis-UnderTest.image'
-! !
-
-!MCPSaveImageToolTest methodsFor: 'smalltalk protocol' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
-!methodProperties: {}!
-saveImage
-
-	savedImageCount := savedImageCount + 1
-! !
-
-!MCPSaveImageToolTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
-!methodProperties: {}!
-executeSaveImageTool
-
-	^(self server toolNamed: 'smalltalk_save_image') valueWithArguments: Dictionary new
-! !
-
-!MCPSaveImageToolTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:00:01 pm (UTC)'!
-!methodProperties: {}!
-server
-
-	^MCPServer servingOver: MCPTransportMock new smalltalk: self
-! !
-
-!MCPSaveImageToolTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
-!methodProperties: {}!
-testAnswersTheNameOfTheImageItSaved
-
-	self assert: self executeSaveImageTool equals: 'Image saved: ', self imageName
-
-! !
-
-!MCPSaveImageToolTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 2:00:29 pm (UTC)'!
-!methodProperties: {}!
-testSavesTheImageOnce
-
-	self executeSaveImageTool.
-
-	self assert: savedImageCount equals: 1
 ! !
 
 !MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:22:42 pm (UTC)'!
