@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:24:44 pm'!
-'Description File a method under a category without an evaluate'!
-!provides: 'MCPServerTests' 1 44!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:48:40 pm'!
+'Description File many methods under a category in one go'!
+!provides: 'MCPServerTests' 1 45!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -1033,47 +1033,85 @@ testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
 		equals: #('saludo')
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:23:25 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:43:10 pm (UTC)'!
 !methodProperties: {}!
-testClassifyMethodAnswersWhereTheMethodWasFiledBefore
+testClassifyMethodsAnswersWhereEachMethodWasFiledBefore
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: ((self jsonAnswerOf: 'smalltalk_classify_method' with: (self
+		assert: (((self jsonAnswerOf: 'smalltalk_classify_methods' with: (self
 			arguments: 'className' being: 'MCPTestSubject'
-			and: 'selector' being: 'saludo'
-			and: 'category' being: 'despedidas')) at: 'wasUnder')
+			and: 'selectors' being: 'saludo'
+			and: 'category' being: 'despedidas')) at: 'classified') first at: 'wasUnder')
 		equals: 'saludos'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:23:10 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:42:57 pm (UTC)'!
 !methodProperties: {}!
-testClassifyMethodFilesTheMethodUnderTheCategoryNamed
+testClassifyMethodsFilesEveryMethodNamed
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+	client callTool: 'smalltalk_define_method' with: (self
+		arguments: 'className' being: 'MCPTestSubject'
+		and: 'source' being: 'despedida
+
+	^''¡Chau!!'''
+		and: 'category' being: 'saludos').
+
+	client callTool: 'smalltalk_classify_methods' with: (self
+		arguments: 'className' being: 'MCPTestSubject'
+		and: 'selectors' being: 'saludo, despedida'
+		and: 'category' being: 'despedidas').
+
+	self
+		assert: (self createdClassInTest organization listAtCategoryNamed: 'despedidas') asSortedCollection asArray
+		equals: #(#despedida #saludo)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:42:47 pm (UTC)'!
+!methodProperties: {}!
+testClassifyMethodsFilesTheMethodUnderTheCategoryNamed
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
-	client callTool: 'smalltalk_classify_method' with: (self
+	client callTool: 'smalltalk_classify_methods' with: (self
 		arguments: 'className' being: 'MCPTestSubject'
-		and: 'selector' being: 'saludo'
+		and: 'selectors' being: 'saludo'
 		and: 'category' being: 'despedidas').
 
 	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'despedidas'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:23:19 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:43:04 pm (UTC)'!
 !methodProperties: {}!
-testClassifyMethodTakesAwayTheCategoryItLeftEmpty
+testClassifyMethodsTakesAwayTheCategoriesItLeftEmpty
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
-	client callTool: 'smalltalk_classify_method' with: (self
-		arguments: 'className' being: 'MCPTestSubject'
-		and: 'selector' being: 'saludo'
-		and: 'category' being: 'despedidas').
+	self
+		assert: ((self jsonAnswerOf: 'smalltalk_classify_methods' with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selectors' being: 'saludo'
+			and: 'category' being: 'despedidas')) at: 'emptied')
+		equals: #('saludos')! !
 
-	self deny: (self createdClassInTest organization categories includes: 'saludos')! !
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 28/Aug/2026, 3:43:17 pm (UTC)'!
+!methodProperties: {}!
+testClassifyMethodsWithASelectorTheClassDoesNotImplementFails
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+
+	self
+		should: [ client callTool: 'smalltalk_classify_methods' with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selectors' being: 'saludo, despedida'
+			and: 'category' being: 'despedidas') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPMethodProperty methodNotFoundErrorDescriptionFor: #despedida in: self createdClassInTest))! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
 !methodProperties: {}!

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:24:47 pm'!
-'Description File a method under a category without an evaluate'!
-!provides: 'MCPServer' 1 50!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:48:43 pm'!
+'Description File many methods under a category in one go'!
+!provides: 'MCPServer' 1 51!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -1926,6 +1926,14 @@ addToolsTo: anMCPServer
 
 	^self subclassResponsibility! !
 
+!MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 28/Aug/2026, 3:42:03 pm (UTC)'!
+!methodProperties: {}!
+namesFrom: aCommaSeparatedText
+
+	"Answer the names a client sent as one text, which is how a list reaches a tool."
+
+	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName | eachName withBlanksTrimmed ]! !
+
 !MCPToolGroup class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 !methodProperties: {}!
 for: aSmalltalk
@@ -2112,15 +2120,6 @@ classOrganizationTool
 		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
-!methodProperties: {}!
-classProperty
-
-	^MCPClassToolProperty
-		named: 'className'
-		describedBy: 'Name of the class, or of its class side as in MCPServer class'
-! !
-
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 classesInCategoryTool
@@ -2133,39 +2132,19 @@ classesInCategoryTool
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:22:57 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:41:17 pm (UTC)'!
 !methodProperties: {}!
-classify: aMethod under: aMethodCategory
-
-	"Answer where the method was filed before, which is the one thing that is gone once it has
-	moved. A category left with nothing under it is taken away, because an empty method
-	category says nothing and is what a class ends up full of when methods are moved about."
-
-	| refactoredClass previousCategory |
-
-	refactoredClass := aMethod methodClass.
-	previousCategory := refactoredClass organization categoryOfElement: aMethod selector.
-	refactoredClass organization classify: aMethod selector under: aMethodCategory.
-	(refactoredClass organization listAtCategoryNamed: previousCategory) ifEmpty: [
-		refactoredClass organization removeCategory: previousCategory ].
-
-	^Json render: (OrderedDictionary new
-		at: 'method' put: aMethod classAndSelector;
-		at: 'wasUnder' put: previousCategory asString;
-		at: 'isUnder' put: aMethodCategory;
-		yourself)! !
-
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:22:47 pm (UTC)'!
-!methodProperties: {}!
-classifyMethodTool
+classifyMethodsTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_classify_method'
-		describedBy: 'File a method under a method category, making the category when the class does not have it yet and taking away the one it left behind when nothing else is filed under it. Answers where the method was filed before, which is what nothing says once it has moved.'
+		named: 'smalltalk_classify_methods'
+		describedBy: 'File methods of a class under a method category, making the category when the class does not have it yet and taking away the ones they left behind when nothing else is filed under them. Answers where each method was filed before, which is what nothing says once it has moved.'
 		properties: {
-			MCPMethodProperty newDefault.
-			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category to file the method under' }
-		executingWith: [ :aMethod :aMethodCategory | self classify: aMethod under: aMethodCategory ]! !
+			self classProperty.
+			MCPPlainToolProperty named: 'selectors' describedBy: 'Selectors of the methods to file, separated by commas'.
+			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category to file them under' }
+		executingWith: [ :aClass :someSelectors :aMethodCategory |
+			self classify: someSelectors of: aClass under: aMethodCategory ]! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
@@ -2294,36 +2273,6 @@ methodsInCategoryTool
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
-!methodProperties: {}!
-organizationOf: aClass
-
-	"Answer each method category with the selectors filed under it, keeping the order the class
-	holds them in, which is the order whoever wrote it put them in."
-
-	^aClass organization categories
-		inject: OrderedDictionary new
-		into: [ :anOrganization :eachMethodCategory |
-			anOrganization
-				at: eachMethodCategory asString
-				put: (aClass organization listAtCategoryNamed: eachMethodCategory) asArray sorted;
-				yourself ]
-! !
-
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
-!methodProperties: {}!
-selectorsIn: aMethodCategory of: aClass
-
-	"A category the class does not have answers no selector, which reads the same as one that
-	is there and empty, so it is told apart here."
-
-	(aClass organization categories anySatisfy: [ :eachMethodCategory |
-		eachMethodCategory asString = aMethodCategory ])
-			ifFalse: [ self error: (self class methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass) ].
-
-	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
-! !
-
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 subclassesTool
@@ -2337,7 +2286,7 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 3:23:03 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 3:42:31 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
@@ -2353,9 +2302,101 @@ addToolsTo: anMCPServer
 		addTool: self classesInCategoryTool;
 		addTool: self defineClassTool;
 		addTool: self defineMethodTool;
-		addTool: self classifyMethodTool;
+		addTool: self classifyMethodsTool;
 		addTool: self deleteClassTool;
 		addTool: self deleteMethodTool! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:26 pm (UTC)'!
+!methodProperties: {}!
+classify: someSelectors of: aClass under: aMethodCategory
+
+	"Answer where each method was filed before, which is the one thing that is gone once it has
+	moved, along with the categories left with nothing under them, which are taken away because
+	an empty method category says nothing and is what a class fills up with when methods are
+	moved about."
+
+	| classified previousCategories |
+
+	classified := OrderedCollection new.
+	previousCategories := Set new.
+	(self selectorsFrom: someSelectors implementedBy: aClass) do: [ :eachSelector |
+		| previousCategory |
+		previousCategory := aClass organization categoryOfElement: eachSelector.
+		previousCategories add: previousCategory.
+		aClass organization classify: eachSelector under: aMethodCategory.
+		classified add: (OrderedDictionary new
+			at: 'method' put: (aClass >> eachSelector) classAndSelector;
+			at: 'wasUnder' put: previousCategory asString;
+			yourself) ].
+
+	^Json render: (OrderedDictionary new
+		at: 'category' put: aMethodCategory;
+		at: 'classified' put: classified asArray;
+		at: 'emptied' put: (self takeAwayTheEmptyOnesOf: previousCategories in: aClass);
+		yourself)! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+organizationOf: aClass
+
+	"Answer each method category with the selectors filed under it, keeping the order the class
+	holds them in, which is the order whoever wrote it put them in."
+
+	^aClass organization categories
+		inject: OrderedDictionary new
+		into: [ :anOrganization :eachMethodCategory |
+			anOrganization
+				at: eachMethodCategory asString
+				put: (aClass organization listAtCategoryNamed: eachMethodCategory) asArray sorted;
+				yourself ]
+! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:32 pm (UTC)'!
+!methodProperties: {}!
+selectorsFrom: someSelectors implementedBy: aClass
+
+	"A selector the class does not implement is a mistake worth telling a client about, and not
+	a method to leave where it is without saying so."
+
+	^(self namesFrom: someSelectors) collect: [ :eachName |
+		| selector |
+		selector := eachName asSymbol.
+		(aClass includesSelector: selector)
+			ifFalse: [ self error: (MCPMethodProperty methodNotFoundErrorDescriptionFor: selector in: aClass) ].
+		selector ]! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+selectorsIn: aMethodCategory of: aClass
+
+	"A category the class does not have answers no selector, which reads the same as one that
+	is there and empty, so it is told apart here."
+
+	(aClass organization categories anySatisfy: [ :eachMethodCategory |
+		eachMethodCategory asString = aMethodCategory ])
+			ifFalse: [ self error: (self class methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass) ].
+
+	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
+! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:39 pm (UTC)'!
+!methodProperties: {}!
+takeAwayTheEmptyOnesOf: someMethodCategories in: aClass
+
+	^(someMethodCategories
+		select: [ :eachMethodCategory | (aClass organization listAtCategoryNamed: eachMethodCategory) isEmpty ]
+		thenCollect: [ :eachMethodCategory |
+			aClass organization removeCategory: eachMethodCategory.
+			eachMethodCategory asString ]) asArray sort! !
+
+!MCPModelStructureTools methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!methodProperties: {}!
+classProperty
+
+	^MCPClassToolProperty
+		named: 'className'
+		describedBy: 'Name of the class, or of its class side as in MCPServer class'
+! !
 
 !MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
@@ -2649,14 +2690,6 @@ classNamed: aClassName
 			(smalltalk classNamed: aName)
 				ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aName) ] ]
 ! !
-
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 26/Aug/2026, 10:49:04 pm (UTC)'!
-!methodProperties: {}!
-namesFrom: aCommaSeparatedText
-
-	"Answer the names a client sent as one text, which is how a list reaches a tool."
-
-	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName | eachName withBlanksTrimmed ]! !
 
 !MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 25/Aug/2026, 1:36:52 pm (UTC)'!
 !methodProperties: {}!
@@ -3712,17 +3745,13 @@ addToolsTo: anMCPServer
 		addTool: self findMessagesByExampleTool
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:42:19 pm (UTC)'!
 !methodProperties: {}!
 classesNamed: aCommaSeparatedText
 
-	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName |
-		| className |
-		className := eachName withBlanksTrimmed.
-		(smalltalk classNamed: className)
-			ifNil: [ self error: (MCPClassToolProperty classNotFoundErrorDescriptionFor: className) ] ]
-
-! !
+	^(self namesFrom: aCommaSeparatedText) collect: [ :eachClassName |
+		(smalltalk classNamed: eachClassName)
+			ifNil: [ self error: (MCPClassToolProperty classNotFoundErrorDescriptionFor: eachClassName) ] ]! !
 
 !MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 !methodProperties: {}!

@@ -197,7 +197,7 @@ of version control.
 | `smalltalk_classes_in_category` | Classes of one category |
 | `smalltalk_define_class` | Create or change a class |
 | `smalltalk_define_method` | Create or change a method, optionally in a category |
-| `smalltalk_classify_method` | File a method under a method category |
+| `smalltalk_classify_methods` | File methods of a class under a method category |
 | `smalltalk_delete_class` | Remove a class |
 | `smalltalk_delete_method` | Remove a method |
 | `smalltalk_screenshot` | Write what the image looks like to a JPEG file |
