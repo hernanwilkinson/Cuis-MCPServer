@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:53:04 pm'!
-'Description Let every tool live in a group and every group have its test'!
-!provides: 'MCPServer' 1 49!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:24:47 pm'!
+'Description File a method under a category without an evaluate'!
+!provides: 'MCPServer' 1 50!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2133,6 +2133,40 @@ classesInCategoryTool
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:22:57 pm (UTC)'!
+!methodProperties: {}!
+classify: aMethod under: aMethodCategory
+
+	"Answer where the method was filed before, which is the one thing that is gone once it has
+	moved. A category left with nothing under it is taken away, because an empty method
+	category says nothing and is what a class ends up full of when methods are moved about."
+
+	| refactoredClass previousCategory |
+
+	refactoredClass := aMethod methodClass.
+	previousCategory := refactoredClass organization categoryOfElement: aMethod selector.
+	refactoredClass organization classify: aMethod selector under: aMethodCategory.
+	(refactoredClass organization listAtCategoryNamed: previousCategory) ifEmpty: [
+		refactoredClass organization removeCategory: previousCategory ].
+
+	^Json render: (OrderedDictionary new
+		at: 'method' put: aMethod classAndSelector;
+		at: 'wasUnder' put: previousCategory asString;
+		at: 'isUnder' put: aMethodCategory;
+		yourself)! !
+
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:22:47 pm (UTC)'!
+!methodProperties: {}!
+classifyMethodTool
+
+	^MCPPluggableTool
+		named: 'smalltalk_classify_method'
+		describedBy: 'File a method under a method category, making the category when the class does not have it yet and taking away the one it left behind when nothing else is filed under it. Answers where the method was filed before, which is what nothing says once it has moved.'
+		properties: {
+			MCPMethodProperty newDefault.
+			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category to file the method under' }
+		executingWith: [ :aMethod :aMethodCategory | self classify: aMethod under: aMethodCategory ]! !
+
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 defineClassTool
@@ -2303,7 +2337,7 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 3:23:03 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
@@ -2319,10 +2353,9 @@ addToolsTo: anMCPServer
 		addTool: self classesInCategoryTool;
 		addTool: self defineClassTool;
 		addTool: self defineMethodTool;
+		addTool: self classifyMethodTool;
 		addTool: self deleteClassTool;
-		addTool: self deleteMethodTool
-
-! !
+		addTool: self deleteMethodTool! !
 
 !MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
