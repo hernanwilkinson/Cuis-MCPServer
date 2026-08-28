@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:48:43 pm'!
-'Description File many methods under a category in one go'!
-!provides: 'MCPServer' 1 51!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:13:43 pm'!
+'Description Let the image say when the server it started must stop'!
+!provides: 'MCPServer' 1 52!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -77,7 +77,7 @@ MCPHttpSession class
 !classDefinition: #MCPServer category: 'MCPServer'!
 Object subclass: #MCPServer
 	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk calledTools'
-	classVariableNames: 'RunningInstance'
+	classVariableNames: 'OnStartupInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
 !classDefinition: 'MCPServer class' category: 'MCPServer'!
@@ -918,24 +918,22 @@ isRunning
 
 	^running! !
 
-!MCPServer methodsFor: 'running' stamp: ''!
+!MCPServer methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 3:52:53 pm (UTC)'!
 !methodProperties: {}!
 run
 
 	"Serve MCP requests over my transport until stopped. Whether this blocks the calling
 	process is up to the transport."
 
-	RunningInstance := self.
 	running := true.
 	transport serveRequestsFor: self! !
 
-!MCPServer methodsFor: 'running' stamp: ''!
+!MCPServer methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 6:05:46 pm (UTC)'!
 !methodProperties: {}!
 stop
 
 	running := false.
-	transport stopServingRequests.
-	RunningInstance := nil! !
+	transport stopServingRequests! !
 
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:05:34 pm (UTC)'!
 !methodProperties: {}!
@@ -1256,11 +1254,13 @@ isDevMode
 
 	^Smalltalk startUpArguments includes: '--devMode' ! !
 
-!MCPServer class methodsFor: 'class initialization' stamp: 'HAW 19/Aug/2026, 12:59:11 pm (UTC)'!
+!MCPServer class methodsFor: 'class initialization' stamp: 'HAW 28/Aug/2026, 6:05:12 pm (UTC)'!
 !methodProperties: {}!
 initialize
 
-	Smalltalk addToStartUpList: self! !
+	Smalltalk
+		addToStartUpList: self;
+		addToShutDownList: self! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 4:09:27 pm (UTC)'!
 !methodProperties: {}!
@@ -1416,39 +1416,63 @@ standardInputOutputArgument
 
 	^'--mcpStdIO'! !
 
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:19:51 pm (UTC)'!
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:27 pm (UTC)'!
+!methodProperties: {}!
+shutDown: isQuitting
+
+	"Stop the server the image was started for when the image goes down, so that nothing is
+	left holding a socket. Saving the image without quitting is not the image going down: the
+	shut down list is processed then too, and starting up afterwards does not start a server
+	because the image is not resuming, so stopping it here would leave it stopped."
+
+	isQuitting ifFalse: [ ^self ].
+
+	OnStartupInstance ifNotNil: [ :aServer | aServer stop ].
+	OnStartupInstance := nil! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:34 pm (UTC)'!
 !methodProperties: {}!
 startHttpServer
 
 	"Serve MCP over HTTP. The web server listens in processes of its own, so running the
 	server answers as soon as the listener is up. The delay lets the image finish starting."
 
-	[ (Delay forMilliseconds: 500) wait.
-	(self servingOverHttpAtPort: self httpPortNumberFromArguments) run ]
-		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'! !
+	| server |
 
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:56 pm (UTC)'!
+	server := self servingOverHttpAtPort: self httpPortNumberFromArguments.
+	[ (Delay forMilliseconds: 500) wait.
+	server run ]
+		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'.
+
+	^server! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:39 pm (UTC)'!
 !methodProperties: {}!
 startStdIOServer
 
 	"Serve MCP over the standard streams in a background process, so the graphical interface
 	initializes normally."
 
-	[ (Delay forMilliseconds: 500) wait.
-	self servingOverStandardInputOutput run ]
-		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'! !
+	| server |
 
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 19/Aug/2026, 8:26:32 pm (UTC)'!
+	server := self servingOverStandardInputOutput.
+	[ (Delay forMilliseconds: 500) wait.
+	server run ]
+		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'.
+
+	^server! !
+
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:20 pm (UTC)'!
 !methodProperties: {}!
 startUp: isResuming
 
-	"Start the server the image was launched for. A server left running by the previous
-	life of the image is stopped first, because its streams and its sockets are gone."
+	"Start the server the image was launched for. A server left running by the previous life
+	of the image is stopped first, because its streams and its sockets are gone."
 
 	isResuming ifFalse: [ ^self ].
-	RunningInstance ifNotNil: [ :aPreviousServer | aPreviousServer stop ].
-	self isHttpRequested ifTrue: [ ^self startHttpServer ].
-	self isStandardInputOutputRequested ifTrue: [ ^self startStdIOServer ].
+	OnStartupInstance ifNotNil: [ :aPreviousServer | aPreviousServer stop ].
+	self isHttpRequested ifTrue: [ ^OnStartupInstance := self startHttpServer ].
+	self isStandardInputOutputRequested ifTrue: [ ^OnStartupInstance := self startStdIOServer ].
 	
 	"I do not signal an error becuase the image is starting - Hernan"
 	Transcript 

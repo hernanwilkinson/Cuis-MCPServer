@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 12:48:40 pm'!
-'Description File many methods under a category in one go'!
-!provides: 'MCPServerTests' 1 45!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:13:40 pm'!
+'Description Let the image say when the server it started must stop'!
+!provides: 'MCPServerTests' 1 46!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
