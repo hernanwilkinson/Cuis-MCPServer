@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:13:43 pm'!
-'Description Let the image say when the server it started must stop'!
-!provides: 'MCPServer' 1 52!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:15:51 pm'!
+'Description Close the debugger window here when it is already up'!
+!provides: 'MCPServer' 1 53!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -655,29 +655,44 @@ initializeDebugger: aDebugger
 	debugger := aDebugger
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 6:14:24 pm (UTC)'!
+!methodProperties: {}!
+closeMyDebuggerWindow
+
+	"Answer whether the window my debugger is the model of was there to be closed."
+
+	| closedAWindow |
+
+	closedAWindow := false.
+	DebuggerWindow
+		debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
+		do: [ :aDebuggerWindow |
+			debugger windowIsClosing.
+			aDebuggerWindow model: nil.
+			aDebuggerWindow delete.
+			closedAWindow := true ].
+
+	^closedAWindow! !
+
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 6:14:16 pm (UTC)'!
 !methodProperties: {}!
 finish
 
-	"Close the window my debugger is the model of, in the process that draws morphs and only
-	once it has done it. A window opened from another process is added to the world when that
-	process gets to it, so looking for it here would find nothing and leave it to appear
-	afterwards with nobody left holding it.
+	"Close the window my debugger is the model of. It is closed here when it is already on
+	screen, and left to the process that draws morphs when it is not: a window opened from
+	another process is added to the world when that process gets to it, so looking for it here
+	would find nothing and leave it to appear afterwards with nobody left holding it. Waiting
+	for that process when the window is already up would only tie how long finishing takes to
+	how often the world is drawn.
 
 	Telling the debugger its window is closing is what terminates the process it was debugging,
 	and the window is then let go of its model, because closing a debugger window that still
 	has one asks it about code it has just thrown away."
 
-	MCPServer whenTheUserInterfaceHasDone: [
-		DebuggerWindow
-			debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
-			do: [ :aDebuggerWindow |
-				debugger windowIsClosing.
-				aDebuggerWindow model: nil.
-				aDebuggerWindow delete ] ].
+	self closeMyDebuggerWindow ifFalse: [
+		MCPServer whenTheUserInterfaceHasDone: [ self closeMyDebuggerWindow ] ].
 
-	^'Finished'
-! !
+	^'Finished'! !
 
 !MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:32:13 pm (UTC)'!
 !methodProperties: {}!
