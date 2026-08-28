@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:15:51 pm'!
-'Description Close the debugger window here when it is already up'!
-!provides: 'MCPServer' 1 53!
+'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 4:20:35 pm'!
+'Description Take the debugger window out of the world where morphs are drawn'!
+!provides: 'MCPServer' 1 54!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -655,42 +655,28 @@ initializeDebugger: aDebugger
 	debugger := aDebugger
 ! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 6:14:24 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 7:10:24 pm (UTC)'!
 !methodProperties: {}!
-closeMyDebuggerWindow
+closeDebuggerWindow
 
-	"Answer whether the window my debugger is the model of was there to be closed."
+	"Deleting the window is what tells the debugger its window is closing, which is what
+	terminates the process it was debugging."
 
-	| closedAWindow |
-
-	closedAWindow := false.
 	DebuggerWindow
 		debuggerWindowsSatisfying: [ :aDebugger | aDebugger == debugger ]
-		do: [ :aDebuggerWindow |
-			debugger windowIsClosing.
-			aDebuggerWindow model: nil.
-			aDebuggerWindow delete.
-			closedAWindow := true ].
+		do: [ :aDebuggerWindow | aDebuggerWindow delete ]! !
 
-	^closedAWindow! !
-
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 6:14:16 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 7:10:33 pm (UTC)'!
 !methodProperties: {}!
 finish
 
-	"Close the window my debugger is the model of. It is closed here when it is already on
-	screen, and left to the process that draws morphs when it is not: a window opened from
-	another process is added to the world when that process gets to it, so looking for it here
-	would find nothing and leave it to appear afterwards with nobody left holding it. Waiting
-	for that process when the window is already up would only tie how long finishing takes to
-	how often the world is drawn.
+	"Close the window my debugger is the model of, in the process that draws morphs. Taking a
+	morph out of the world is that process's work: the taskbar takes the button of a window
+	away as the window leaves the world, and doing that from here races with what it is drawing
+	and leaves the button behind with nothing to show. Waiting for it is also what a window that
+	is not up yet needs, because it is added to the world when that process gets to it."
 
-	Telling the debugger its window is closing is what terminates the process it was debugging,
-	and the window is then let go of its model, because closing a debugger window that still
-	has one asks it about code it has just thrown away."
-
-	self closeMyDebuggerWindow ifFalse: [
-		MCPServer whenTheUserInterfaceHasDone: [ self closeMyDebuggerWindow ] ].
+	UISupervisor waitToDone: [ self closeDebuggerWindow ].
 
 	^'Finished'! !
 
@@ -1502,23 +1488,6 @@ classCreationSelectors
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
 
-!MCPServer class methodsFor: 'user interface' stamp: 'HAW 26/Aug/2026, 10:54:01 pm (UTC)'!
-!methodProperties: {}!
-whenTheUserInterfaceHasDone: aBlock
-
-	"Have the process that draws morphs evaluate the block, and answer only once it has. It
-	runs what it is given in the order it was given, so a block queued after a window was
-	queued to be put up runs when the window is already up."
-
-	| done |
-
-	(UISupervisor isUIProcess: Processor activeProcess) ifTrue: [ ^aBlock value ].
-
-	done := Semaphore new.
-	UISupervisor whenUIinSafeState: [ aBlock value. done signal ].
-	done wait
-! !
-
 !MCPTool methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:50:46 pm (UTC)'!
 !methodProperties: {}!
 definition
@@ -2115,18 +2084,18 @@ screenshotTool
 		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 6:57:02 pm (UTC)'!
 !methodProperties: {}!
 writeScreenshotTo: aFileName
 
 	"The world is drawn by the process that draws morphs, so the picture is taken there, and
-	this answers once the file has been written."
+	this answers once the file has been written. Asking for the world that is running answers
+	one only from that process, which is the one the picture has to be taken from."
 
-	MCPServer whenTheUserInterfaceHasDone: [
-		(UISupervisor ui imageForm: 32) writeJPEGfileNamed: aFileName ].
+	UISupervisor waitToDone: [
+		(self runningWorld imageForm: 32) writeJPEGfileNamed: aFileName ].
 
-	^aFileName
-! !
+	^aFileName! !
 
 !MCPImageTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
 !methodProperties: {}!
@@ -4837,4 +4806,20 @@ readingFrom: aReadStream writingTo: aWriteStream
 
 	^self new initializeReadingFrom: aReadStream writingTo: aWriteStream
 ! !
+
+!UISupervisor class methodsFor: '*MCPServer' stamp: 'HAW 28/Aug/2026, 6:40:03 pm (UTC)'!
+!methodProperties: {}!
+waitToDone: aBlock
+
+	"Have the process that draws morphs evaluate the block, and answer only once it has. It
+	runs what it is given in the order it was given, so a block queued after a window was
+	queued to be put up runs when the window is already up."
+
+	| done |
+
+	(self isUIProcess: Processor activeProcess) ifTrue: [ ^aBlock value ].
+
+	done := Semaphore new.
+	self whenUIinSafeState: [ aBlock value. done signal ].
+	done wait! !
 MCPServer initialize!
