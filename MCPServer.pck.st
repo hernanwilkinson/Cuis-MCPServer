@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:38 pm'!
-'Description Let having subclasses be what makes a class abstract'!
-!provides: 'MCPServer' 1 47!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:32:41 pm'!
+'Description Name a tool by what it declares and a group by what it reaches'!
+!provides: 'MCPServer' 1 48!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -94,28 +94,18 @@ Object subclass: #MCPTool
 MCPTool class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPToolDecorator category: 'MCPServer'!
-MCPTool subclass: #MCPToolDecorator
-	instanceVariableNames: 'decoratee smalltalk'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPToolDecorator class' category: 'MCPServer'!
-MCPToolDecorator class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPToolWithProperties category: 'MCPServer'!
-MCPTool subclass: #MCPToolWithProperties
+!classDefinition: #MCPToolDeclaration category: 'MCPServer'!
+MCPTool subclass: #MCPToolDeclaration
 	instanceVariableNames: 'name description properties'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPToolWithProperties class' category: 'MCPServer'!
-MCPToolWithProperties class
+!classDefinition: 'MCPToolDeclaration class' category: 'MCPServer'!
+MCPToolDeclaration class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPBrowseTool category: 'MCPServer'!
-MCPToolWithProperties subclass: #MCPBrowseTool
+MCPToolDeclaration subclass: #MCPBrowseTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -125,7 +115,7 @@ MCPBrowseTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPDefineClassTool category: 'MCPServer'!
-MCPToolWithProperties subclass: #MCPDefineClassTool
+MCPToolDeclaration subclass: #MCPDefineClassTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -135,7 +125,7 @@ MCPDefineClassTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPEvaluateToDebugOnErrorTool category: 'MCPServer'!
-MCPToolWithProperties subclass: #MCPEvaluateToDebugOnErrorTool
+MCPToolDeclaration subclass: #MCPEvaluateToDebugOnErrorTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -145,13 +135,23 @@ MCPEvaluateToDebugOnErrorTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPPluggableTool category: 'MCPServer'!
-MCPToolWithProperties subclass: #MCPPluggableTool
+MCPToolDeclaration subclass: #MCPPluggableTool
 	instanceVariableNames: 'executeBlock'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
 !classDefinition: 'MCPPluggableTool class' category: 'MCPServer'!
 MCPPluggableTool class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPToolDecorator category: 'MCPServer'!
+MCPTool subclass: #MCPToolDecorator
+	instanceVariableNames: 'decoratee smalltalk'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPToolDecorator class' category: 'MCPServer'!
+MCPToolDecorator class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolGroup category: 'MCPServer'!
@@ -174,14 +174,14 @@ MCPToolGroup subclass: #MCPDebugTools
 MCPDebugTools class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPMetamodelTools category: 'MCPServer'!
-MCPToolGroup subclass: #MCPMetamodelTools
+!classDefinition: #MCPModelStructureTools category: 'MCPServer'!
+MCPToolGroup subclass: #MCPModelStructureTools
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPMetamodelTools class' category: 'MCPServer'!
-MCPMetamodelTools class
+!classDefinition: 'MCPModelStructureTools class' category: 'MCPServer'!
+MCPModelStructureTools class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPRefactoringToolGroup category: 'MCPServer'!
@@ -327,12 +327,7 @@ I am something a server serves: I say my name, what I am for, the definition a c
 
 My subclasses differ in where that comes from. One kind holds its own name, description and properties; another borrows them from a tool it decorates and adds to what it answers.!
 
-!MCPToolDecorator commentStamp: '<historical>' prior: 0!
-I am a tool that adds something to what another tool answers, which is how a package that is not always loaded reaches the tools of one that always is.
-
-Every subclass of mine says which tool it decorates, and a server wraps that tool with it once every tool is in place. A decorator of a tool that is not there decorates nothing.!
-
-!MCPToolWithProperties commentStamp: '<historical>' prior: 0!
+!MCPToolDeclaration commentStamp: '<historical>' prior: 0!
 I am a tool that holds its own name, description and properties.
 
 My properties are what a client sends me, and I build my definition and turn the arguments of a request into what my subclasses work with out of them.!
@@ -357,6 +352,11 @@ I am a tool whose work is the block I was created with.
 
 I read my properties out of the arguments of a request and evaluate my block with their values, so the block takes one parameter per property, in the order they were given to me. I answer valueWithArguments: the way my block does, which is why the two read alike.!
 
+!MCPToolDecorator commentStamp: '<historical>' prior: 0!
+I am a tool that adds something to what another tool answers, which is how a package that is not always loaded reaches the tools of one that always is.
+
+Every subclass of mine says which tool it decorates, and a server wraps that tool with it once every tool is in place. A decorator of a tool that is not there decorates nothing.!
+
 !MCPToolGroup commentStamp: '<historical>' prior: 0!
 I am a group of tools a server offers.
 
@@ -365,7 +365,7 @@ Every subclass of mine is asked to add its tools, so a package that has some is 
 !MCPDebugTools commentStamp: '<historical>' prior: 0!
 I am the tools that open a debugger on code that fails and drive the one that is open.!
 
-!MCPMetamodelTools commentStamp: '<historical>' prior: 0!
+!MCPModelStructureTools commentStamp: '<historical>' prior: 0!
 I am the tools that read and change the metamodel: classes, their categories, their hierarchy and their methods.!
 
 !MCPRefactoringToolGroup commentStamp: '<historical>' prior: 0!
@@ -1653,78 +1653,7 @@ isAbstract
 	^self hasSubclasses 
 ! !
 
-!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
-!methodProperties: {}!
-initializeDecorating: aTool in: aSmalltalk
-
-	decoratee := aTool.
-	smalltalk := aSmalltalk
-! !
-
-!MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
-!methodProperties: {}!
-decoratee
-
-	^decoratee
-! !
-
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
-!methodProperties: {}!
-addedProperties
-
-	"The properties I add to the ones the tool I decorate already takes. A decorator that needs
-	nothing of its own adds none."
-
-	^#()
-! !
-
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
-!methodProperties: {}!
-decorateeAnswerFor: anArguments
-
-	^ Json readFrom: (decoratee valueWithArguments: anArguments) readStream! !
-
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
-!methodProperties: {}!
-definition
-
-	| definition properties |
-
-	definition := decoratee definition.
-	properties := (definition at: 'inputSchema') at: 'properties'.
-	self addedProperties do: [ :eachProperty | eachProperty addTo: properties ].
-
-	^definition! !
-
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
-!methodProperties: {}!
-description
-
-	^decoratee description
-! !
-
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
-!methodProperties: {}!
-name
-
-	^decoratee name
-! !
-
-!MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:45:50 pm (UTC)'!
-!methodProperties: {}!
-decorating: aTool in: aSmalltalk
-
-	^self new initializeDecorating: aTool in: aSmalltalk
-! !
-
-!MCPToolDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
-!methodProperties: {}!
-decoratedToolName
-
-	^self subclassResponsibility
-! !
-
-!MCPToolWithProperties methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 
@@ -1733,28 +1662,28 @@ initializeNamed: aName describedBy: aDescription properties: aCollectionOfProper
 	properties := aCollectionOfProperties
 ! !
 
-!MCPToolWithProperties methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 description
 
 	^description
 ! !
 
-!MCPToolWithProperties methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 name
 
 	^name
 ! !
 
-!MCPToolWithProperties methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'accessing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 properties
 
 	^properties
 ! !
 
-!MCPToolWithProperties methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 definition
 
@@ -1765,7 +1694,7 @@ definition
 		yourself
 ! !
 
-!MCPToolWithProperties methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 inputSchema
 
@@ -1780,7 +1709,7 @@ inputSchema
 	^schema
 ! !
 
-!MCPToolWithProperties methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
 !methodProperties: {}!
 propertiesDefinition
 
@@ -1788,7 +1717,7 @@ propertiesDefinition
 		inject: OrderedDictionary new
 		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
 
-!MCPToolWithProperties methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
 !methodProperties: {}!
 requiredPropertyNames
 
@@ -1797,21 +1726,21 @@ requiredPropertyNames
 		into: [ :someNames :aToolProperty | aToolProperty addRequiredNamesTo: someNames ]) asArray
 ! !
 
-!MCPToolWithProperties methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!MCPToolDeclaration methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
 !methodProperties: {}!
 valueWithArguments: anArguments
 
 	^self subclassResponsibility
 ! !
 
-!MCPToolWithProperties methodsFor: 'executing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'executing' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 valuesFrom: anArguments
 
 	^properties collect: [ :eachProperty | eachProperty valueFrom: anArguments ]
 ! !
 
-!MCPToolWithProperties class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 !methodProperties: {}!
 named: aName describedBy: aDescription properties: aCollectionOfProperties
 
@@ -2051,6 +1980,77 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties execu
 		executingWith: aBlock
 ! !
 
+!MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!methodProperties: {}!
+initializeDecorating: aTool in: aSmalltalk
+
+	decoratee := aTool.
+	smalltalk := aSmalltalk
+! !
+
+!MCPToolDecorator methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
+!methodProperties: {}!
+decoratee
+
+	^decoratee
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!methodProperties: {}!
+addedProperties
+
+	"The properties I add to the ones the tool I decorate already takes. A decorator that needs
+	nothing of its own adds none."
+
+	^#()
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!methodProperties: {}!
+decorateeAnswerFor: anArguments
+
+	^ Json readFrom: (decoratee valueWithArguments: anArguments) readStream! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!methodProperties: {}!
+definition
+
+	| definition properties |
+
+	definition := decoratee definition.
+	properties := (definition at: 'inputSchema') at: 'properties'.
+	self addedProperties do: [ :eachProperty | eachProperty addTo: properties ].
+
+	^definition! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!methodProperties: {}!
+description
+
+	^decoratee description
+! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!methodProperties: {}!
+name
+
+	^decoratee name
+! !
+
+!MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:45:50 pm (UTC)'!
+!methodProperties: {}!
+decorating: aTool in: aSmalltalk
+
+	^self new initializeDecorating: aTool in: aSmalltalk
+! !
+
+!MCPToolDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:12 pm (UTC)'!
+!methodProperties: {}!
+decoratedToolName
+
+	^self subclassResponsibility
+! !
+
 !MCPToolGroup methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 !methodProperties: {}!
 initializeFor: aSmalltalk
@@ -2169,7 +2169,7 @@ addToolsTo: anMCPServer
 		addTool: self finishDebuggingTool
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 browseTool
 
@@ -2179,7 +2179,7 @@ browseTool
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 classOrganizationTool
 
@@ -2190,7 +2190,7 @@ classOrganizationTool
 		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 classProperty
 
@@ -2199,7 +2199,7 @@ classProperty
 		describedBy: 'Name of the class, or of its class side as in MCPServer class'
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 classesInCategoryTool
 
@@ -2211,7 +2211,7 @@ classesInCategoryTool
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 defineClassTool
 
@@ -2224,7 +2224,7 @@ defineClassTool
 		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 defineMethodTool
 
@@ -2245,7 +2245,7 @@ defineMethodTool
 			'Method defined successfully' ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 deleteClassTool
 
@@ -2258,7 +2258,7 @@ deleteClassTool
 			'Class deleted successfully' ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 deleteMethodTool
 
@@ -2271,7 +2271,7 @@ deleteMethodTool
 			'Method deleted successfully' ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 hierarchyTool
 
@@ -2283,7 +2283,7 @@ hierarchyTool
 			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 listCategoriesTool
 
@@ -2294,7 +2294,7 @@ listCategoriesTool
 		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 listClassesTool
 
@@ -2312,7 +2312,7 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
 methodSourceTool
 
@@ -2324,7 +2324,7 @@ methodSourceTool
 			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 methodsInCategoryTool
 
@@ -2338,7 +2338,7 @@ methodsInCategoryTool
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 organizationOf: aClass
 
@@ -2354,7 +2354,7 @@ organizationOf: aClass
 				yourself ]
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 selectorsIn: aMethodCategory of: aClass
 
@@ -2368,7 +2368,7 @@ selectorsIn: aMethodCategory of: aClass
 	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
 ! !
 
-!MCPMetamodelTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 !methodProperties: {}!
 subclassesTool
 
@@ -2381,7 +2381,7 @@ subclassesTool
 
 ! !
 
-!MCPMetamodelTools methodsFor: 'tools' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
@@ -2402,7 +2402,7 @@ addToolsTo: anMCPServer
 
 ! !
 
-!MCPMetamodelTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
 methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
 

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:41 pm'!
-'Description Let having subclasses be what makes a class abstract'!
-!provides: 'MCPServerTests' 1 40!
+'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 9:32:50 pm'!
+'Description Name a tool by what it declares and a group by what it reaches'!
+!provides: 'MCPServerTests' 1 41!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
@@ -45,14 +45,14 @@ DynamicallyCodeCreatingTest subclass: #MCPToolsTest
 MCPToolsTest class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPMetamodelToolsTest category: 'MCPServerTests'!
-MCPToolsTest subclass: #MCPMetamodelToolsTest
+!classDefinition: #MCPModelStructureToolsTest category: 'MCPServerTests'!
+MCPToolsTest subclass: #MCPModelStructureToolsTest
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
-!classDefinition: 'MCPMetamodelToolsTest class' category: 'MCPServerTests'!
-MCPMetamodelToolsTest class
+!classDefinition: 'MCPModelStructureToolsTest class' category: 'MCPServerTests'!
+MCPModelStructureToolsTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPRefactoringToolsTest category: 'MCPServerTests'!
@@ -146,7 +146,7 @@ I am the fixture a test of the tools a server serves runs in: a server over a mo
 
 I hold no test of my own. Each group of tools is tested by a subclass of mine, and the classes and methods a test makes are made through the server, in a class category I take away when the test ends.!
 
-!MCPMetamodelToolsTest commentStamp: '<historical>' prior: 0!
+!MCPModelStructureToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of MCPMetamodelTools, which read and change classes, their categories, their hierarchy and their methods.!
 
 !MCPRefactoringToolsTest commentStamp: '<historical>' prior: 0!
@@ -540,7 +540,7 @@ isAbstract
 
 	^self hasSubclasses ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testBrowseAnswersTheSuperclassOfTheClass
 
@@ -550,7 +550,7 @@ testBrowseAnswersTheSuperclassOfTheClass
 		assert: ((self jsonAnswerOf: 'smalltalk_browse' with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
 		equals: 'Object'! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
 !methodProperties: {}!
 testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 
@@ -568,7 +568,7 @@ testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 		equals: #('saludoDeClase')
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
 !methodProperties: {}!
 testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
 
@@ -581,7 +581,7 @@ testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
 		equals: #('saludo')
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testClassesInCategoryAnswersTheClassesOfThatCategory
 
@@ -593,7 +593,7 @@ testClassesInCategoryAnswersTheClassesOfThatCategory
 			with: (self arguments: 'category' being: self classCategoryOfTestData)) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassCreatesTheClass
 
@@ -601,7 +601,7 @@ testDefineClassCreatesTheClass
 
 	self assert: self createdClassInTest notNil! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 
@@ -619,7 +619,7 @@ testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 				equals: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #at:put:)).
 			self deny: (Smalltalk includesKey: self class sideEffectGlobalName) ]! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheClassNameIsNotALiteral
 
@@ -630,7 +630,7 @@ testDefineClassFailsWhenTheClassNameIsNotALiteral
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool classNameIsNotALiteralErrorDescription)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 
@@ -641,7 +641,7 @@ testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #+))! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 
@@ -652,7 +652,7 @@ testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 
@@ -663,7 +663,7 @@ testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineClassWithoutADefinitionFails
 
@@ -675,7 +675,7 @@ testDefineClassWithoutADefinitionFails
 
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodAddsTheMethodToTheClass
 
@@ -684,7 +684,7 @@ testDefineMethodAddsTheMethodToTheClass
 
 	self assert: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodFilesTheMethodUnderTheGivenCategory
 
@@ -698,7 +698,7 @@ testDefineMethodFilesTheMethodUnderTheGivenCategory
 
 	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'saludos'! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
 
@@ -709,7 +709,7 @@ testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
 		assert: (self createdClassInTest organization categoryOfElement: #saludo)
 		equals: ClassOrganizer defaultMethodCategory! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDeleteClassRemovesTheClassFromTheSystem
 
@@ -719,7 +719,7 @@ testDeleteClassRemovesTheClassFromTheSystem
 
 	self assert: self createdClassInTest isNil! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testDeleteMethodRemovesTheMethodFromTheClass
 
@@ -731,7 +731,7 @@ testDeleteMethodRemovesTheMethodFromTheClass
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
 
@@ -743,13 +743,13 @@ testHierarchyAnswersTheClassAndAllItsSuperclasses
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject' 'Object' 'ProtoObject')! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testListCategoriesIncludesTheCategoryOfTheServer
 
 	self assert: ((self jsonAnswerOf: 'smalltalk_list_categories') includes: MCPServer category)! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 
@@ -761,7 +761,7 @@ testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 			with: (self arguments: 'prefix' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 !methodProperties: {}!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
@@ -775,7 +775,7 @@ testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 !methodProperties: {}!
 testMethodSourceOfAnUnknownClassFails
 
@@ -786,7 +786,7 @@ testMethodSourceOfAnUnknownClassFails
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
 !methodProperties: {}!
 testMethodsInACategoryAnswerTheSelectorsFiledUnderIt
 
@@ -799,7 +799,7 @@ testMethodsInACategoryAnswerTheSelectorsFiledUnderIt
 		equals: #('saludo')
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:28:59 am (UTC)'!
 !methodProperties: {}!
 testMethodsInACategoryTheClassDoesNotHaveFails
 
@@ -811,11 +811,11 @@ testMethodsInACategoryTheClassDoesNotHaveFails
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(MCPMetamodelTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
+			(MCPModelStructureTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
 
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!
 testSubclassesAnswersTheDirectSubclassesOfTheClass
 
@@ -828,7 +828,7 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubjectChild')! !
 
-!MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:31:35 pm (UTC)'!
 !methodProperties: {}!
 defineTestSubjectMethodIn: aMethodCategory
 
@@ -838,7 +838,7 @@ defineTestSubjectMethodIn: aMethodCategory
 		and: 'category' being: aMethodCategory)
 ! !
 
-!MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 !methodProperties: {}!
 definitionWithANonLiteralClassName
 
@@ -848,13 +848,13 @@ definitionWithANonLiteralClassName
 	poolDictionaries: ''''
 	category: ''', self classCategoryOfTestData, ''''! !
 
-!MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
 !methodProperties: {}!
 jsonAnswerOf: aToolName
 
 	^self jsonAnswerOf: aToolName with: Dictionary new! !
 
-!MCPMetamodelToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
 !methodProperties: {}!
 propertyNamed: aPropertyName of: aToolName
 
