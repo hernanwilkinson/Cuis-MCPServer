@@ -1,7 +1,8 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 3:13:40 pm'!
-'Description Let the image say when the server it started must stop'!
-!provides: 'MCPServerTests' 1 46!
+'From Cuis7.9 [latest update: #8134] on 31 August 2026 at 7:19:41 pm'!
+'Description Say what each package needs and need MethodFinder apart'!
+!provides: 'MCPServerTests' 1 47!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 8 nil!
+!requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: 'MCPServerTests'!
 
 
@@ -2493,24 +2494,6 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 ! !
 
-!MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-expressionsFoundWith: anArguments
-
-	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
-		collect: [ :eachMessageFound | eachMessageFound at: 'expression' ]
-! !
-
-!MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-messagesFoundWith: anArguments
-
-	"Answer the name of each message the finder found, which is what names it in the image."
-
-	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
-		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
-! !
-
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 methodsFoundBy: aToolName with: anArguments
@@ -2696,69 +2679,6 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 		assert: (self methodsFoundBy: 'smalltalk_search_source' with: (self arguments: 'text' being: phrase))
 		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')
 
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
-
-	self
-		assert: (self messagesFoundWith: (self
-			arguments: 'receiver' being: '''method'''
-			and: 'expected' being: '''zzz not the plural of anything'''))
-		equals: #()
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
-
-	"The block is built out of a message the elements of the collection understand, and it is
-	only the expression that says which one, because the message found is just select:."
-
-	self assert: ((self expressionsFoundWith: (self
-		arguments: 'receiver' being: '#(1 2 3 4)'
-		and: 'expected' being: '#(1 3)'))
-			anySatisfy: [ :anExpression |
-				anExpression includesSubstring: '[:aSmallInteger | aSmallInteger odd]' caseSensitive: true ])
-
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheResultWith
-
-	self assert: ((self messagesFoundWith: (self
-		arguments: 'receiver' being: '#(1 2 3 4)'
-		and: 'expected' being: '#(1 3)')) includes: 'SequenceableCollection>>#select:')
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
-
-	self assert: ((self expressionsFoundWith: (self
-		arguments: 'receiver' being: '''method'''
-		and: 'expected' being: '''methods''')) includes: '''method'' asPlural')
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
-
-	self assert: ((self messagesFoundWith: (self
-		arguments: 'receiver' being: '''method'''
-		and: 'expected' being: '''methods''')) includes: 'CharacterSequence>>#asPlural')
-! !
-
-!MCPSearchToolsTest methodsFor: 'tests - finding messages by example' stamp: 'HAW 27/Aug/2026, 6:09:00 pm (UTC)'!
-!methodProperties: {}!
-testFindingMessagesByExampleSendsTheArgumentsItIsGiven
-
-	self assert: ((self messagesFoundWith: (self
-		arguments: 'receiver' being: '3'
-		and: 'expected' being: '7'
-		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
 ! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!

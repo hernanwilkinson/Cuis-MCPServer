@@ -1,6 +1,9 @@
-'From Cuis7.9 [latest update: #8134] on 28 August 2026 at 4:20:35 pm'!
-'Description Take the debugger window out of the world where morphs are drawn'!
-!provides: 'MCPServer' 1 54!
+'From Cuis7.9 [latest update: #8134] on 31 August 2026 at 7:19:28 pm'!
+'Description Say what each package needs and need MethodFinder apart'!
+!provides: 'MCPServer' 1 55!
+!requires: 'WebClient' nil nil nil!
+!requires: 'JSON' nil nil nil!
+!requires: 'OSProcess' nil nil nil!
 SystemOrganization addCategory: 'MCPServer'!
 
 
@@ -2314,7 +2317,7 @@ addToolsTo: anMCPServer
 		addTool: self deleteClassTool;
 		addTool: self deleteMethodTool! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:26 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:48:59 pm (UTC)'!
 !methodProperties: {}!
 classify: someSelectors of: aClass under: aMethodCategory
 
@@ -2323,15 +2326,16 @@ classify: someSelectors of: aClass under: aMethodCategory
 	an empty method category says nothing and is what a class fills up with when methods are
 	moved about."
 
-	| classified previousCategories |
+	| classified previousCategories classOrganization |
 
 	classified := OrderedCollection new.
 	previousCategories := Set new.
+	classOrganization := aClass organization.
 	(self selectorsFrom: someSelectors implementedBy: aClass) do: [ :eachSelector |
 		| previousCategory |
-		previousCategory := aClass organization categoryOfElement: eachSelector.
+		previousCategory := classOrganization categoryOfElement: eachSelector.
 		previousCategories add: previousCategory.
-		aClass organization classify: eachSelector under: aMethodCategory.
+		classOrganization classify: eachSelector under: aMethodCategory.
 		classified add: (OrderedDictionary new
 			at: 'method' put: (aClass >> eachSelector) classAndSelector;
 			at: 'wasUnder' put: previousCategory asString;
@@ -2340,7 +2344,7 @@ classify: someSelectors of: aClass under: aMethodCategory
 	^Json render: (OrderedDictionary new
 		at: 'category' put: aMethodCategory;
 		at: 'classified' put: classified asArray;
-		at: 'emptied' put: (self takeAwayTheEmptyOnesOf: previousCategories in: aClass);
+		at: 'emptied' put: (self removedEmptyCategoriesOf: previousCategories using: classOrganization);
 		yourself)! !
 
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
@@ -2358,6 +2362,17 @@ organizationOf: aClass
 				put: (aClass organization listAtCategoryNamed: eachMethodCategory) asArray sorted;
 				yourself ]
 ! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:49:31 pm (UTC)'!
+!methodProperties: {}!
+removedEmptyCategoriesOf: someMethodCategories using: aClassOrganization
+
+	| emptyCategories  |
+	
+	emptyCategories := someMethodCategories select: [ :aCategory | (aClassOrganization listAtCategoryNamed: aCategory) isEmpty ].
+	emptyCategories do: [ :aCategory | aClassOrganization removeCategory: aCategory ].
+	
+	^(emptyCategories collect: [ :aCategory | aCategory asString ]) asArray sort! !
 
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:32 pm (UTC)'!
 !methodProperties: {}!
@@ -2386,16 +2401,6 @@ selectorsIn: aMethodCategory of: aClass
 
 	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
 ! !
-
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:39 pm (UTC)'!
-!methodProperties: {}!
-takeAwayTheEmptyOnesOf: someMethodCategories in: aClass
-
-	^(someMethodCategories
-		select: [ :eachMethodCategory | (aClass organization listAtCategoryNamed: eachMethodCategory) isEmpty ]
-		thenCollect: [ :eachMethodCategory |
-			aClass organization removeCategory: eachMethodCategory.
-			eachMethodCategory asString ]) asArray sort! !
 
 !MCPModelStructureTools methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 !methodProperties: {}!
@@ -3560,24 +3565,6 @@ unknownReplacingErrorDescriptionFor: aReplacing
 	^'Unknown replacing: ', aReplacing, '. It is one of selection, method, class or hierarchy'
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
-!methodProperties: {}!
-findMessagesByExampleTool
-
-	^MCPPluggableTool
-		named: 'smalltalk_find_messages_by_example'
-		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection that is not empty, the enumerating messages taking a block are looked for as well, the block being built from a message its elements understand, so a receiver of #(1 2 3 4) expecting #(1 3) answers select: along with the block it needs.'
-		properties: {
-			MCPPlainToolProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
-			MCPPlainToolProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.
-			MCPPlainToolProperty named: 'arguments' describedBy: 'Smalltalk expression answering an Array with the arguments to send, such as #(4). Defaults to sending none' defaultingTo: '' }
-		executingWith: [ :aReceiverSource :anExpectedSource :anArgumentsSource |
-			self renderMessagesFound: (self
-				messagesFrom: aReceiverSource
-				withArguments: anArgumentsSource
-				expecting: anExpectedSource) ]
-! !
-
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 !methodProperties: {}!
 implementorsOfTool
@@ -3591,25 +3578,6 @@ implementorsOfTool
 				describedBy: 'Selector the methods implement'
 				valuedWith: [ :aSelector | aSelector asSymbol ] }
 		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
-! !
-
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
-!methodProperties: {}!
-messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpectedSource
-
-	| arguments |
-
-	arguments := anArgumentsSource
-		ifEmpty: [ Array new ]
-		ifNotEmpty: [ :aSource | Compiler evaluate: aSource ].
-
-	^(MethodFinder new
-		findMethodsOf: (Compiler evaluate: aReceiverSource)
-		withArguments: arguments
-		expecting: (Compiler evaluate: anExpectedSource)
-		withReceiverSource: aReceiverSource
-		andArgumentSources: (arguments collect: [ :eachArgument | eachArgument printString ]);
-		yourself) messageList
 ! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
@@ -3654,20 +3622,6 @@ referencesToInstanceVariableTool
 			(aClass allInstVarNames includes: aVariableName)
 				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
 			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]
-! !
-
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
-!methodProperties: {}!
-renderMessagesFound: someMethodEvaluationReferences
-
-	"Answer each message along with the expression that answers the expected result, which is
-	the only record of the block an enumerating message was found with."
-
-	^Json render: (someMethodEvaluationReferences collect: [ :eachReference |
-		OrderedDictionary new
-			at: 'message' put: eachReference classAndSelector;
-			at: 'expression' put: eachReference evaluationSourceCode;
-			yourself ]) asArray
 ! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
@@ -3738,7 +3692,7 @@ sendersOfTool
 		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tools' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:43 pm (UTC)'!
 !methodProperties: {}!
 addToolsTo: anMCPServer
 
@@ -3749,9 +3703,7 @@ addToolsTo: anMCPServer
 		addTool: self referencesToInstanceVariableTool;
 		addTool: self referencesToClassVariableTool;
 		addTool: self searchSourceTool;
-		addTool: self searchSelectorsTool;
-		addTool: self findMessagesByExampleTool
-! !
+		addTool: self searchSelectorsTool! !
 
 !MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:42:19 pm (UTC)'!
 !methodProperties: {}!
