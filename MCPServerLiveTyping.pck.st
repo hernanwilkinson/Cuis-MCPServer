@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:17:09 am'!
-'Description Carry the types of the instance variables with the definition'!
-!provides: 'MCPServerLiveTyping' 1 13!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:18:52 am'!
+'Description Say what the instance variables hold when reading a method'!
+!provides: 'MCPServerLiveTyping' 1 14!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -215,12 +215,11 @@ decoratedToolName
 
 	^'smalltalk_class_definition'! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:17:52 pm (UTC)'!
 description
 
 	^self decoratee description ,
-		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and the ones each parameter and temporary held, in variables. A method that has not run has none of either.'
-! !
+		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.'! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:34 pm (UTC)'!
 valueWithArguments: anArguments
@@ -236,26 +235,36 @@ valueWithArguments: anArguments
 	^Json render: answer
 ! !
 
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:17:45 pm (UTC)'!
+addTypeNamesOf: aTypeInfo to: aDictionaryOfTypesByVariable
+
+	aDictionaryOfTypesByVariable
+		at: aTypeInfo variableName asString
+		put: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)! !
+
 !MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 returnTypeNamesOf: aMethod
 
 	^(aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort
 ! !
 
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:17:36 pm (UTC)'!
 variableTypeNamesOf: aMethod
+
+	"Answer the classes each variable a method reads held, its parameters and temporaries along
+	with the instance variables of the class that implements it. They go together because a
+	temporary cannot shadow an instance variable in Cuis, so a name means one variable and
+	reading the method is not enough to tell which kind it is."
 
 	| typesByVariable |
 
 	typesByVariable := OrderedDictionary new.
+	aMethod methodClass instanceVariablesTypes typesInfoDo: [ :eachTypeInfo |
+		self addTypeNamesOf: eachTypeInfo to: typesByVariable ].
 	aMethod methodVariablesTypes typesInfoDo: [ :eachTypeInfo |
-		typesByVariable
-			at: eachTypeInfo variableName asString
-			put: ((eachTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort) ].
+		self addTypeNamesOf: eachTypeInfo to: typesByVariable ].
 
-	^typesByVariable
-
-! !
+	^typesByVariable! !
 
 !MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 decoratedToolName

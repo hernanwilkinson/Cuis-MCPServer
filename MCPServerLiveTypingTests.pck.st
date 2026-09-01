@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:17:12 am'!
-'Description Carry the types of the instance variables with the definition'!
-!provides: 'MCPServerLiveTypingTests' 1 9!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:18:55 am'!
+'Description Say what the instance variables hold when reading a method'!
+!provides: 'MCPServerLiveTypingTests' 1 10!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -308,6 +308,18 @@ testTheSourceOfAMethodCarriesTheClassesItsParametersHeld
 	self assert: ((self sourceAnswerOfTheProbe at: 'variables') at: 'anObject') equals: #('SmallInteger')
 
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 12:18:00 pm (UTC)'!
+testTheSourceOfAMethodCarriesTheClassesTheInstanceVariablesHeld
+
+	"The variables of a method and the instance variables of its class go in the same field
+	because a temporary cannot shadow an instance variable in Cuis."
+
+	probeClass new mcpHold: 42.
+
+	self
+		assert: ((self sourceAnswerOfTheProbe at: 'variables') at: 'held')
+		equals: #('SmallInteger')! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
 testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
