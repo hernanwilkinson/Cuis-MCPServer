@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:54 pm'!
-'Description Let having subclasses be what makes a class abstract'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 7!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:38 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 8!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -38,7 +38,6 @@ I am the tools that apply the refactorings LiveTyping makes possible.
 They differ from the ones that work on a selector alone by what they take to be a send of it: only the sends to objects LiveTyping saw were of the class that implements it. A send of the same name to anything else is left as it was, which a refactoring over the whole system cannot tell apart.!
 
 !MCPActualScopeRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
-!methodProperties: {}!
 refactoringOn: aSelector in: aClass using: aRefactoringClass keepingPossibleSends: aBoolean builtWith: aBlock
 
 	"Answer the refactoring the block builds over the scope LiveTyping saw, which is what tells
@@ -69,7 +68,6 @@ refactoringOn: aSelector in: aClass using: aRefactoringClass keepingPossibleSend
 ! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
-!methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -79,7 +77,6 @@ addToolsTo: anMCPServer
 		addTool: self addParameterInActualScopeTool! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:57:53 pm (UTC)'!
-!methodProperties: {}!
 addParameterInActualScopeTool
 
 	^MCPPluggableTool
@@ -121,7 +118,6 @@ addParameterInActualScopeTool
 ! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
-!methodProperties: {}!
 changeKeywordsOrderInActualScopeTool
 
 	^MCPPluggableTool
@@ -149,7 +145,6 @@ changeKeywordsOrderInActualScopeTool
 ! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
-!methodProperties: {}!
 removeParameterInActualScopeTool
 
 	^MCPPluggableTool
@@ -179,7 +174,6 @@ removeParameterInActualScopeTool
 ! !
 
 !MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
-!methodProperties: {}!
 renameSelectorInActualScopeTool
 
 	^MCPPluggableTool

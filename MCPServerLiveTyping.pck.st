@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 7:19:51 pm'!
-'Description Let having subclasses be what makes a class abstract'!
-!provides: 'MCPServerLiveTyping' 1 11!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:23 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerLiveTyping' 1 12!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -62,7 +62,6 @@ I am the tools that read the type information LiveTyping gathers.
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
 
 !MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-!methodProperties: {}!
 addedProperties
 
 	^{ MCPPlainToolProperty
@@ -72,7 +71,6 @@ addedProperties
 ! !
 
 !MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
-!methodProperties: {}!
 description
 
 	^self decoratee description ,
@@ -80,7 +78,6 @@ description
 ! !
 
 !MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:26:20 pm (UTC)'!
-!methodProperties: {}!
 valueWithArguments: anArguments
 
 	| answer className |
@@ -94,7 +91,6 @@ valueWithArguments: anArguments
 ! !
 
 !MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-!methodProperties: {}!
 actualImplementorNamesOf: aSelector in: aClassName
 
 	^(((smalltalk actualImplementorsOf: aSelector in: (smalltalk classNamed: aClassName))
@@ -104,14 +100,12 @@ actualImplementorNamesOf: aSelector in: aClassName
 ! !
 
 !MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-!methodProperties: {}!
 decoratedToolName
 
 	^'smalltalk_implementors_of'
 ! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
-!methodProperties: {}!
 addedProperties
 
 	^{ MCPPlainToolProperty
@@ -121,7 +115,6 @@ addedProperties
 ! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
-!methodProperties: {}!
 description
 
 	^self decoratee description ,
@@ -129,7 +122,6 @@ description
 ! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:15 pm (UTC)'!
-!methodProperties: {}!
 valueWithArguments: anArguments
 
 	| answer |
@@ -141,7 +133,6 @@ valueWithArguments: anArguments
 ! !
 
 !MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-!methodProperties: {}!
 actualSenderNamesFrom: anArguments
 
 	"Every implementor of the selector is asked who LiveTyping saw sending to it, unless a
@@ -161,7 +152,6 @@ actualSenderNamesFrom: anArguments
 ! !
 
 !MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-!methodProperties: {}!
 implementorsOf: aSelector in: aClassName
 
 	^aClassName
@@ -172,14 +162,12 @@ implementorsOf: aSelector in: aClassName
 ! !
 
 !MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
-!methodProperties: {}!
 decoratedToolName
 
 	^'smalltalk_senders_of'
 ! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
-!methodProperties: {}!
 description
 
 	^self decoratee description ,
@@ -187,7 +175,6 @@ description
 ! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:34 pm (UTC)'!
-!methodProperties: {}!
 valueWithArguments: anArguments
 
 	| method answer |
@@ -202,14 +189,12 @@ valueWithArguments: anArguments
 ! !
 
 !MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
-!methodProperties: {}!
 returnTypeNamesOf: aMethod
 
 	^(aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort
 ! !
 
 !MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
-!methodProperties: {}!
 variableTypeNamesOf: aMethod
 
 	| typesByVariable |
@@ -225,14 +210,12 @@ variableTypeNamesOf: aMethod
 ! !
 
 !MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
-!methodProperties: {}!
 decoratedToolName
 
 	^'smalltalk_method_source'
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
-!methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -244,14 +227,12 @@ addToolsTo: anMCPServer
 		addTool: self actualImplementorsOfTool! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
-!methodProperties: {}!
 renderMethodReferences: someMethodReferences
 
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 renderTypeNames: aTypeInfo
 
 	"Answer the names of the types a variable has held. They are what LiveTyping saw while the
@@ -261,7 +242,6 @@ renderTypeNames: aTypeInfo
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 11:06:10 am (UTC)'!
-!methodProperties: {}!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -284,7 +264,6 @@ actualImplementorsOfTool
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
-!methodProperties: {}!
 actualSendersOfTool
 
 	^MCPPluggableTool
@@ -302,7 +281,6 @@ actualSendersOfTool
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
-!methodProperties: {}!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
@@ -314,7 +292,6 @@ returnTypesOfMethodTool
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
@@ -332,7 +309,6 @@ typesOfEveryInstanceVariableTool
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 typesOfInstanceVariableTool
 
 	^MCPPluggableTool
@@ -348,7 +324,6 @@ typesOfInstanceVariableTool
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
-!methodProperties: {}!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
@@ -364,7 +339,6 @@ typesOfMethodVariableTool
 ! !
 
 !MCPLiveTypingTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
 
 	^'Variable not found: ', aVariableName, ' in ',

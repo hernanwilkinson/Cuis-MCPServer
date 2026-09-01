@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 10:45:02 am'!
-'Description Let a client say how far a refactoring reaches'!
-!provides: 'MCPServerExtraRefactoring' 1 8!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:15 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerExtraRefactoring' 1 9!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -18,7 +18,6 @@ MCPExtraRefactoringTools class
 
 
 !MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
-!methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -29,7 +28,6 @@ addToolsTo: anMCPServer
 		addTool: self extractToMethodObjectTool! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
-!methodProperties: {}!
 extractClassTool
 
 	^MCPPluggableTool
@@ -52,7 +50,6 @@ extractClassTool
 ! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
-!methodProperties: {}!
 extractParameterObjectTool
 
 	^MCPPluggableTool
@@ -86,7 +83,6 @@ extractParameterObjectTool
 ! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
-!methodProperties: {}!
 extractToMethodObjectTool
 
 	^MCPPluggableTool
@@ -109,7 +105,6 @@ extractToMethodObjectTool
 ! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
-!methodProperties: {}!
 moveInstanceVariableTool
 
 	^MCPPluggableTool
@@ -129,7 +124,6 @@ moveInstanceVariableTool
 ! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
-!methodProperties: {}!
 moveMethodTool
 
 	^MCPPluggableTool

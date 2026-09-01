@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 31 August 2026 at 7:19:44 pm'!
-'Description Say what each package needs and need MethodFinder apart'!
-!provides: 'MCPServerMethodFinderTests' 1 1!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:56:08 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerMethodFinderTests' 1 2!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerMethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
@@ -18,7 +18,6 @@ MCPMethodFinderToolsTest class
 
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
 
 	self
@@ -29,7 +28,6 @@ testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:30 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
 
 	"The block is built out of a message the elements of the collection understand, and it is
@@ -44,7 +42,6 @@ testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheResultWith
 
 	self assert: ((self messagesFoundWith: (self
@@ -53,7 +50,6 @@ testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheRes
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
 
 	self assert: ((self expressionsFoundWith: (self
@@ -62,7 +58,6 @@ testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
 
 	self assert: ((self messagesFoundWith: (self
@@ -71,7 +66,6 @@ testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 
 	self assert: ((self messagesFoundWith: (self
@@ -81,7 +75,6 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 expressionsFoundWith: anArguments
 
 	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
@@ -89,7 +82,6 @@ expressionsFoundWith: anArguments
 ! !
 
 !MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
-!methodProperties: {}!
 messagesFoundWith: anArguments
 
 	"Answer the name of each message the finder found, which is what names it in the image."

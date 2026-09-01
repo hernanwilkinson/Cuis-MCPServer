@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:40:33 pm'!
-'Description Change superclass to DynamicallyCodeCreatingTest'!
-!provides: 'MCPServerExtraRefactoringTest' 1 7!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:19 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerExtraRefactoringTest' 1 8!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -18,7 +18,6 @@ MCPExtraRefactoringToolsTest class
 
 
 !MCPExtraRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 setUp
 
 	super setUp.
@@ -26,7 +25,6 @@ setUp
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 defineClassNamed: aClassName instanceVariableNames: someInstanceVariableNames
 
 	^Object subclass: aClassName asSymbol
@@ -37,7 +35,6 @@ defineClassNamed: aClassName instanceVariableNames: someInstanceVariableNames
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 registerClassCategoryOfTestData
 
 	"The classes these tests make are made by the refactorings themselves and not by
@@ -47,21 +44,18 @@ registerClassCategoryOfTestData
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 sourceClass
 
 	^Smalltalk classNamed: 'MCPExtraTestSource'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 targetClass
 
 	^Smalltalk classNamed: 'MCPExtraTestTarget'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:06 am (UTC)'!
-!methodProperties: {}!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
@@ -69,7 +63,6 @@ toolNamed: aToolName
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
-!methodProperties: {}!
 testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
 
 	self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable stayingVariable'.
@@ -86,7 +79,6 @@ testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
-!methodProperties: {}!
 testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 
 	self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable stayingVariable'.
@@ -104,7 +96,6 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
-!methodProperties: {}!
 testExtractingAParameterObjectAnswersTheMethodsItChanged
 
 	"The method that takes the parameter object is a new one, and the one it came from is gone,
@@ -133,7 +124,6 @@ MCPExtraTestSource>>#mcpFirst:second:third:'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:41:07 am (UTC)'!
-!methodProperties: {}!
 testExtractingAParameterObjectGathersTheParametersNamed
 
 	"The parameters keep their names without the article they were written with, so aFirst is
@@ -159,7 +149,6 @@ testExtractingAParameterObjectGathersTheParametersNamed
 	self assert: (self sourceClass includesSelector: 'second:mCPExtraTestTarget:' asSymbol)! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
-!methodProperties: {}!
 testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 
 	| source |
@@ -183,7 +172,6 @@ testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:40:32 am (UTC)'!
-!methodProperties: {}!
 testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 	| source |
@@ -207,7 +195,6 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
-!methodProperties: {}!
 testMovingAMethodAnswersTheMethodsItChanged
 
 	"The method is in the other class and the one it came from is left delegating to it, so
@@ -237,7 +224,6 @@ MCPExtraTestTarget>>#mcpMoving'
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
-!methodProperties: {}!
 testMovingAMethodTakesItToTheOtherClass
 
 	| source |
@@ -262,7 +248,6 @@ testMovingAMethodTakesItToTheOtherClass
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
-!methodProperties: {}!
 testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
 
 	| source |
@@ -286,7 +271,6 @@ testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 testMovingAnInstanceVariableTakesItToTheOtherClass
 
 	| source |
@@ -309,7 +293,6 @@ testMovingAnInstanceVariableTakesItToTheOtherClass
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
-!methodProperties: {}!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -322,7 +305,6 @@ testTheToolsAreOfferedByEveryServer
 ! !
 
 !MCPExtraRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-!methodProperties: {}!
 classCategoryOfTestData
 
 	^'__MCPExtraRefactoringTestData__'

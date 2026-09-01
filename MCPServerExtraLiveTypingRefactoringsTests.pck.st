@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:39:36 pm'!
-'Description Change superclass to DynamicallyCodeCreatingTest'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 4!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:59 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 5!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -18,7 +18,6 @@ MCPExtraLiveTypingRefactoringToolsTest class
 
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 setUp
 
 	super setUp.
@@ -31,7 +30,6 @@ setUp
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 compileProbeSending: aCallerSource
 
 	probeClass compile: 'mcpFirst: aFirst second: aSecond
@@ -43,7 +41,6 @@ compileProbeSending: aCallerSource
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 5:02:57 pm (UTC)'!
-!methodProperties: {}!
 gatherFirstParameterOf: aSelector
 
 	^(self toolNamed: 'smalltalk_refactor_extract_parameter_object_in_actual_scope') valueWithArguments: (Dictionary new
@@ -55,21 +52,18 @@ gatherFirstParameterOf: aSelector
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 parameterObjectClass
 
 	^Smalltalk classNamed: 'MCPExtraLiveTypingRefactoringParameters'
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 probeClass
 
 	^probeClass
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
@@ -78,7 +72,6 @@ toolNamed: aToolName
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
-!methodProperties: {}!
 testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
 
 	self compileProbeSending: 'mcpCaller
@@ -96,7 +89,6 @@ MCPExtraLiveTypingRefactoringProbe>>#mcpFirst:second:'
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 testGatheringParametersInTheActualScopeChangesTheSendsItSaw
 
 	self compileProbeSending: 'mcpCaller
@@ -110,7 +102,6 @@ testGatheringParametersInTheActualScopeChangesTheSendsItSaw
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 testGatheringParametersInTheActualScopeLeavesASendToAnythingElseAlone
 
 	"The send inside the ifTrue: is to a variable LiveTyping never saw hold anything, so it is
@@ -130,7 +121,6 @@ testGatheringParametersInTheActualScopeLeavesASendToAnythingElseAlone
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 testGatheringParametersInTheActualScopeTakesThemToTheNewClass
 
 	"The parameters keep their names without the article they were written with, so aFirst is
@@ -146,7 +136,6 @@ testGatheringParametersInTheActualScopeTakesThemToTheNewClass
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -159,7 +148,6 @@ testTheToolsAreOfferedByEveryServer
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 classCategoryOfTestData
 
 	^'__MCPExtraLiveTypingRefactoringTestData__'

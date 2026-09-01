@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 26 August 2026 at 2:14:01 pm'!
-'Description Answer the changes the rest of the refactorings make'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 3!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:55 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 4!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
@@ -24,14 +24,12 @@ I am the tools that apply the refactorings the ExtraRefactoringsLiveTyping packa
 There is one of them: gathering some of the parameters of a method into an object of a new class, changing only the sends LiveTyping saw were to objects of the class that implements it. A send of the same name to anything else is left as it was.!
 
 !MCPExtraLiveTypingRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-!methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer addTool: self extractParameterObjectInActualScopeTool
 ! !
 
 !MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:17 pm (UTC)'!
-!methodProperties: {}!
 extractParameterObjectInActualScopeTool
 
 	^MCPPluggableTool

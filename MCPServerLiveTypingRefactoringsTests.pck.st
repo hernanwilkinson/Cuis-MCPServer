@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 1:35:33 pm'!
-'Description Change superclass to DynamicallyCodeCreatingTest'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 6!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:42 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 7!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -18,7 +18,6 @@ MCPLiveTypingRefactoringToolsTest class
 
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 setUp
 
 	super setUp.
@@ -31,14 +30,12 @@ setUp
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 probeClass
 
 	^probeClass
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:23 am (UTC)'!
-!methodProperties: {}!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
@@ -46,7 +43,6 @@ toolNamed: aToolName
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue
 
 	probeClass compile: 'mcpProbe
@@ -71,7 +67,6 @@ testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 
 	probeClass compile: 'mcpProbeWith: anArgument
@@ -95,7 +90,6 @@ testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
-!methodProperties: {}!
 testRenamingInTheActualScopeAnswersTheMethodsItChanged
 
 	"The new implementor and the method that really sends it are the ones that are still there,
@@ -128,7 +122,6 @@ MCPLiveTypingRefactoringProbe>>#mcpProbe'
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 testRenamingInTheActualScopeLeavesASendToAnythingElseAlone
 
 	"The send inside the ifTrue: is to a variable LiveTyping never saw hold anything, so it is
@@ -160,7 +153,6 @@ testRenamingInTheActualScopeLeavesASendToAnythingElseAlone
 ! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -176,7 +168,6 @@ testTheToolsAreOfferedByEveryServer
 ! !
 
 !MCPLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
-!methodProperties: {}!
 classCategoryOfTestData
 
 	^'__MCPLiveTypingRefactoringTestData__'

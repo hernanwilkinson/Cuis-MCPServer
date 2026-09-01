@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 31 August 2026 at 7:19:31 pm'!
-'Description Say what each package needs and need MethodFinder apart'!
-!provides: 'MCPServerMethodFinder' 1 1!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:56:03 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerMethodFinder' 1 2!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinder!
@@ -21,7 +21,6 @@ MCPMethodFinderTools class
 I am the tool that finds a message by an example of what it answers, which is what MethodFinder does. I live in a package of my own so that the ones that search the image by name do not need it.!
 
 !MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
-!methodProperties: {}!
 findMessagesByExampleTool
 
 	^MCPPluggableTool
@@ -39,7 +38,6 @@ findMessagesByExampleTool
 ! !
 
 !MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
-!methodProperties: {}!
 messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpectedSource
 
 	| arguments |
@@ -58,7 +56,6 @@ messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpe
 ! !
 
 !MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
-!methodProperties: {}!
 renderMessagesFound: someMethodEvaluationReferences
 
 	"Answer each message along with the expression that answers the expected result, which is
@@ -72,7 +69,6 @@ renderMessagesFound: someMethodEvaluationReferences
 ! !
 
 !MCPMethodFinderTools methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:36 pm (UTC)'!
-!methodProperties: {}!
 addToolsTo: anMCPServer
 
 	anMCPServer addTool: self findMessagesByExampleTool! !

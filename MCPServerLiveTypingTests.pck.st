@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8134] on 27 August 2026 at 4:49:19 pm'!
-'Description Tell the senders that write a selector from the ones that send it'!
-!provides: 'MCPServerLiveTypingTests' 1 7!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:34 am'!
+'Description File the rest of the packages out in the new format'!
+!provides: 'MCPServerLiveTypingTests' 1 8!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -18,7 +18,6 @@ MCPLiveTypingToolsTest class
 
 
 !MCPLiveTypingToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 setUp
 
 	super setUp.
@@ -40,14 +39,12 @@ setUp
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 answerOf: aToolName with: anArguments
 
 	^Json readFrom: ((self toolNamed: aToolName) valueWithArguments: anArguments) readStream
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
-!methodProperties: {}!
 defineProbeHierarchy
 
 	"A root that implements the selector, a subclass that overrides it, and a caller that sends
@@ -79,7 +76,6 @@ defineProbeHierarchy
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
-!methodProperties: {}!
 sourceAnswerOfTheProbe
 
 	^Json readFrom: ((self toolNamed: 'smalltalk_method_source') valueWithArguments: (Dictionary new
@@ -89,7 +85,6 @@ sourceAnswerOfTheProbe
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:14 am (UTC)'!
-!methodProperties: {}!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
@@ -97,7 +92,6 @@ toolNamed: aToolName
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
-!methodProperties: {}!
 testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 
 	self defineProbeHierarchy.
@@ -120,7 +114,6 @@ testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:40:01 pm (UTC)'!
-!methodProperties: {}!
 testAMethodThatAnswersItsReceiverSaysSo
 
 	probeClass new mcpAnswerSelf.
@@ -134,7 +127,6 @@ testAMethodThatAnswersItsReceiverSaysSo
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testAnInstanceVariableThatHeldNothingHasNoTypes
 
 	self
@@ -146,7 +138,6 @@ testAnInstanceVariableThatHeldNothingHasNoTypes
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
-!methodProperties: {}!
 testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 
 	| withPossible |
@@ -163,7 +154,6 @@ testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 
 	probeClass new mcpHold: 42.
@@ -176,7 +166,6 @@ testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
-!methodProperties: {}!
 testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach
 
 	self defineProbeHierarchy.
@@ -190,7 +179,6 @@ testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
-!methodProperties: {}!
 testTheActualSendersAreTheOnesSeenSendingItToThisClass
 
 	self defineProbeHierarchy.
@@ -204,7 +192,6 @@ testTheActualSendersAreTheOnesSeenSendingItToThisClass
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
-!methodProperties: {}!
 testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
 
 	self defineProbeHierarchy.
@@ -217,7 +204,6 @@ testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
-!methodProperties: {}!
 testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 
 	"The stranger writes the same selector and is in no hierarchy with the probe, so a send to
@@ -243,7 +229,6 @@ testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testTheReturnTypesOfAMethodAreTheClassesItAnswered
 
 	probeClass new mcpHold: 42.
@@ -257,7 +242,6 @@ testTheReturnTypesOfAMethodAreTheClassesItAnswered
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
-!methodProperties: {}!
 testTheSendersOfASelectorAreStillAnsweredWhenTheActualOnesAreAddedToThem
 
 	self defineProbeHierarchy.
@@ -270,7 +254,6 @@ testTheSendersOfASelectorAreStillAnsweredWhenTheActualOnesAreAddedToThem
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
-!methodProperties: {}!
 testTheSendersOfASelectorCarryTheOnesReallySendingIt
 
 	"The caller writes the selector twice, and only one of them is a send to an object that
@@ -287,7 +270,6 @@ testTheSendersOfASelectorCarryTheOnesReallySendingIt
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
-!methodProperties: {}!
 testTheSourceOfAMethodCarriesTheClassesItAnswered
 
 	probeClass new mcpHold: 42.
@@ -296,7 +278,6 @@ testTheSourceOfAMethodCarriesTheClassesItAnswered
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
-!methodProperties: {}!
 testTheSourceOfAMethodCarriesTheClassesItsParametersHeld
 
 	probeClass new mcpHold: 42.
@@ -306,7 +287,6 @@ testTheSourceOfAMethodCarriesTheClassesItsParametersHeld
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
-!methodProperties: {}!
 testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
 
 	probeClass new mcpHold: 42.
@@ -317,7 +297,6 @@ testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -331,7 +310,6 @@ testTheToolsAreOfferedByEveryServer
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testTheTypesOfAParameterAreTheClassesItWasSent
 
 	probeClass new mcpHold: 42.
@@ -347,7 +325,6 @@ testTheTypesOfAParameterAreTheClassesItWasSent
 ! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
-!methodProperties: {}!
 testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 
 	probeClass new mcpHold: 42.
@@ -362,7 +339,6 @@ testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 ! !
 
 !MCPLiveTypingToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-!methodProperties: {}!
 classCategoryOfTestData
 
 	^'__MCPLiveTypingTestData__'
