@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 1:36:26 pm'!
-'Description Let a refactoring work over the scope LiveTyping saw'!
-!provides: 'MCPServer' 1 60!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 3:21:42 pm'!
+'Description Let a decorator ask the tool it decorates for the class'!
+!provides: 'MCPServer' 1 61!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1515,12 +1515,17 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties
 	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 ! !
 
-!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 1/Sep/2026, 5:49:21 pm (UTC)'!
+requestedClassFrom: anArguments
+
+	^ (self valuesFrom: anArguments) first! !
+
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 1/Sep/2026, 5:49:23 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| requestedClass browsedClass |
 
-	requestedClass := (self valuesFrom: anArguments) first.
+	requestedClass := self requestedClassFrom: anArguments.
 	browsedClass := OrderedDictionary new.
 	browsedClass
 		at: 'name' put: requestedClass name;

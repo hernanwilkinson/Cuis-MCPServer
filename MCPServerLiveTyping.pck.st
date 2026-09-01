@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:48:15 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerLiveTyping' 1 16!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 3:21:45 pm'!
+'Description Let a decorator ask the tool it decorates for the class'!
+!provides: 'MCPServerLiveTyping' 1 17!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -197,12 +197,12 @@ description
 	^self decoratee description ,
 		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.'! !
 
-!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:15:49 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 5:49:36 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| definedClass answer |
 
-	definedClass := (MCPClassToolProperty named: 'className' describedBy: '') valueFrom: anArguments.
+	definedClass := decoratee requestedClassFrom: anArguments.
 	answer := self decorateeAnswerFor: anArguments.
 	answer at: 'instanceVariableTypes' put: (self instanceVariableTypeNamesOf: definedClass).
 
@@ -240,13 +240,19 @@ addTypeNamesOf: aTypeInfo to: aDictionaryOfTypesByVariable
 		at: aTypeInfo variableName asString
 		put: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)! !
 
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 5:54:23 pm (UTC)'!
+addTypesOf: types to: typesByVariable
+
+	types typesInfoDo: [ :eachTypeInfo |
+		self addTypeNamesOf: eachTypeInfo to: typesByVariable ]! !
+
 !MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
 returnTypeNamesOf: aMethod
 
 	^(aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort
 ! !
 
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:17:36 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 5:53:57 pm (UTC)'!
 variableTypeNamesOf: aMethod
 
 	"Answer the classes each variable a method reads held, its parameters and temporaries along
@@ -257,10 +263,8 @@ variableTypeNamesOf: aMethod
 	| typesByVariable |
 
 	typesByVariable := OrderedDictionary new.
-	aMethod methodClass instanceVariablesTypes typesInfoDo: [ :eachTypeInfo |
-		self addTypeNamesOf: eachTypeInfo to: typesByVariable ].
-	aMethod methodVariablesTypes typesInfoDo: [ :eachTypeInfo |
-		self addTypeNamesOf: eachTypeInfo to: typesByVariable ].
+	self addTypesOf: aMethod methodClass instanceVariablesTypes to: typesByVariable.
+	self addTypesOf: aMethod methodVariablesTypes to: typesByVariable.
 
 	^typesByVariable! !
 
