@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:34 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerLiveTypingTests' 1 8!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:17:12 am'!
+'Description Carry the types of the instance variables with the definition'!
+!provides: 'MCPServerLiveTypingTests' 1 9!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -74,6 +74,13 @@ defineProbeHierarchy
 
 	^childClass
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 12:16:29 pm (UTC)'!
+definitionAnswerOfTheProbe
+
+	^self answerOf: 'smalltalk_class_definition' with: (Dictionary new
+		at: 'className' put: 'MCPLiveTypingProbe';
+		yourself)! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
 sourceAnswerOfTheProbe
@@ -190,6 +197,22 @@ testTheActualSendersAreTheOnesSeenSendingItToThisClass
 			yourself))
 		equals: #('MCPLiveTypingProbe mcpCaller')
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 12:16:37 pm (UTC)'!
+testTheDefinitionOfAClassCarriesTheClassesItsInstanceVariablesHeld
+
+	probeClass new mcpHold: 42.
+
+	self
+		assert: ((self definitionAnswerOfTheProbe at: 'instanceVariableTypes') at: 'held')
+		equals: #('SmallInteger')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 12:16:44 pm (UTC)'!
+testTheDefinitionOfAClassIsStillAnsweredWhenTheTypesAreAddedToIt
+
+	probeClass new mcpHold: 42.
+
+	self assert: (self definitionAnswerOfTheProbe at: 'superclass') equals: 'Object'! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
 testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed

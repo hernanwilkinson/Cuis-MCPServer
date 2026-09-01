@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:23 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerLiveTyping' 1 12!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:17:09 am'!
+'Description Carry the types of the instance variables with the definition'!
+!provides: 'MCPServerLiveTyping' 1 13!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -24,6 +24,16 @@ MCPToolDecorator subclass: #MCPActualSendersDecorator
 	category: 'MCPServerLiveTyping'!
 !classDefinition: 'MCPActualSendersDecorator class' category: #MCPServerLiveTyping!
 MCPActualSendersDecorator class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPInstanceVariableTypesDecorator category: #MCPServerLiveTyping!
+MCPToolDecorator subclass: #MCPInstanceVariableTypesDecorator
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTyping'!
+!classDefinition: 'MCPInstanceVariableTypesDecorator class' category: #MCPServerLiveTyping!
+MCPInstanceVariableTypesDecorator class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPMethodTypesDecorator category: #MCPServerLiveTyping!
@@ -166,6 +176,44 @@ decoratedToolName
 
 	^'smalltalk_senders_of'
 ! !
+
+!MCPInstanceVariableTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:15:42 pm (UTC)'!
+instanceVariableTypeNamesOf: aClass
+
+	"Answer the classes each instance variable of aClass has held, as LiveTyping saw them while
+	the image ran. A variable of code that has not run holds none."
+
+	| typesByVariable |
+
+	typesByVariable := OrderedDictionary new.
+	aClass instanceVariablesTypes typesInfoDo: [ :eachTypeInfo |
+		typesByVariable
+			at: eachTypeInfo variableName asString
+			put: ((eachTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort) ].
+
+	^typesByVariable! !
+
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:15:55 pm (UTC)'!
+description
+
+	^self decoratee description ,
+		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.'! !
+
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:15:49 pm (UTC)'!
+valueWithArguments: anArguments
+
+	| definedClass answer |
+
+	definedClass := (MCPClassToolProperty named: 'className' describedBy: '') valueFrom: anArguments.
+	answer := self decorateeAnswerFor: anArguments.
+	answer at: 'instanceVariableTypes' put: (self instanceVariableTypeNamesOf: definedClass).
+
+	^Json render: answer! !
+
+!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 12:15:34 pm (UTC)'!
+decoratedToolName
+
+	^'smalltalk_class_definition'! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:30 pm (UTC)'!
 description
