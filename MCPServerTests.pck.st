@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:52:51 am'!
-'Description Keep the source of the methods a client defines'!
-!provides: 'MCPServerTests' 1 48!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:14:51 am'!
+'Description Call the tool that reads a class what it reads'!
+!provides: 'MCPServerTests' 1 49!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -833,13 +833,13 @@ propertyNamed: aPropertyName of: aToolName
 		detect: [ :eachProperty | eachProperty name = aPropertyName ]
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
-testBrowseAnswersTheSuperclassOfTheClass
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 1/Sep/2026, 12:13:42 pm (UTC)'!
+testClassDefinitionAnswersTheSuperclassOfTheClass
 
 	self defineTestSubjectClass.
 
 	self
-		assert: ((self jsonAnswerOf: 'smalltalk_browse' with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
+		assert: ((self jsonAnswerOf: 'smalltalk_class_definition' with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
 		equals: 'Object'! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!

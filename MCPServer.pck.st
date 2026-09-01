@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:52:41 am'!
-'Description Keep the source of the methods a client defines'!
-!provides: 'MCPServer' 1 56!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:14:48 am'!
+'Description Call the tool that reads a class what it reads'!
+!provides: 'MCPServer' 1 57!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -107,14 +107,14 @@ MCPTool subclass: #MCPToolDeclaration
 MCPToolDeclaration class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPBrowseTool category: #MCPServer!
-MCPToolDeclaration subclass: #MCPBrowseTool
+!classDefinition: #MCPClassDefinitionTool category: #MCPServer!
+MCPToolDeclaration subclass: #MCPClassDefinitionTool
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPBrowseTool class' category: #MCPServer!
-MCPBrowseTool class
+!classDefinition: 'MCPClassDefinitionTool class' category: #MCPServer!
+MCPClassDefinitionTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPDefineClassTool category: #MCPServer!
@@ -355,7 +355,7 @@ I am a tool that holds its own name, description and properties.
 
 My properties are what a client sends me, and I build my definition and turn the arguments of a request into what my subclasses work with out of them.!
 
-!MCPBrowseTool commentStamp: '<historical>' prior: 0!
+!MCPClassDefinitionTool commentStamp: '<historical>' prior: 0!
 I am the tool that describes a class: its superclass, its variables, its selectors and its comment.
 
 I am a class of my own because what I answer is a dictionary built field by field, which is more than a block should hold.!
@@ -1485,7 +1485,7 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties
 	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 ! !
 
-!MCPBrowseTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
 valueWithArguments: anArguments
 
 	| requestedClass browsedClass |
@@ -1925,14 +1925,13 @@ addToolsTo: anMCPServer
 		addTool: self saveImageTool
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
-browseTool
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 12:13:35 pm (UTC)'!
+classDefinitionTool
 
-	^MCPBrowseTool
-		named: 'smalltalk_browse'
-		describedBy: 'Browse a class to see its superclass, instance variables, class variables, and method selectors.'
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to browse' }
-! !
+	^MCPClassDefinitionTool
+		named: 'smalltalk_class_definition'
+		describedBy: 'Read the definition of a class: its superclass, its instance and class variables, its selectors and its comment.'
+		properties: { self classProperty }! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 classOrganizationTool
@@ -2095,11 +2094,11 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 3:42:31 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 1/Sep/2026, 12:13:13 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
-		addTool: self browseTool;
+		addTool: self classDefinitionTool;
 		addTool: self classOrganizationTool;
 		addTool: self methodsInCategoryTool;
 		addTool: self methodSourceTool;

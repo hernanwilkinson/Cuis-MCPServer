@@ -183,7 +183,7 @@ of version control.
 | Tool | |
 | --- | --- |
 | `smalltalk_evaluate` | Evaluate an expression and answer its result |
-| `smalltalk_browse` | Superclass, variables and selectors of a class |
+| `smalltalk_class_definition` | Superclass, variables, selectors and comment of a class |
 | `smalltalk_class_organization` | Method categories of a class, each with its selectors |
 | `smalltalk_methods_in_category` | Selectors filed under one method category |
 | `smalltalk_method_source` | Source code of a method, in the source field of the answer |
