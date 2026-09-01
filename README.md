@@ -55,7 +55,6 @@ line options below.
 | `--mcpHttp` | Serve MCP over HTTP on port 2358 |
 | `--mcpHttpPort=<port>` | Serve MCP over HTTP on `<port>` |
 | `--noAuthentication` | Serve every client, whatever `SMALLTALK_MCP_TOKEN` says |
-| `--devMode` | Compile through the normal tools, so changes show up in open browsers |
 
 `--mcpStdIO` and `--mcpHttp` are mutually exclusive: the image serves one transport.
 
@@ -76,8 +75,7 @@ The client launches the image itself and talks to it over pipes. Nothing else ha
       "command": "[PathToVM]",
       "args": [
         "[PathToImage]",
-        "--mcpStdIO",
-        "--devMode"
+        "--mcpStdIO"
       ]
     }
   }
@@ -94,8 +92,7 @@ For example:
       "command": "/Users/hernan/Documents/Cuis/Cuis-Smalltalk-Dev/CuisVM.app/Contents/MacOS/Squeak",
       "args": [
         "/Users/hernan/Documents/Cuis/Cuis-Smalltalk-Dev/CuisImage/Cuis-MCP.image",
-        "--mcpStdIO",
-        "--devMode"
+        "--mcpStdIO"
       ]
     }
   }
@@ -107,7 +104,7 @@ For example:
 You launch the image yourself:
 
 ```bash
-/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --devMode
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp
 ```
 
 and the client only needs the address:
@@ -145,7 +142,7 @@ can ask for a token. Set `SMALLTALK_MCP_TOKEN` in the environment the image is l
 
 ```bash
 export SMALLTALK_MCP_TOKEN='a-long-random-string'
-/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --devMode
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp
 ```
 
 Every request then has to carry it:
@@ -172,7 +169,7 @@ from the command line so that `ps` does not show it.
 locally:
 
 ```bash
-/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --devMode --noAuthentication
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --noAuthentication
 ```
 
 The endpoint then serves every client that reaches it, so leave it off anywhere the port is not
