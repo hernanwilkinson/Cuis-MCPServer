@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 12:32:08 pm'!
-'Description Act on the code packages through tools of their own'!
-!provides: 'MCPServer' 1 59!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 1:36:26 pm'!
+'Description Let a refactoring work over the scope LiveTyping saw'!
+!provides: 'MCPServer' 1 60!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1753,12 +1753,17 @@ decorateeAnswerFor: anArguments
 
 	^ Json readFrom: (decoratee valueWithArguments: anArguments) readStream! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 3:39:14 pm (UTC)'!
 definition
+
+	"What I show a client is what the tool I decorate shows, with what I add to it: the
+	properties of my own, and my description, which is the only place a client is told that
+	the tool answers more than the one I decorate would."
 
 	| definition properties |
 
 	definition := decoratee definition.
+	definition at: 'description' put: self description.
 	properties := (definition at: 'inputSchema') at: 'properties'.
 	self addedProperties do: [ :eachProperty | eachProperty addTo: properties ].
 
@@ -2962,13 +2967,45 @@ scopeClassProperty
 
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 1/Sep/2026, 3:35:57 pm (UTC)'!
 scopeProperty
 
 	^MCPPlainToolProperty
-		named: 'scope'
+		named: self class scopePropertyName
 		describedBy: 'Where the sends to change are looked for: class, hierarchy, category, hierarchyAndCategories or system. Every one but system needs className too. category is the whole tree of the root class category, which is what a package usually is, but a class category tree does not always have a package of its own. Defaults to system'
-		defaultingTo: 'system'
+		defaultingTo: 'system'! !
+
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 1/Sep/2026, 3:43:59 pm (UTC)'!
+firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
+
+	"Answer the piece of source a refactoring works on: the interval when a client sends one,
+	and otherwise where aText is first said in the source of the method. It is answered as a
+	SourceCodeInterval because that is what the refactorings ask to trim and to expand."
+
+	| firstOccurrence |
+
+	aStart isEmpty ifFalse: [ ^(aStart asNumber to: aStop asNumber) asSourceCodeInterval ].
+
+	firstOccurrence := aCompiledMethod sourceCode findString: aText startingAt: 1.
+	firstOccurrence = 0 ifTrue: [ self error: (self class textNotFoundErrorDescriptionFor: aText in: aCompiledMethod) ].
+
+	^(firstOccurrence to: firstOccurrence + aText size - 1) asSourceCodeInterval! !
+
+!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 1/Sep/2026, 3:44:04 pm (UTC)'!
+intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
+
+	"Answer the piece of source a refactoring works on, refusing a text the method says more
+	than once instead of picking one of them. A refactoring that means to work on all of them
+	asks for the first one instead."
+
+	| interval |
+
+	interval := self firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop.
+	(aStart isEmpty
+		and: [ (aCompiledMethod sourceCode findString: aText startingAt: interval last + 1) ~= 0 ])
+			ifTrue: [ self error: (self class textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod) ].
+
+	^interval
 ! !
 
 !MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
@@ -2983,11 +3020,32 @@ classNotFoundErrorDescriptionFor: aClassName
 	^'Class not found: ', aClassName
 ! !
 
+!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:28 pm (UTC)'!
+textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod
+
+	^'Text found more than once in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector,
+		', send the interval instead: ', aText
+! !
+
+!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:23 pm (UTC)'!
+textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
+
+	^'Text not found in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector, ': ', aText
+! !
+
 !MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
 unknownScopeErrorDescriptionFor: aScopeName
 
 	^'Unknown scope: ', aScopeName
 ! !
+
+!MCPRefactoringToolGroup class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 3:35:39 pm (UTC)'!
+scopePropertyName
+
+	"The name a client sends the scope under. A package that adds a scope of its own reads it
+	from the arguments by this name and not by a text of its own."
+
+	^'scope'! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 27/Aug/2026, 11:48:25 am (UTC)'!
 extractMethodFrom: aMethodReference at: anInterval to: aMessage replacing: aReplacing
@@ -3069,39 +3127,6 @@ extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval repla
 			ifTrue: [ ExtractToTemporary named: aVariableName intervals: finder replacements from: aMethodReference ]
 			ifFalse: [ ExtractToTemporary named: aVariableName at: finder originalSelectionReplacement from: aMethodReference ])
 		reportingNewSourceOf: aMethodReference
-! !
-
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
-firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
-
-	"Answer the piece of source a refactoring works on: the interval when a client sends one,
-	and otherwise where aText is first said in the source of the method. It is answered as a
-	SourceCodeInterval because that is what the refactorings ask to trim and to expand."
-
-	| firstOccurrence |
-
-	aStart isEmpty ifFalse: [ ^(aStart asNumber to: aStop asNumber) asSourceCodeInterval ].
-
-	firstOccurrence := aCompiledMethod sourceCode findString: aText startingAt: 1.
-	firstOccurrence = 0 ifTrue: [ self error: (self class textNotFoundErrorDescriptionFor: aText in: aCompiledMethod) ].
-
-	^(firstOccurrence to: firstOccurrence + aText size - 1) asSourceCodeInterval! !
-
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
-intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
-
-	"Answer the piece of source a refactoring works on, refusing a text the method says more
-	than once instead of picking one of them. A refactoring that means to work on all of them
-	asks for the first one instead."
-
-	| interval |
-
-	interval := self firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop.
-	(aStart isEmpty
-		and: [ (aCompiledMethod sourceCode findString: aText startingAt: interval last + 1) ~= 0 ])
-			ifTrue: [ self error: (self class textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod) ].
-
-	^interval
 ! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
@@ -3729,19 +3754,6 @@ noMessageSendErrorDescriptionIn: aCompiledMethod at: anIndex
 
 	^'No message send at character ', anIndex printString, ' of ',
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
-! !
-
-!MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
-textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod
-
-	^'Text found more than once in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector,
-		', send the interval instead: ', aText
-! !
-
-!MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
-textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
-
-	^'Text not found in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector, ': ', aText
 ! !
 
 !MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!

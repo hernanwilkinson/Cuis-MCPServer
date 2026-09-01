@@ -214,6 +214,10 @@ subclasses `MCPToolDecorator`, says which tool it decorates, and a server wraps 
 once every tool is in place — the same way a package that has tools subclasses `MCPToolGroup`. A
 decorator whose tool is not loaded decorates nothing.
 
+A decorator does not have to add to what a tool answers: it can answer something else when the
+request asks for it. That is how the actual scope of LiveTyping reaches the refactoring tools —
+see [The actual scope](#the-actual-scope).
+
 `MCPServerLiveTyping` uses it four times. With LiveTyping loaded, `smalltalk_method_source`
 answers `returns` and `variables` next to `source`, holding the classes LiveTyping saw the method
 answer and its variables hold — its parameters and temporaries along with the instance variables
@@ -269,6 +273,37 @@ belongs to — though a class category tree does not always have a package of it
 
 The scope matters most where the type does not say who the receiver is: two unrelated classes can
 implement the same selector, and renaming it across the image renames both.
+
+#### The actual scope
+
+With LiveTyping loaded there is one more: `actual`, the scope it saw while the image ran. Only the
+sends that really reached an object of the class that implements the selector are changed, and a
+send of the same name to anything else is left alone — which no other scope can tell apart. It
+needs `className`, and takes `keepingPossibleSends` for the sends LiveTyping could only guess at.
+
+`MCPServerLiveTypingRefactorings` and `MCPServerExtraLiveTypingRefactorings` add it by decorating
+the refactoring tools that already work over a scope, so `smalltalk_refactor_rename_selector`,
+`smalltalk_refactor_change_keywords_order`, `smalltalk_refactor_remove_parameter`,
+`smalltalk_refactor_add_parameter`, `smalltalk_refactor_extract_as_parameter` and
+`smalltalk_refactor_extract_parameter_object` take `actual` like any other value. Two tools that
+work over no scope of their own are given one: `smalltalk_refactor_inline_method` inlines every
+send LiveTyping saw instead of the one it is told about, and
+`smalltalk_refactor_move_instance_variable` and `smalltalk_refactor_move_method` move to the class
+LiveTyping saw the variable they are reached through hold, so `targetClassName` is not needed.
+
+Each of them is also offered on its own, so that what the two of them change can be compared:
+
+| Tool | |
+| --- | --- |
+| `smalltalk_refactor_rename_selector_in_actual_scope` | Rename a selector |
+| `smalltalk_refactor_change_keywords_order_in_actual_scope` | Reorder the keywords of a selector |
+| `smalltalk_refactor_remove_parameter_in_actual_scope` | Remove a parameter |
+| `smalltalk_refactor_add_parameter_in_actual_scope` | Add a parameter |
+| `smalltalk_refactor_extract_as_parameter_in_actual_scope` | Turn a piece of a method into a parameter |
+| `smalltalk_refactor_inline_method_in_actual_scope` | Replace every send by what the method does |
+| `smalltalk_refactor_extract_parameter_object_in_actual_scope` | Gather parameters into an object of a new class |
+| `smalltalk_refactor_move_instance_variable_in_actual_scope` | Move an instance variable to the class LiveTyping saw |
+| `smalltalk_refactor_move_method_in_actual_scope` | Move a method to the class LiveTyping saw |
 
 ### Packages
 
