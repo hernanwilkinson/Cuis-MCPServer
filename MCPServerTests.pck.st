@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:42:21 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerTests' 1 50!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 12:32:21 pm'!
+'Description Act on the code packages through tools of their own'!
+!provides: 'MCPServerTests' 1 51!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -74,6 +74,16 @@ MCPToolsTest subclass: #MCPModelStructureToolsTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPModelStructureToolsTest class' category: #MCPServerTests!
 MCPModelStructureToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPPackageToolsTest category: #MCPServerTests!
+MCPToolsTest subclass: #MCPPackageToolsTest
+	instanceVariableNames: 'testPackage testDirectory'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPPackageToolsTest class' category: #MCPServerTests!
+MCPPackageToolsTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPRefactoringToolsTest category: #MCPServerTests!
@@ -166,6 +176,11 @@ My tearDown always finishes the session, so a test that fails does not leave a d
 
 !MCPModelStructureToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of MCPMetamodelTools, which read and change classes, their categories, their hierarchy and their methods.!
+
+!MCPPackageToolsTest commentStamp: '<historical>' prior: 0!
+I test the tools that act on the code packages of the image.
+
+I work on a package of my own, named after the class category these tests create their classes in, so that what it holds is what a test creates and no package of the image is touched, and I write it to a directory of my own that I take away afterwards.!
 
 !MCPRefactoringToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of MCPRefactoringTools, the refactorings that come with the image.!
@@ -1184,6 +1199,238 @@ testDeleteMethodRemovesTheMethodFromTheClass
 		(self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'saludo').
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
+
+!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 1/Sep/2026, 2:15:52 pm (UTC)'!
+setUp
+
+	"The package these tests act on is registered like any other, so the tools find it the way
+	they find the ones the image was loaded with, and it is taken away in tearDown."
+
+	super setUp.
+	testDirectory := DirectoryEntry currentDirectory / self class directoryNameOfTestData.
+	testDirectory assureExistence.
+	testPackage := CodePackage new packageName: self class packageNameOfTestData.
+	CodePackage register: testPackage! !
+
+!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 1/Sep/2026, 2:03:28 pm (UTC)'!
+tearDown
+
+	"The package goes before my superclass empties the class category, so that taking its
+	classes away is not noted as a change of a package the image still holds."
+
+	CodePackage deregister: testPackage.
+	testDirectory recursiveDelete.
+	super tearDown! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:50 pm (UTC)'!
+changeDescriptionTo: aDescription
+
+	^self jsonAnswerOf: MCPPackageTools changePackageDescriptionToolName
+		with: (self
+			arguments: 'packageName' being: self class packageNameOfTestData
+			and: 'description' being: aDescription)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:37 pm (UTC)'!
+definitionOfTestPackage
+
+	^self jsonAnswerOf: MCPPackageTools packageDefinitionToolName with: self testPackageArgument! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:59 pm (UTC)'!
+fileNameOfTestPackage
+
+	^(testDirectory // testPackage packageFileName) pathName! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:04 pm (UTC)'!
+nameTheFileOfTestPackage: aFileName
+
+	^client callTool: MCPPackageTools changePackageFileNameToolName
+		with: (self
+			arguments: 'packageName' being: self class packageNameOfTestData
+			and: 'fileName' being: aFileName)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:13 pm (UTC)'!
+packageOfClassNamed: aClassName
+
+	^client callTool: MCPPackageTools packageOfClassToolName
+		with: (self arguments: 'className' being: aClassName)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:18 pm (UTC)'!
+packageOfMethod: aSelector of: aClassName
+
+	^client callTool: MCPPackageTools packageOfMethodToolName
+		with: (self arguments: 'className' being: aClassName and: 'selector' being: aSelector)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:41 pm (UTC)'!
+packagesNamedStartingWith: aPrefix
+
+	^self jsonAnswerOf: MCPPackageTools listPackagesToolName
+		with: (self arguments: 'prefix' being: aPrefix)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:55 pm (UTC)'!
+require: someRequiredPackageNames
+
+	^self jsonAnswerOf: MCPPackageTools changePackageRequirementsToolName
+		with: (self
+			arguments: 'packageName' being: self class packageNameOfTestData
+			and: 'requiredPackageNames' being: someRequiredPackageNames)! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:09 pm (UTC)'!
+saveTestPackage
+
+	^client callTool: MCPPackageTools savePackageToolName with: self testPackageArgument! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:32 pm (UTC)'!
+testPackageArgument
+
+	^self arguments: 'packageName' being: self class packageNameOfTestData! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:45 pm (UTC)'!
+unsavedPackageNames
+
+	^Json readFrom: (self answerOf: MCPPackageTools unsavedPackagesToolName) readStream! !
+
+!MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 1/Sep/2026, 2:04:28 pm (UTC)'!
+testListingThePackagesLeavesOutTheOnesNotNamedWithThePrefix
+
+	| listedNames |
+
+	listedNames := (self packagesNamedStartingWith: 'MCPServer')
+		collect: [ :eachPackage | eachPackage at: 'name' ].
+
+	self assert: (listedNames includes: 'MCPServer').
+	self deny: (listedNames includes: self class packageNameOfTestData)! !
+
+!MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 1/Sep/2026, 2:04:23 pm (UTC)'!
+testListingThePackagesSaysWhatEachOneIsAndWhetherItHasChangesToWriteOut
+
+	| listed |
+
+	listed := self packagesNamedStartingWith: self class packageNameOfTestData.
+
+	self assert: listed size equals: 1.
+	self assert: (listed first at: 'name') equals: self class packageNameOfTestData.
+	self assert: (listed first at: 'description') equals: ''.
+	self deny: (listed first at: 'hasUnsavedChanges')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - reading a package' stamp: 'HAW 1/Sep/2026, 2:04:40 pm (UTC)'!
+testAPackageThatIsNotInstalledIsReported
+
+	self
+		should: [ client
+			callTool: MCPPackageTools packageDefinitionToolName
+			with: (self arguments: 'packageName' being: 'NoSuchPackageAtAll') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPCodePackageProperty packageNotFoundErrorDescriptionFor: 'NoSuchPackageAtAll'))! !
+
+!MCPPackageToolsTest methodsFor: 'tests - reading a package' stamp: 'HAW 1/Sep/2026, 2:04:35 pm (UTC)'!
+testThePackageDefinitionSaysWhatItRequiresAndWhatItHolds
+
+	| definition |
+
+	self defineTestSubjectClass.
+	self require: 'JSON, WebClient'.
+	definition := self definitionOfTestPackage.
+
+	self assert: (definition at: 'name') equals: self class packageNameOfTestData.
+	self assert: (definition at: 'requires') equals: #('JSON' 'WebClient').
+	self assert: (definition at: 'systemCategories') equals: { self class classCategoryOfTestData }.
+	self assert: (definition at: 'classes') equals: #('MCPTestSubject')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - changing a package' stamp: 'HAW 1/Sep/2026, 2:04:55 pm (UTC)'!
+testAPackageCanBeLeftRequiringNothing
+
+	self require: 'JSON'.
+
+	self assert: (self require: '') equals: #()! !
+
+!MCPPackageToolsTest methodsFor: 'tests - changing a package' stamp: 'HAW 1/Sep/2026, 2:04:45 pm (UTC)'!
+testChangingTheDescriptionLeavesThePackageWithChangesToWriteOut
+
+	| changed |
+
+	changed := self changeDescriptionTo: 'What this package is for'.
+
+	self assert: (changed at: 'description') equals: 'What this package is for'.
+	self assert: (changed at: 'hasUnsavedChanges').
+	self assert: (self unsavedPackageNames includes: self class packageNameOfTestData)! !
+
+!MCPPackageToolsTest methodsFor: 'tests - changing a package' stamp: 'HAW 1/Sep/2026, 2:04:50 pm (UTC)'!
+testChangingTheRequirementsReplacesTheOnesItHad
+
+	self require: 'JSON, WebClient'.
+
+	self assert: (self require: 'OSProcess') equals: #('OSProcess').
+	self assert: (self definitionOfTestPackage at: 'requires') equals: #('OSProcess')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:15:59 pm (UTC)'!
+testAPackageIsNotNamedAFileInADirectoryThatIsNotThere
+
+	| fileName |
+
+	fileName := (testDirectory / 'notThere' // testPackage packageFileName) pathName.
+
+	self
+		should: [ self nameTheFileOfTestPackage: fileName ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPPackageTools directoryDoesNotExistErrorDescriptionFor: fileName))! !
+
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:05:06 pm (UTC)'!
+testAPackageThatDoesNotKnowItsFileIsNotSaved
+
+	"A package that does not know its file asks on screen where to write itself, which no
+	request can answer, so it has to be reported instead of asked."
+
+	self
+		should: [ self saveTestPackage ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPPackageTools doesNotKnowItsFileErrorDescriptionFor: testPackage))! !
+
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:05:00 pm (UTC)'!
+testSavingAPackageWritesItToItsFileAndLeavesNothingToWriteOut
+
+	| fileName |
+
+	self defineTestSubjectClass.
+	fileName := self nameTheFileOfTestPackage: self fileNameOfTestPackage.
+
+	self assert: self saveTestPackage equals: fileName.
+	self assert: fileName asFullFileEntry exists.
+	self deny: (self definitionOfTestPackage at: 'hasUnsavedChanges').
+	self deny: (self unsavedPackageNames includes: self class packageNameOfTestData)! !
+
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 1/Sep/2026, 2:05:22 pm (UTC)'!
+testAMethodExtendingAnotherPackageBelongsToTheOneItsCategoryNames
+
+	"UISupervisor came with the image and belongs to no package, while this method of it was
+	written for MCPServer and is filed under a category naming it, which is what an extension is."
+
+	self assert: (self packageOfClassNamed: 'UISupervisor')
+		equals: MCPPackageTools notInAnyPackageDescription.
+	self assert: (self packageOfMethod: 'waitToDone:' of: 'UISupervisor class') equals: 'MCPServer'! !
+
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 1/Sep/2026, 2:05:16 pm (UTC)'!
+testTheClassOfAPackageIsAnsweredWithThatPackage
+
+	self defineTestSubjectClass.
+
+	self assert: (self packageOfClassNamed: 'MCPTestSubject')
+		equals: self class packageNameOfTestData! !
+
+!MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:17 pm (UTC)'!
+directoryNameOfTestData
+
+	^'__MCPServerTestPackages__'! !
+
+!MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:13 pm (UTC)'!
+packageNameOfTestData
+
+	"The package is named after the class category the tests create their classes in, so that
+	what it holds is what they create."
+
+	^self classCategoryOfTestData! !
 
 !MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:08:37 pm (UTC)'!
 applyRefactoring: aToolName with: anArguments

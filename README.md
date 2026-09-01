@@ -214,14 +214,17 @@ subclasses `MCPToolDecorator`, says which tool it decorates, and a server wraps 
 once every tool is in place — the same way a package that has tools subclasses `MCPToolGroup`. A
 decorator whose tool is not loaded decorates nothing.
 
-`MCPServerLiveTyping` uses it three times. With LiveTyping loaded, `smalltalk_method_source`
+`MCPServerLiveTyping` uses it four times. With LiveTyping loaded, `smalltalk_method_source`
 answers `returns` and `variables` next to `source`, holding the classes LiveTyping saw the method
-answer and its parameters and temporaries hold. `smalltalk_senders_of` answers `actual` next to
-`methods`: the ones it saw really sending the selector to an object that implements it, which in a
-dynamically typed image is a small part of everything that writes it — 165 methods write
-`classNamed:`, 4 send it to `MCPRefactoringToolGroup`. `smalltalk_implementors_of` answers `actual`
-when a class is named: the ones a send to that class could reach. Both add the `className` they
-need to the tool they decorate, so without LiveTyping the parameter is not there either.
+answer and its variables hold — its parameters and temporaries along with the instance variables
+of its class, which go together because a temporary cannot shadow an instance variable in Cuis.
+`smalltalk_class_definition` answers `instanceVariableTypes`, the classes it saw each instance
+variable of the class hold. `smalltalk_senders_of` answers `actual` next to `methods`: the ones it
+saw really sending the selector to an object that implements it, which in a dynamically typed
+image is a small part of everything that writes it — 165 methods write `classNamed:`, 4 send it to
+`MCPRefactoringToolGroup`. `smalltalk_implementors_of` answers `actual` when a class is named: the
+ones a send to that class could reach. Both add the `className` they need to the tool they
+decorate, so without LiveTyping the parameter is not there either.
 
 ### Search
 
@@ -266,6 +269,34 @@ belongs to — though a class category tree does not always have a package of it
 
 The scope matters most where the type does not say who the receiver is: two unrelated classes can
 implement the same selector, and renaming it across the image renames both.
+
+### Packages
+
+A package is what the image writes to a `.pck.st` file. These read what each one holds and change
+what it says about itself; `smalltalk_unsaved_packages` answers the ones a change left to write
+out, which is what to ask after changing code.
+
+| Tool | |
+| --- | --- |
+| `smalltalk_list_packages` | Every package with its description and whether it has changes to write out, optionally filtered by prefix |
+| `smalltalk_package_definition` | What one package describes itself as, its file, what it requires and what it holds |
+| `smalltalk_unsaved_packages` | The packages whose file does not have their changes yet |
+| `smalltalk_package_of_class` | The package a class belongs to |
+| `smalltalk_package_of_method` | The package a method belongs to |
+| `smalltalk_save_package` | Write a package to its file |
+| `smalltalk_change_package_description` | Change what a package describes itself as |
+| `smalltalk_change_package_requirements` | Replace the packages a package requires |
+| `smalltalk_change_package_file_name` | Name the file a package is written to |
+
+A package is written only when it knows its file. One that was never saved, or whose image was
+moved away from where it was saved, does not know one: asking it to save would open a dialog on
+screen that no request can answer, so `smalltalk_save_package` reports it instead, and
+`smalltalk_change_package_file_name` is how the file is named.
+
+`smalltalk_package_of_method` is not `smalltalk_package_of_class` of its class. A method filed
+under a category naming a package extends that package and belongs to it, which is how
+`UISupervisor class>>waitToDone:` belongs to `MCPServer` while `UISupervisor` came with the image
+and belongs to no package at all.
 
 ### Tests
 

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:41:58 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServer' 1 58!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 12:32:08 pm'!
+'Description Act on the code packages through tools of their own'!
+!provides: 'MCPServer' 1 59!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -197,6 +197,16 @@ MCPToolGroup subclass: #MCPModelStructureTools
 MCPModelStructureTools class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPPackageTools category: #MCPServer!
+MCPToolGroup subclass: #MCPPackageTools
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPPackageTools class' category: #MCPServer!
+MCPPackageTools class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPRefactoringToolGroup category: #MCPServer!
 MCPToolGroup subclass: #MCPRefactoringToolGroup
 	instanceVariableNames: ''
@@ -255,6 +265,16 @@ MCPToolProperty subclass: #MCPClassToolProperty
 	category: 'MCPServer'!
 !classDefinition: 'MCPClassToolProperty class' category: #MCPServer!
 MCPClassToolProperty class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPCodePackageProperty category: #MCPServer!
+MCPToolProperty subclass: #MCPCodePackageProperty
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPCodePackageProperty class' category: #MCPServer!
+MCPCodePackageProperty class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPMethodProperty category: #MCPServer!
@@ -394,6 +414,11 @@ I am the tools that act on the image itself: evaluating code in it, seeing what 
 !MCPModelStructureTools commentStamp: '<historical>' prior: 0!
 I am the tools that read and change the metamodel: classes, their categories, their hierarchy and their methods.!
 
+!MCPPackageTools commentStamp: '<historical>' prior: 0!
+I am the tools that act on the code packages of the image: what each of them holds, describes itself as and requires, which of them have changes that their file does not have yet, and writing one out.
+
+A package is saved only when it knows the file it is written to. Asking the image for that file opens a dialog on screen, which no request can answer, so a package that does not know it is reported instead of asked, and the file is named through a tool of mine.!
+
 !MCPRefactoringToolGroup commentStamp: '<historical>' prior: 0!
 I am a group of tools that apply refactorings.
 
@@ -425,6 +450,11 @@ Each tool creates the properties it takes in its own class side, in methods name
 I am the class a request names.
 
 I answer the class itself rather than its name, and I do not report a missing className as a missing property: a client that sends none is told the class was not found, which is what it was asking for.!
+
+!MCPCodePackageProperty commentStamp: '<historical>' prior: 0!
+I am the code package a request names.
+
+I answer the package itself rather than its name, so a tool that takes a package is handed the package and not the name it was found by, and a name no installed package answers to is reported as a package that was not found.!
 
 !MCPPlainToolProperty commentStamp: '<historical>' prior: 0!
 I am a property whose value is the one that came in the request, with nothing done to it.!
@@ -1768,6 +1798,14 @@ addToolsTo: anMCPServer
 
 	^self subclassResponsibility! !
 
+!MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 1/Sep/2026, 1:58:16 pm (UTC)'!
+classProperty
+
+	^MCPClassToolProperty
+		named: 'className'
+		describedBy: 'Name of the class, or of its class side as in MCPServer class'
+! !
+
 !MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 28/Aug/2026, 3:42:03 pm (UTC)'!
 namesFrom: aCommaSeparatedText
 
@@ -2243,14 +2281,6 @@ selectorsIn: aMethodCategory of: aClass
 	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
 ! !
 
-!MCPModelStructureTools methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
-classProperty
-
-	^MCPClassToolProperty
-		named: 'className'
-		describedBy: 'Name of the class, or of its class side as in MCPServer class'
-! !
-
 !MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
 
@@ -2326,6 +2356,322 @@ methodsInCategoryToolName
 subclassesToolName
 
 	^'smalltalk_subclasses'! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:35 pm (UTC)'!
+changePackageDescriptionTool
+
+	^MCPPluggableTool
+		named: self class changePackageDescriptionToolName
+		describedBy: 'Change what a package describes itself as, which is the line its file carries as its header. Changing it leaves the package with changes to write out.'
+		properties: {
+			self packageProperty.
+			MCPPlainToolProperty named: 'description' describedBy: 'What the package describes itself as' }
+		executingWith: [ :aCodePackage :aDescription |
+			aCodePackage description: aDescription.
+			Json render: (self summaryOf: aCodePackage) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:55 pm (UTC)'!
+changePackageFileNameTool
+
+	^MCPPluggableTool
+		named: self class changePackageFileNameToolName
+		describedBy: 'Name the file a package is written to, and answer it. A package that was never written, or whose image was moved away from where it was written, does not know one and cannot be saved until it is told.'
+		properties: {
+			self packageProperty.
+			MCPPlainToolProperty named: 'fileName' describedBy: 'Absolute path of the .pck.st file the package is written to' }
+		executingWith: [ :aCodePackage :aFileName | self name: aFileName asTheFileOf: aCodePackage ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:49 pm (UTC)'!
+changePackageRequirementsTool
+
+	^MCPPluggableTool
+		named: self class changePackageRequirementsToolName
+		describedBy: 'Change the packages a package requires, replacing the ones it required with the ones named, and answer what it requires now. Each requirement asks for any version.'
+		properties: {
+			self packageProperty.
+			MCPPlainToolProperty
+				named: 'requiredPackageNames'
+				describedBy: 'Names of the packages it requires, separated by commas. An empty text leaves it requiring nothing' }
+		executingWith: [ :aCodePackage :someRequiredPackageNames |
+			self require: (self namesFrom: someRequiredPackageNames) in: aCodePackage.
+			Json render: (self requirementNamesOf: aCodePackage) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:38 pm (UTC)'!
+listPackagesTool
+
+	^MCPPluggableTool
+		named: self class listPackagesToolName
+		describedBy: 'List the code packages installed in the image, each with what it describes itself as and whether it holds changes its file does not have yet, optionally filtered by prefix.'
+		properties: {
+			MCPPlainToolProperty
+				named: 'prefix'
+				describedBy: 'Optional prefix to filter package names'
+				defaultingTo: '' }
+		executingWith: [ :aPrefix |
+			Json render: ((self packagesNamedStartingWith: aPrefix)
+				collect: [ :eachPackage | self summaryOf: eachPackage ]) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:43 pm (UTC)'!
+packageDefinitionTool
+
+	^MCPPluggableTool
+		named: self class packageDefinitionToolName
+		describedBy: 'Read the definition of a code package: what it describes itself as, the file it is written to, whether the image holds changes that file does not, what it requires, and the system categories and classes it holds.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | Json render: (self definitionOf: aCodePackage) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:59:01 pm (UTC)'!
+packageOfClassTool
+
+	^MCPPluggableTool
+		named: self class packageOfClassToolName
+		describedBy: 'Answer the package a class belongs to, which is the one a change to the class leaves with changes to write out.'
+		properties: { self classProperty }
+		executingWith: [ :aClass | self nameOfPackageOf: aClass ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:59:06 pm (UTC)'!
+packageOfMethodTool
+
+	^MCPPluggableTool
+		named: self class packageOfMethodToolName
+		describedBy: 'Answer the package a method belongs to, which is the package of its class unless it is filed under a method category naming another one, as an extension of a package is.'
+		properties: { MCPMethodProperty newDefault }
+		executingWith: [ :aMethod | self nameOfPackageOfMethod: aMethod ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:29 pm (UTC)'!
+savePackageTool
+
+	^MCPPluggableTool
+		named: self class savePackageToolName
+		describedBy: 'Write a package to its file and answer the name of the file it was written to.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | self save: aCodePackage ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:57 pm (UTC)'!
+unsavedPackagesTool
+
+	^MCPPluggableTool
+		named: self class unsavedPackagesToolName
+		describedBy: 'List the packages that hold changes their file does not have yet, which are the ones a change to the image left to be written out.'
+		properties: #()
+		executingWith: [
+			Json render: (self installedPackages
+				select: [ :eachPackage | eachPackage hasUnsavedChanges ]
+				thenCollect: [ :eachPackage | eachPackage packageName ]) ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:40 pm (UTC)'!
+assertDirectoryExistsFor: aFileName
+
+	aFileName asFullFileEntry parent exists
+		ifFalse: [ self error: (self class directoryDoesNotExistErrorDescriptionFor: aFileName) ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:26 pm (UTC)'!
+assertKnowsItsFile: aCodePackage
+
+	(self knowsItsFile: aCodePackage)
+		ifFalse: [ self error: (self class doesNotKnowItsFileErrorDescriptionFor: aCodePackage) ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:18 pm (UTC)'!
+definitionOf: aCodePackage
+
+	"A package that was never written, or whose image was moved, knows no file, which is
+	answered as no file name rather than as none of the answer."
+
+	^OrderedDictionary new
+		at: 'name' put: aCodePackage packageName;
+		at: 'version' put: aCodePackage packageNameAndVersion;
+		at: 'description' put: aCodePackage description;
+		at: 'fileName' put: (aCodePackage fullFileName ifNil: [ '' ]);
+		at: 'hasUnsavedChanges' put: aCodePackage hasUnsavedChanges;
+		at: 'requires' put: (self requirementNamesOf: aCodePackage);
+		at: 'systemCategories' put: aCodePackage systemCategories asArray sorted;
+		at: 'classes' put: aCodePackage classNames asArray sorted;
+		at: 'extensionMethodCount' put: aCodePackage extensionMethodCount;
+		yourself! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:02 pm (UTC)'!
+installedPackages
+
+	"Answer every package installed in the image, sorted by name, so that the same request is
+	always answered with the same list."
+
+	^(CodePackage installedPackages values asSortedCollection: [ :onePackage :anotherPackage |
+		onePackage packageName <= anotherPackage packageName ]) asArray! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:21 pm (UTC)'!
+knowsItsFile: aCodePackage
+
+	"Answer whether aCodePackage can be written without being asked where, which is what its
+	own save looks at: a file it was named with, in a directory that is still there."
+
+	^aCodePackage fullFileName
+		ifNil: [ false ]
+		ifNotNil: [ :aFileName | aFileName asFullFileEntry parent exists ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:35 pm (UTC)'!
+name: aFileName asTheFileOf: aCodePackage
+
+	"The directory has to be there before the name is taken: a package named a file in a
+	directory that is gone asks on screen where to save itself, which is what naming it avoided."
+
+	self assertDirectoryExistsFor: aFileName.
+	aCodePackage fullFileName: aFileName.
+
+	^aFileName! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 2:00:09 pm (UTC)'!
+nameOfPackageOf: aClass
+
+	"A class no package holds - one just created, or one of the base image - is said to be in
+	none rather than signalled about: being in no package is an answer and not a failure."
+
+	^(CodePackage packageOfClass: aClass ifNone: [ nil ])
+		ifNil: [ self class notInAnyPackageDescription ]
+		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 2:00:14 pm (UTC)'!
+nameOfPackageOfMethod: aMethod
+
+	"A method is looked for by its reference and not by its class, so that a method filed under
+	a category naming another package is answered with that one and not with its class's."
+
+	^(CodePackage packageOfMethod: aMethod asMethodReference ifNone: [ nil ])
+		ifNil: [ self class notInAnyPackageDescription ]
+		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:06 pm (UTC)'!
+packagesNamedStartingWith: aPrefix
+
+	^self installedPackages select: [ :eachPackage | eachPackage packageName beginsWith: aPrefix ]! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:50 pm (UTC)'!
+require: someRequiredPackageNames in: aCodePackage
+
+	"Replace what aCodePackage requires. A feature spec is told what it provides and what it
+	requires together, so what it already provides is handed back to it untouched, and the
+	package is left with changes to write out the way changing its description leaves it."
+
+	| featureSpec |
+
+	featureSpec := aCodePackage featureSpec.
+	featureSpec
+		provides: featureSpec provides
+		requires: (someRequiredPackageNames
+			collect: [ :eachName | FeatureRequirement name: eachName asSymbol ]) asSet.
+	aCodePackage hasUnsavedChanges: true! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:23 pm (UTC)'!
+requirementNamesOf: aCodePackage
+
+	"Answer the names of the packages aCodePackage requires. A requirement also holds the
+	versions it accepts, and every package of this image accepts any of them, so the name is
+	all there is to say."
+
+	^(aCodePackage requires collect: [ :eachRequirement | eachRequirement name asString ]) asArray sorted! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:11 pm (UTC)'!
+save: aCodePackage
+
+	"Asking a package that does not know its file to save itself opens a dialog on screen asking
+	where, and a request has nobody to answer it, so it is told what is wrong instead."
+
+	self assertKnowsItsFile: aCodePackage.
+	aCodePackage save.
+
+	^aCodePackage fullFileName! !
+
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:11 pm (UTC)'!
+summaryOf: aCodePackage
+
+	"Answer what is worth knowing about a package without asking for it by name: what it is
+	called, what it is for, and whether what the image holds is in its file."
+
+	^OrderedDictionary new
+		at: 'name' put: aCodePackage packageName;
+		at: 'description' put: aCodePackage description;
+		at: 'hasUnsavedChanges' put: aCodePackage hasUnsavedChanges;
+		yourself! !
+
+!MCPPackageTools methodsFor: 'arguments' stamp: 'HAW 1/Sep/2026, 1:55:56 pm (UTC)'!
+packageProperty
+
+	^MCPCodePackageProperty
+		named: 'packageName'
+		describedBy: 'Name of the package'! !
+
+!MCPPackageTools methodsFor: 'tools' stamp: 'HAW 1/Sep/2026, 2:00:23 pm (UTC)'!
+addToolsTo: anMCPServer
+
+	anMCPServer
+		addTool: self listPackagesTool;
+		addTool: self packageDefinitionTool;
+		addTool: self unsavedPackagesTool;
+		addTool: self packageOfClassTool;
+		addTool: self packageOfMethodTool;
+		addTool: self savePackageTool;
+		addTool: self changePackageDescriptionTool;
+		addTool: self changePackageRequirementsTool;
+		addTool: self changePackageFileNameTool! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:15 pm (UTC)'!
+changePackageDescriptionToolName
+
+	^'smalltalk_change_package_description'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:23 pm (UTC)'!
+changePackageFileNameToolName
+
+	^'smalltalk_change_package_file_name'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:19 pm (UTC)'!
+changePackageRequirementsToolName
+
+	^'smalltalk_change_package_requirements'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:00 pm (UTC)'!
+listPackagesToolName
+
+	^'smalltalk_list_packages'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:03 pm (UTC)'!
+packageDefinitionToolName
+
+	^'smalltalk_package_definition'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:27 pm (UTC)'!
+packageOfClassToolName
+
+	^'smalltalk_package_of_class'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:32 pm (UTC)'!
+packageOfMethodToolName
+
+	^'smalltalk_package_of_method'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:11 pm (UTC)'!
+savePackageToolName
+
+	^'smalltalk_save_package'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:56:07 pm (UTC)'!
+unsavedPackagesToolName
+
+	^'smalltalk_unsaved_packages'! !
+
+!MCPPackageTools class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:44 pm (UTC)'!
+directoryDoesNotExistErrorDescriptionFor: aFileName
+
+	^'There is no directory to write ', aFileName, ' in'! !
+
+!MCPPackageTools class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:30 pm (UTC)'!
+doesNotKnowItsFileErrorDescriptionFor: aCodePackage
+
+	^'The package ', aCodePackage packageName, ' does not know the file to write itself to. Name it with ', self changePackageFileNameToolName, ' first'! !
+
+!MCPPackageTools class methodsFor: 'constants' stamp: 'HAW 1/Sep/2026, 2:00:18 pm (UTC)'!
+notInAnyPackageDescription
+
+	^'It is not in any package'! !
 
 !MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 apply: aRefactoring reportingNewSourceOf: aMethod
@@ -3959,6 +4305,23 @@ classNotFoundErrorDescriptionFor: aClassName
 
 	^'Class not found: ', aClassName
 ! !
+
+!MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 1/Sep/2026, 1:55:42 pm (UTC)'!
+valueFor: aPackageName
+
+	^CodePackage installedPackages
+		at: aPackageName
+		ifAbsent: [ self signalPackageNotFound: aPackageName ]! !
+
+!MCPCodePackageProperty methodsFor: 'errors' stamp: 'HAW 1/Sep/2026, 1:55:47 pm (UTC)'!
+signalPackageNotFound: aPackageName
+
+	self error: (self class packageNotFoundErrorDescriptionFor: aPackageName)! !
+
+!MCPCodePackageProperty class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:55:51 pm (UTC)'!
+packageNotFoundErrorDescriptionFor: aPackageName
+
+	^'Package not found: ', aPackageName! !
 
 !MCPMethodProperty methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
 initializeOfClass: aClassProperty andSelector: aSelectorProperty
