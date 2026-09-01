@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:59 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 5!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:45:24 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 6!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -40,10 +40,10 @@ compileProbeSending: aCallerSource
 	probeClass new mcpCaller
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 5:02:57 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 gatherFirstParameterOf: aSelector
 
-	^(self toolNamed: 'smalltalk_refactor_extract_parameter_object_in_actual_scope') valueWithArguments: (Dictionary new
+	^(self toolNamed: MCPExtraLiveTypingRefactoringTools extractParameterObjectInActualScopeToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraLiveTypingRefactoringProbe';
 		at: 'selector' put: aSelector;
 		at: 'newClassName' put: 'MCPExtraLiveTypingRefactoringParameters';
@@ -135,7 +135,7 @@ testGatheringParametersInTheActualScopeTakesThemToTheNewClass
 	self assert: (self parameterObjectClass instVarNames includes: 'first')
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -143,7 +143,7 @@ testTheToolsAreOfferedByEveryServer
 	server := MCPServer servingOver: MCPTransportMock new.
 
 	self assert: ((server toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
-		includes: 'smalltalk_refactor_extract_parameter_object_in_actual_scope')
+		includes: MCPExtraLiveTypingRefactoringTools extractParameterObjectInActualScopeToolName)
 
 ! !
 

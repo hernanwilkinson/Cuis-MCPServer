@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:38 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 8!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:44:14 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 9!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -76,11 +76,11 @@ addToolsTo: anMCPServer
 		addTool: self removeParameterInActualScopeTool;
 		addTool: self addParameterInActualScopeTool! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:57:53 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 addParameterInActualScopeTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_add_parameter_in_actual_scope'
+		named: self class addParameterInActualScopeToolName
 		describedBy: 'Add a parameter to a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
 		properties: {
 			MCPMethodProperty
@@ -117,11 +117,11 @@ addParameterInActualScopeTool
 							withPossibleMessageSends: aKeepingAnswer = 'true' ] ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 changeKeywordsOrderInActualScopeTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_change_keywords_order_in_actual_scope'
+		named: self class changeKeywordsOrderInActualScopeToolName
 		describedBy: 'Reorder the keywords of a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran.'
 		properties: {
 			MCPMethodProperty
@@ -144,11 +144,11 @@ changeKeywordsOrderInActualScopeTool
 						withPossibleMessageSends: aKeepingAnswer = 'true' ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 removeParameterInActualScopeTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_remove_parameter_in_actual_scope'
+		named: self class removeParameterInActualScopeToolName
 		describedBy: 'Remove a parameter from a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran.'
 		properties: {
 			MCPMethodProperty
@@ -173,11 +173,11 @@ removeParameterInActualScopeTool
 						withPossibleMessageSends: aKeepingAnswer = 'true' ]) ]
 ! !
 
-!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:16 pm (UTC)'!
+!MCPLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 renameSelectorInActualScopeTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_selector_in_actual_scope'
+		named: self class renameSelectorInActualScopeToolName
 		describedBy: 'Rename a selector only where it is really sent to objects of the class that implements it, as LiveTyping saw while the image ran. A send of the same name to anything else is left alone, which renaming a selector in the whole system cannot tell apart.'
 		properties: {
 			MCPMethodProperty
@@ -199,3 +199,23 @@ renameSelectorInActualScopeTool
 						senders: senders
 						withPossibleMessageSends: aKeepingAnswer = 'true' ]) ]
 ! !
+
+!MCPLiveTypingRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+addParameterInActualScopeToolName
+
+	^'smalltalk_refactor_add_parameter_in_actual_scope'! !
+
+!MCPLiveTypingRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:55 pm (UTC)'!
+changeKeywordsOrderInActualScopeToolName
+
+	^'smalltalk_refactor_change_keywords_order_in_actual_scope'! !
+
+!MCPLiveTypingRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:55 pm (UTC)'!
+removeParameterInActualScopeToolName
+
+	^'smalltalk_refactor_remove_parameter_in_actual_scope'! !
+
+!MCPLiveTypingRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:55 pm (UTC)'!
+renameSelectorInActualScopeToolName
+
+	^'smalltalk_refactor_rename_selector_in_actual_scope'! !

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:15 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerExtraRefactoring' 1 9!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:32 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerExtraRefactoring' 1 10!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -27,11 +27,11 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 extractClassTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_class'
+		named: self class extractClassToolName
 		describedBy: 'Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class to extract from'.
@@ -49,11 +49,11 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 extractParameterObjectTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_parameter_object'
+		named: self class extractParameterObjectToolName
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -82,11 +82,11 @@ extractParameterObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 extractToMethodObjectTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_to_method_object'
+		named: self class extractToMethodObjectToolName
 		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to turn into an object'.
@@ -104,11 +104,11 @@ extractToMethodObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 moveInstanceVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_move_instance_variable'
+		named: self class moveInstanceVariableToolName
 		describedBy: 'Move an instance variable to another class, which the class it is moved from reaches through an instance variable of its own.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
@@ -123,11 +123,11 @@ moveInstanceVariableTool
 				accessingThrough: anAccessingVariableName) ]
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 4:47:24 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 moveMethodTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_move_method'
+		named: self class moveMethodToolName
 		describedBy: 'Move a method to another class, which the class it is moved from reaches through an instance variable of its own. When the moved method still needs what it was moved from, it is given as a parameter named here.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
@@ -144,3 +144,28 @@ moveMethodTool
 					ifTrue: [ NonExtraParameterNameNeeded new ]
 					ifFalse: [ ExtraParameterNameNeeded parameterName: anExtraParameterName ])) ]
 ! !
+
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+extractClassToolName
+
+	^'smalltalk_refactor_extract_class'! !
+
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+extractParameterObjectToolName
+
+	^'smalltalk_refactor_extract_parameter_object'! !
+
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+extractToMethodObjectToolName
+
+	^'smalltalk_refactor_extract_to_method_object'! !
+
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+moveInstanceVariableToolName
+
+	^'smalltalk_refactor_move_instance_variable'! !
+
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+moveMethodToolName
+
+	^'smalltalk_refactor_move_method'! !

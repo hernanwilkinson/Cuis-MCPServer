@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:14:48 am'!
-'Description Call the tool that reads a class what it reads'!
-!provides: 'MCPServer' 1 57!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:41:58 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServer' 1 58!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1788,71 +1788,71 @@ isAbstract
 	^self hasSubclasses 
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerProceedTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_debugger_proceed'
+		named: self class debuggerProceedToolName
 		describedBy: 'It does a proceed on the debugger, that means running the debugging procees to the end'
 		properties: #()
 		executingWith: [ MCPDebuggingSession current proceed ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerRestartTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_debugger_restart'
+		named: self class debuggerRestartToolName
 		describedBy: 'It does a restart on the debugger, that means restarting the current execution context, that is thisContext'
 		properties: #()
 		executingWith: [ MCPDebuggingSession current restart ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerStepIntoTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_debugger_stepinto'
+		named: self class debuggerStepIntoToolName
 		describedBy: 'It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
 		properties: #()
 		executingWith: [ MCPDebuggingSession current stepInto ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerStepOverTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_debugger_stepover'
+		named: self class debuggerStepOverToolName
 		describedBy: 'It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack'
 		properties: #()
 		executingWith: [ MCPDebuggingSession current stepOver ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerThroughTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_debugger_through'
+		named: self class debuggerThroughToolName
 		describedBy: 'It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack'
 		properties: #()
 		executingWith: [ MCPDebuggingSession current through ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 evaluateToDebugOnErrorTool
 
 	^MCPEvaluateToDebugOnErrorTool
-		named: 'smalltalk_evaluate_to_debug_on_error'
+		named: self class evaluateToDebugOnErrorToolName
 		describedBy: 'Evaluate arbitrary Smalltalk code, return the result if no error, return the string ''Error: '' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.'
 		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
 
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 finishDebuggingTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_finish_debugging'
+		named: self class finishDebuggingToolName
 		describedBy: 'It clean ups all the debugging session. It should always be sent when no more debugging is needed'
 		properties: #()
 		executingWith: [ MCPDebuggingSession finishCurrent ]
@@ -1871,21 +1871,56 @@ addToolsTo: anMCPServer
 		addTool: self finishDebuggingTool
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+debuggerProceedToolName
+
+	^'smalltalk_debugger_proceed'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+debuggerRestartToolName
+
+	^'smalltalk_debugger_restart'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+debuggerStepIntoToolName
+
+	^'smalltalk_debugger_stepinto'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+debuggerStepOverToolName
+
+	^'smalltalk_debugger_stepover'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+debuggerThroughToolName
+
+	^'smalltalk_debugger_through'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:25:53 pm (UTC)'!
+evaluateToDebugOnErrorToolName
+
+	^'smalltalk_evaluate_to_debug_on_error'! !
+
+!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+finishDebuggingToolName
+
+	^'smalltalk_finish_debugging'! !
+
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 evaluateTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_evaluate'
+		named: self class evaluateToolName
 		describedBy: 'Evaluate arbitrary Smalltalk code and return the result.'
 		properties: { MCPPlainToolProperty named: 'code' describedBy: 'Smalltalk code to evaluate' }
 		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 saveImageTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_save_image'
+		named: self class saveImageToolName
 		describedBy: 'Save the Smalltalk image to disk.'
 		properties: #()
 		executingWith: [
@@ -1894,11 +1929,11 @@ saveImageTool
 			'Image saved: ', smalltalk imageName ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 screenshotTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_screenshot'
+		named: self class screenshotToolName
 		describedBy: 'Write what the image looks like right now to a JPEG file and answer the name of the file, so that a change to something on screen can be looked at instead of guessed at.'
 		properties: { MCPPlainToolProperty named: 'fileName' describedBy: 'Absolute path of the JPEG file to write' }
 		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
@@ -1925,40 +1960,55 @@ addToolsTo: anMCPServer
 		addTool: self saveImageTool
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 12:13:35 pm (UTC)'!
+!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+evaluateToolName
+
+	^'smalltalk_evaluate'! !
+
+!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+saveImageToolName
+
+	^'smalltalk_save_image'! !
+
+!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+screenshotToolName
+
+	^'smalltalk_screenshot'! !
+
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 classDefinitionTool
 
 	^MCPClassDefinitionTool
-		named: 'smalltalk_class_definition'
+		named: self class classDefinitionToolName
 		describedBy: 'Read the definition of a class: its superclass, its instance and class variables, its selectors and its comment.'
 		properties: { self classProperty }! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 classOrganizationTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_class_organization'
+		named: self class classOrganizationToolName
 		describedBy: 'List the method categories of a class, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.'
 		properties: { self classProperty }
 		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 classesInCategoryTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_classes_in_category'
+		named: self class classesInCategoryToolName
 		describedBy: 'List all classes in a specific category.'
 		properties: { MCPPlainToolProperty named: 'category' describedBy: 'Name of the category' }
 		executingWith: [ :aCategory |
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:41:17 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 classifyMethodsTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_classify_methods'
+		named: self class classifyMethodsToolName
 		describedBy: 'File methods of a class under a method category, making the category when the class does not have it yet and taking away the ones they left behind when nothing else is filed under them. Answers where each method was filed before, which is what nothing says once it has moved.'
 		properties: {
 			self classProperty.
@@ -1967,23 +2017,23 @@ classifyMethodsTool
 		executingWith: [ :aClass :someSelectors :aMethodCategory |
 			self classify: someSelectors of: aClass under: aMethodCategory ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 defineClassTool
 
 	"The definition a request carries is parsed and judged before it is evaluated, which is more
 	than a block should hold, so this tool is a class of its own."
 
 	^MCPDefineClassTool
-		named: 'smalltalk_define_class'
+		named: self class defineClassToolName
 		describedBy: 'Define a new class or modify an existing class definition.'
 		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 11:30:33 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 defineMethodTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_define_method'
+		named: self class defineMethodToolName
 		describedBy: 'Define or modify a method on a class.'
 		properties: {
 			self classProperty.
@@ -1996,11 +2046,11 @@ defineMethodTool
 			aClass compile: aSource classified: aMethodCategory.
 			'Method defined successfully' ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 deleteClassTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_delete_class'
+		named: self class deleteClassToolName
 		describedBy: 'Remove a class from the system.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class to remove' }
 		executingWith: [ :aClass |
@@ -2008,11 +2058,11 @@ deleteClassTool
 			'Class deleted successfully' ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 deleteMethodTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_delete_method'
+		named: self class deleteMethodToolName
 		describedBy: 'Remove a method from a class.'
 		properties: { MCPMethodProperty selectorDescribedBy: 'Selector of the method to remove' }
 		executingWith: [ :aMethod |
@@ -2020,32 +2070,32 @@ deleteMethodTool
 			'Method deleted successfully' ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 hierarchyTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_hierarchy'
+		named: self class hierarchyToolName
 		describedBy: 'Get the inheritance hierarchy for a class (from Object down to the class).'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass |
 			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 listCategoriesTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_list_categories'
+		named: self class listCategoriesToolName
 		describedBy: 'List all system categories.'
 		properties: #()
 		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 listClassesTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_list_classes'
+		named: self class listClassesToolName
 		describedBy: 'List all classes in the system, optionally filtered by prefix.'
 		properties: {
 			MCPPlainToolProperty
@@ -2058,22 +2108,22 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 methodSourceTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_method_source'
+		named: self class methodSourceToolName
 		describedBy: 'Get the source code of a specific method, as the source field of the answer.'
 		properties: { MCPMethodProperty newDefault }
 		executingWith: [ :aMethod |
 			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 methodsInCategoryTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_methods_in_category'
+		named: self class methodsInCategoryToolName
 		describedBy: 'List the selectors a class files under one of its method categories. Name the class side the way it prints, as in MCPServer class.'
 		properties: {
 			self classProperty.
@@ -2082,11 +2132,11 @@ methodsInCategoryTool
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 subclassesTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_subclasses'
+		named: self class subclassesToolName
 		describedBy: 'Get the direct subclasses of a class.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass |
@@ -2206,6 +2256,76 @@ methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
 
 	^'Method category not found: ', aMethodCategory, ' in ', aClass name
 ! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+classDefinitionToolName
+
+	^'smalltalk_class_definition'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+classOrganizationToolName
+
+	^'smalltalk_class_organization'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+classesInCategoryToolName
+
+	^'smalltalk_classes_in_category'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+classifyMethodsToolName
+
+	^'smalltalk_classify_methods'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+defineClassToolName
+
+	^'smalltalk_define_class'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+defineMethodToolName
+
+	^'smalltalk_define_method'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+deleteClassToolName
+
+	^'smalltalk_delete_class'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+deleteMethodToolName
+
+	^'smalltalk_delete_method'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+hierarchyToolName
+
+	^'smalltalk_hierarchy'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+listCategoriesToolName
+
+	^'smalltalk_list_categories'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+listClassesToolName
+
+	^'smalltalk_list_classes'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+methodSourceToolName
+
+	^'smalltalk_method_source'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+methodsInCategoryToolName
+
+	^'smalltalk_methods_in_category'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
+subclassesToolName
+
+	^'smalltalk_subclasses'! !
 
 !MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
 apply: aRefactoring reportingNewSourceOf: aMethod
@@ -2785,11 +2905,11 @@ addToolsTo: anMCPServer
 		addTemporaryRefactoringToolsTo: anMCPServer;
 		addExtractionRefactoringToolsTo: anMCPServer! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 10:51:13 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 addInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_add_instance_variable'
+		named: self class addInstanceVariableRefactoringToolName
 		describedBy: 'Add an instance variable to a class.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2798,11 +2918,11 @@ addInstanceVariableRefactoringTool
 			self applyReportingChangedClass: (AddInstanceVariable named: aVariableName to: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 pushDownInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_push_down_instance_variable'
+		named: self class pushDownInstanceVariableRefactoringToolName
 		describedBy: 'Move an instance variable of a class down to its subclasses.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2811,11 +2931,11 @@ pushDownInstanceVariableRefactoringTool
 			self applyReportingChangedClasses: (PushDownInstanceVariable named: aVariableName from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 pushUpInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_push_up_instance_variable'
+		named: self class pushUpInstanceVariableRefactoringToolName
 		describedBy: 'Move an instance variable of a class up to its superclass.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2824,11 +2944,11 @@ pushUpInstanceVariableRefactoringTool
 			self applyReportingChangedClasses: (PushUpInstanceVariable named: aVariableName from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 10:51:13 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 removeInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_remove_instance_variable'
+		named: self class removeInstanceVariableRefactoringToolName
 		describedBy: 'Remove an instance variable from a class.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2838,22 +2958,22 @@ removeInstanceVariableRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 removeUnreferencedInstanceVariablesRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_remove_unreferenced_instance_variables'
+		named: self class removeUnreferencedInstanceVariablesRefactoringToolName
 		describedBy: 'Remove every instance variable of a class that no method reads or writes.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass |
 			self applyReportingRemovedVariables: (RemoveAllUnreferencedInstanceVariables from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 renameInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_instance_variable'
+		named: self class renameInstanceVariableRefactoringToolName
 		describedBy: 'Rename an instance variable of a class, in every method that uses it.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2863,11 +2983,11 @@ renameInstanceVariableRefactoringTool
 			self applyReportingChanges: (RenameInstanceVariable from: aVariableName to: aNewVariableName in: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 insertSuperclassRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_insert_superclass'
+		named: self class insertSuperclassRefactoringToolName
 		describedBy: 'Insert a new class between a class and its superclass.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2876,11 +2996,11 @@ insertSuperclassRefactoringTool
 			self applyReportingNewClass: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 renameClassRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_class'
+		named: self class renameClassRefactoringToolName
 		describedBy: 'Rename a class, in every method that names it.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -2889,11 +3009,11 @@ renameClassRefactoringTool
 			self applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: Smalltalk undeclared: Undeclared) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 renameGlobalRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_global'
+		named: self class renameGlobalRefactoringToolName
 		describedBy: 'Rename a global, in every method that names it.'
 		properties: {
 			MCPPlainToolProperty named: 'globalName' describedBy: 'Name of the global to rename'.
@@ -2902,22 +3022,22 @@ renameGlobalRefactoringTool
 			self applyReportingChanges: (RenameGlobal from: aGlobalName asSymbol to: aNewGlobalName asSymbol in: smalltalk) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 26/Aug/2026, 4:23:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 safelyRemoveClassRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_safely_remove_class'
+		named: self class safelyRemoveClassRefactoringToolName
 		describedBy: 'Remove a class, refusing when something still refers to it.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass | self applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 addParameterRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_add_parameter'
+		named: self class addParameterRefactoringToolName
 		describedBy: 'Add a parameter to a selector, giving every sender the scope takes in the value to pass. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
 		properties: {
 			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to add the parameter to' valuedWith: [ :aSelector | aSelector asSymbol ].
@@ -2950,11 +3070,11 @@ addParameterRefactoringTool
 							senders: senders ] ]) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 changeKeywordsOrderRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_change_keywords_order'
+		named: self class changeKeywordsOrderRefactoringToolName
 		describedBy: 'Reorder the keywords of a selector, moving the arguments of every sender the scope takes in with them.'
 		properties: {
 			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to reorder' valuedWith: [ :aSelector | aSelector asSymbol ].
@@ -2970,11 +3090,11 @@ changeKeywordsOrderRefactoringTool
 					ChangeKeywordsSelectorOrder from: aSelector to: aNewSelector implementors: implementors senders: senders ]) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 removeParameterRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_remove_parameter'
+		named: self class removeParameterRefactoringToolName
 		describedBy: 'Remove a parameter from a selector, in the implementors and the senders the scope takes in. It is refused when an implementor still uses the parameter.'
 		properties: {
 			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector to remove the parameter from' valuedWith: [ :aSelector | aSelector asSymbol ].
@@ -2996,11 +3116,11 @@ removeParameterRefactoringTool
 						senders: senders ]) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 renameSelectorRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_selector'
+		named: self class renameSelectorRefactoringToolName
 		describedBy: 'Rename a selector, in the implementors and the senders the scope takes in.'
 		properties: {
 			MCPPluggableToolProperty
@@ -3022,32 +3142,32 @@ renameSelectorRefactoringTool
 					RenameSelector from: aSelector to: aNewSelector implementors: implementors senders: senders ]) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 addAsSubclassResponsibilityRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_add_as_subclass_responsibility'
+		named: self class addAsSubclassResponsibilityRefactoringToolName
 		describedBy: 'Declare a method of a class as the responsibility of its subclasses, adding it to the superclass as a subclassResponsibility.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method' }
 		executingWith: [ :aMethod | self applyReportingChanges: (AddAsSubclassResponsibility for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 moveToInstanceOrClassMethodRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_move_to_instance_or_class_method'
+		named: self class moveToInstanceOrClassMethodRefactoringToolName
 		describedBy: 'Move a method from the instance side of a class to its class side, or back.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to move' }
 		executingWith: [ :aMethod | self applyReportingChanges: (MoveToInstanceOrClassMethod for: aMethod) ]
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 pushDownMethodToOneSubclassRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_push_down_method_to_one_subclass'
+		named: self class pushDownMethodToOneSubclassRefactoringToolName
 		describedBy: 'Move a method down into one subclass of the class that implements it.'
 		properties: {
 			MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push down'.
@@ -3056,21 +3176,21 @@ pushDownMethodToOneSubclassRefactoringTool
 			self applyReportingChanges: (PushDownMethodToOneSubclass for: aMethod to: aSubclass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 pushDownMethodToSubclassesRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_push_down_method_to_subclasses'
+		named: self class pushDownMethodToSubclassesRefactoringToolName
 		describedBy: 'Copy a method down into every subclass of the class that implements it.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push down' }
 		executingWith: [ :aMethod | self applyReportingChanges: (PushDownMethodToSubclasses for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 pushUpMethodRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_push_up_method'
+		named: self class pushUpMethodRefactoringToolName
 		describedBy: 'Move a method up to the superclass of the class that implements it.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push up' }
 		executingWith: [ :aMethod |
@@ -3080,11 +3200,11 @@ pushUpMethodRefactoringTool
 				pushingUp: OrderedCollection new) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 4:16:56 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 inlineTemporaryVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_inline_temporary_variable'
+		named: self class inlineTemporaryVariableRefactoringToolName
 		describedBy: 'Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -3101,11 +3221,11 @@ inlineTemporaryVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 renameTemporaryRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_rename_temporary'
+		named: self class renameTemporaryRefactoringToolName
 		describedBy: 'Rename a temporary or an argument of a method, in every use it has inside it.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -3121,11 +3241,11 @@ renameTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 temporaryToInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_temporary_to_instance_variable'
+		named: self class temporaryToInstanceVariableRefactoringToolName
 		describedBy: 'Turn a temporary of a method into an instance variable of its class.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -3136,11 +3256,11 @@ temporaryToInstanceVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 extractAsParameterRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_as_parameter'
+		named: self class extractAsParameterRefactoringToolName
 		describedBy: 'Turn a piece of a method into a parameter of it, giving every sender the scope takes in the piece to pass. The piece is named by the text it is written with, or by the interval it occupies.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -3164,11 +3284,11 @@ extractAsParameterRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 25/Aug/2026, 11:03:06 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 extractMethodFromSimilarCodeRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_method_from_similar_code'
+		named: self class extractMethodFromSimilarCodeRefactoringToolName
 		describedBy: 'Extract a piece of a method into a method of its own and send it wherever code like it is written, whatever differs between them becoming a parameter of it. Unlike extracting a method, the code it replaces is not the same as the piece named, so the new selector takes one keyword for each part that varies.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to extract from'.
@@ -3184,11 +3304,11 @@ extractMethodFromSimilarCodeRefactoringTool
 				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 extractMethodRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_method'
+		named: self class extractMethodRefactoringToolName
 		describedBy: 'Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced, and how far it is looked for is what replacing says.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to extract from'.
@@ -3206,11 +3326,11 @@ extractMethodRefactoringTool
 				replacing: aReplacing ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 26/Aug/2026, 3:50:04 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 extractToTemporaryRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_to_temporary'
+		named: self class extractToTemporaryRefactoringToolName
 		describedBy: 'Extract a piece of a method into a temporary of it. The piece is named by the text it is written with, or by the interval it occupies. Replacing all of them replaces every piece that is the same expression, which is found in the parse tree and so does not include a comment or a string saying the same.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -3232,11 +3352,11 @@ extractToTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 26/Aug/2026, 4:00:15 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 inlineMethodRefactoringTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_inline_method'
+		named: self class inlineMethodRefactoringToolName
 		describedBy: 'Replace a send of a method by what the method does. The send is named by the method it is written in and by the text of its selector there, or by the interval that selector occupies. The text has to fall on the selector of the send and not on its receiver.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to inline'.
@@ -3284,11 +3404,146 @@ unknownReplacingErrorDescriptionFor: aReplacing
 	^'Unknown replacing: ', aReplacing, '. It is one of selection, method, class or hierarchy'
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+addAsSubclassResponsibilityRefactoringToolName
+
+	^'smalltalk_refactor_add_as_subclass_responsibility'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+addInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_add_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+addParameterRefactoringToolName
+
+	^'smalltalk_refactor_add_parameter'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+changeKeywordsOrderRefactoringToolName
+
+	^'smalltalk_refactor_change_keywords_order'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+extractAsParameterRefactoringToolName
+
+	^'smalltalk_refactor_extract_as_parameter'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+extractMethodFromSimilarCodeRefactoringToolName
+
+	^'smalltalk_refactor_extract_method_from_similar_code'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+extractMethodRefactoringToolName
+
+	^'smalltalk_refactor_extract_method'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+extractToTemporaryRefactoringToolName
+
+	^'smalltalk_refactor_extract_to_temporary'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+inlineMethodRefactoringToolName
+
+	^'smalltalk_refactor_inline_method'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+inlineTemporaryVariableRefactoringToolName
+
+	^'smalltalk_refactor_inline_temporary_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+insertSuperclassRefactoringToolName
+
+	^'smalltalk_refactor_insert_superclass'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+moveToInstanceOrClassMethodRefactoringToolName
+
+	^'smalltalk_refactor_move_to_instance_or_class_method'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+pushDownInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_push_down_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+pushDownMethodToOneSubclassRefactoringToolName
+
+	^'smalltalk_refactor_push_down_method_to_one_subclass'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+pushDownMethodToSubclassesRefactoringToolName
+
+	^'smalltalk_refactor_push_down_method_to_subclasses'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+pushUpInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_push_up_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+pushUpMethodRefactoringToolName
+
+	^'smalltalk_refactor_push_up_method'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+removeInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_remove_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+removeParameterRefactoringToolName
+
+	^'smalltalk_refactor_remove_parameter'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+removeUnreferencedInstanceVariablesRefactoringToolName
+
+	^'smalltalk_refactor_remove_unreferenced_instance_variables'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+renameClassRefactoringToolName
+
+	^'smalltalk_refactor_rename_class'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+renameGlobalRefactoringToolName
+
+	^'smalltalk_refactor_rename_global'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+renameInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_rename_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+renameSelectorRefactoringToolName
+
+	^'smalltalk_refactor_rename_selector'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+renameTemporaryRefactoringToolName
+
+	^'smalltalk_refactor_rename_temporary'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+safelyRemoveClassRefactoringToolName
+
+	^'smalltalk_refactor_safely_remove_class'! !
+
+!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+temporaryToInstanceVariableRefactoringToolName
+
+	^'smalltalk_refactor_temporary_to_instance_variable'! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 implementorsOfTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_implementors_of'
+		named: self class implementorsOfToolName
 		describedBy: 'List the methods that implement a selector, in the methods field of the answer.'
 		properties: {
 			MCPPluggableToolProperty
@@ -3298,21 +3553,21 @@ implementorsOfTool
 		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 referencesToClassTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_references_to_class'
+		named: self class referencesToClassToolName
 		describedBy: 'List the methods that refer to a class.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 referencesToClassVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_references_to_class_variable'
+		named: self class referencesToClassVariableToolName
 		describedBy: 'List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -3324,11 +3579,11 @@ referencesToClassVariableTool
 			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 referencesToInstanceVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_references_to_instance_variable'
+		named: self class referencesToInstanceVariableToolName
 		describedBy: 'List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class'.
@@ -3356,21 +3611,21 @@ renderSelectors: someSelectors
 	^Json render: (someSelectors collect: [ :eachSelector | eachSelector asString ])
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 searchSelectorsTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_search_selectors'
+		named: self class searchSelectorsToolName
 		describedBy: 'List the selectors that contain a text, which tells whether a message doing what is about to be written already has a name. A * in the text matches any text and a # any character, and several texts can be sent separated by semicolons.'
 		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the selector contains' }
 		executingWith: [ :aText | self renderSelectors: (self selectorsContaining: aText) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 searchSourceTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_search_source'
+		named: self class searchSourceToolName
 		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
 		properties: { MCPPlainToolProperty named: 'text' describedBy: 'Text the source code contains' }
 		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
@@ -3387,11 +3642,11 @@ selectorsContaining: aText
 	^messageNames computeSelectorListFromSearchString
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 sendersOfTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_senders_of'
+		named: self class sendersOfToolName
 		describedBy: 'List the methods that send a selector, in the methods field of the answer. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.'
 		properties: {
 			MCPPluggableToolProperty
@@ -3413,6 +3668,41 @@ addToolsTo: anMCPServer
 		addTool: self searchSourceTool;
 		addTool: self searchSelectorsTool! !
 
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+implementorsOfToolName
+
+	^'smalltalk_implementors_of'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+referencesToClassToolName
+
+	^'smalltalk_references_to_class'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+referencesToClassVariableToolName
+
+	^'smalltalk_references_to_class_variable'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+referencesToInstanceVariableToolName
+
+	^'smalltalk_references_to_instance_variable'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+searchSelectorsToolName
+
+	^'smalltalk_search_selectors'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+searchSourceToolName
+
+	^'smalltalk_search_source'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+sendersOfToolName
+
+	^'smalltalk_senders_of'! !
+
 !MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 3:42:19 pm (UTC)'!
 classesNamed: aCommaSeparatedText
 
@@ -3428,31 +3718,31 @@ namesOfTests: someTests
 	^(someTests collect: [ :eachTest | eachTest printString ]) asSortedCollection asArray
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 runTestClassTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_run_test_class'
+		named: self class runTestClassToolName
 		describedBy: 'Run every test of a test case class and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the test case class' }
 		executingWith: [ :aClass | self runTestsIn: (TestSuite forTestCaseClass: aClass) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 runTestMethodTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_run_test_method'
+		named: self class runTestMethodToolName
 		describedBy: 'Run one test and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
 		properties: { MCPMethodProperty newDefault }
 		executingWith: [ :aMethod | self runTestsIn: (TestSuite forTestMethod: aMethod) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 runTestsForClassesTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_run_tests_for_classes'
+		named: self class runTestsForClassesToolName
 		describedBy: 'Run the tests of several classes as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A class that is not a test case class contributes the tests that exercise it.'
 		properties: { MCPPlainToolProperty named: 'classNames' describedBy: 'Names of the classes, separated by commas' }
 		executingWith: [ :someClassNames |
@@ -3482,11 +3772,11 @@ runTestsIn: aTestSuite
 		at: 'errors' put: (self namesOfTests: result errors);
 		yourself)! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 runTestsInCategoryTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_run_tests_in_category'
+		named: self class runTestsInCategoryToolName
 		describedBy: 'Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
 		properties: { MCPPlainToolProperty named: 'categoryName' describedBy: 'Name of the class category' }
 		executingWith: [ :aCategoryName |
@@ -3502,6 +3792,26 @@ addToolsTo: anMCPServer
 		addTool: self runTestsInCategoryTool;
 		addTool: self runTestsForClassesTool
 ! !
+
+!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+runTestClassToolName
+
+	^'smalltalk_run_test_class'! !
+
+!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+runTestMethodToolName
+
+	^'smalltalk_run_test_method'! !
+
+!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+runTestsForClassesToolName
+
+	^'smalltalk_run_tests_for_classes'! !
+
+!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+runTestsInCategoryToolName
+
+	^'smalltalk_run_tests_in_category'! !
 
 !MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
 initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock

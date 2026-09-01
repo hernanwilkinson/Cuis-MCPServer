@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:19 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerExtraRefactoringTest' 1 8!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:53 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerExtraRefactoringTest' 1 9!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -62,13 +62,13 @@ toolNamed: aToolName
 
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
 
 	self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable stayingVariable'.
 
 	self
-		assert: ((self toolNamed: 'smalltalk_refactor_extract_class') valueWithArguments: (Dictionary new
+		assert: ((self toolNamed: MCPExtraRefactoringTools extractClassToolName) valueWithArguments: (Dictionary new
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'newClassName' put: 'MCPExtraTestTarget';
 			at: 'instanceVariableName' put: 'reachingVariable';
@@ -78,12 +78,12 @@ testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
 			self targetClass definition
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 
 	self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'movingVariable stayingVariable'.
 
-	(self toolNamed: 'smalltalk_refactor_extract_class') valueWithArguments: (Dictionary new
+	(self toolNamed: MCPExtraRefactoringTools extractClassToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'newClassName' put: 'MCPExtraTestTarget';
 		at: 'instanceVariableName' put: 'reachingVariable';
@@ -95,7 +95,7 @@ testExtractingAClassTakesTheVariablesNamedIntoTheNewOne
 	self assert: (self sourceClass instVarNames includes: 'stayingVariable')
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAParameterObjectAnswersTheMethodsItChanged
 
 	"The method that takes the parameter object is a new one, and the one it came from is gone,
@@ -109,7 +109,7 @@ testExtractingAParameterObjectAnswersTheMethodsItChanged
 	^aFirst' classified: 'probing'.
 
 	self
-		assert: ((self toolNamed: 'smalltalk_refactor_extract_parameter_object') valueWithArguments: (Dictionary new
+		assert: ((self toolNamed: MCPExtraRefactoringTools extractParameterObjectToolName) valueWithArguments: (Dictionary new
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'selector' put: 'mcpFirst:second:third:';
 			at: 'newClassName' put: 'MCPExtraTestTarget';
@@ -123,7 +123,7 @@ MCPExtraTestSource>>#mcpFirst:second:third:'
 
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:41:07 am (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAParameterObjectGathersTheParametersNamed
 
 	"The parameters keep their names without the article they were written with, so aFirst is
@@ -136,7 +136,7 @@ testExtractingAParameterObjectGathersTheParametersNamed
 
 	^aFirst' classified: 'probing'.
 
-	(self toolNamed: 'smalltalk_refactor_extract_parameter_object') valueWithArguments: (Dictionary new
+	(self toolNamed: MCPExtraRefactoringTools extractParameterObjectToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'selector' put: 'mcpFirst:second:third:';
 		at: 'newClassName' put: 'MCPExtraTestTarget';
@@ -148,7 +148,7 @@ testExtractingAParameterObjectGathersTheParametersNamed
 	self assert: ((Smalltalk classNamed: 'MCPExtraTestTarget') instVarNames includesAllOf: #('first' 'third')).
 	self assert: (self sourceClass includesSelector: 'second:mCPExtraTestTarget:' asSymbol)! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
 testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 
 	| source |
@@ -159,7 +159,7 @@ testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 	^42' classified: 'probing'.
 
 	self
-		assert: ((self toolNamed: 'smalltalk_refactor_extract_to_method_object') valueWithArguments: (Dictionary new
+		assert: ((self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'selector' put: 'mcpProbe';
 			at: 'newClassName' put: 'MCPExtraTestTarget';
@@ -171,7 +171,7 @@ testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:40:32 am (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 	| source |
@@ -181,7 +181,7 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 	^42' classified: 'probing'.
 
-	(self toolNamed: 'smalltalk_refactor_extract_to_method_object') valueWithArguments: (Dictionary new
+	(self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'selector' put: 'mcpProbe';
 		at: 'newClassName' put: 'MCPExtraTestTarget';
@@ -194,7 +194,7 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAMethodAnswersTheMethodsItChanged
 
 	"The method is in the other class and the one it came from is left delegating to it, so
@@ -212,7 +212,7 @@ testMovingAMethodAnswersTheMethodsItChanged
 	^42' classified: 'probing'.
 
 	self
-		assert: ((self toolNamed: 'smalltalk_refactor_move_method') valueWithArguments: (Dictionary new
+		assert: ((self toolNamed: MCPExtraRefactoringTools moveMethodToolName) valueWithArguments: (Dictionary new
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'selector' put: 'mcpMoving';
 			at: 'targetClassName' put: 'MCPExtraTestTarget';
@@ -223,7 +223,7 @@ MCPExtraTestSource>>#mcpMoving
 MCPExtraTestTarget>>#mcpMoving'
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAMethodTakesItToTheOtherClass
 
 	| source |
@@ -237,7 +237,7 @@ testMovingAMethodTakesItToTheOtherClass
 
 	^42' classified: 'probing'.
 
-	(self toolNamed: 'smalltalk_refactor_move_method') valueWithArguments: (Dictionary new
+	(self toolNamed: MCPExtraRefactoringTools moveMethodToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'selector' put: 'mcpMoving';
 		at: 'targetClassName' put: 'MCPExtraTestTarget';
@@ -247,7 +247,7 @@ testMovingAMethodTakesItToTheOtherClass
 	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol)
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 4:59:58 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
 
 	| source |
@@ -259,7 +259,7 @@ testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
 	reachingVariable := MCPExtraTestTarget new' classified: 'probing'.
 
 	self
-		assert: ((self toolNamed: 'smalltalk_refactor_move_instance_variable') valueWithArguments: (Dictionary new
+		assert: ((self toolNamed: MCPExtraRefactoringTools moveInstanceVariableToolName) valueWithArguments: (Dictionary new
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'variableName' put: 'movingVariable';
 			at: 'targetClassName' put: 'MCPExtraTestTarget';
@@ -270,7 +270,7 @@ testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged
 			self targetClass definition
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAnInstanceVariableTakesItToTheOtherClass
 
 	| source |
@@ -281,7 +281,7 @@ testMovingAnInstanceVariableTakesItToTheOtherClass
 
 	reachingVariable := MCPExtraTestTarget new' classified: 'probing'.
 
-	(self toolNamed: 'smalltalk_refactor_move_instance_variable') valueWithArguments: (Dictionary new
+	(self toolNamed: MCPExtraRefactoringTools moveInstanceVariableToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'variableName' put: 'movingVariable';
 		at: 'targetClassName' put: 'MCPExtraTestTarget';
@@ -292,7 +292,7 @@ testMovingAnInstanceVariableTakesItToTheOtherClass
 	self assert: (self targetClass instVarNames includes: 'movingVariable')
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:32:17 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:35:10 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -300,9 +300,10 @@ testTheToolsAreOfferedByEveryServer
 	server := MCPServer servingOver: MCPTransportMock new.
 
 	self assert: ((server toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
-		includesAllOf: #('smalltalk_refactor_move_instance_variable' 'smalltalk_refactor_move_method' 'smalltalk_refactor_extract_class'))
-
-! !
+		includesAllOf: {
+			MCPExtraRefactoringTools moveInstanceVariableToolName.
+			MCPExtraRefactoringTools moveMethodToolName.
+			MCPExtraRefactoringTools extractClassToolName })! !
 
 !MCPExtraRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 classCategoryOfTestData

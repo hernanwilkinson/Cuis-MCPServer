@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:18:55 am'!
-'Description Say what the instance variables hold when reading a method'!
-!provides: 'MCPServerLiveTypingTests' 1 10!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:05 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerLiveTypingTests' 1 11!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -75,17 +75,17 @@ defineProbeHierarchy
 	^childClass
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 12:16:29 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 definitionAnswerOfTheProbe
 
-	^self answerOf: 'smalltalk_class_definition' with: (Dictionary new
+	^self answerOf: MCPModelStructureTools classDefinitionToolName with: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		yourself)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 sourceAnswerOfTheProbe
 
-	^Json readFrom: ((self toolNamed: 'smalltalk_method_source') valueWithArguments: (Dictionary new
+	^Json readFrom: ((self toolNamed: MCPModelStructureTools methodSourceToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		at: 'selector' put: 'mcpHold:';
 		yourself)) readStream
@@ -98,20 +98,20 @@ toolNamed: aToolName
 
 	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpNeverImplemented';
 			yourself))
 		equals: #().
 
 	self
-		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpNeverImplemented';
 			at: 'includingPossible' put: 'true';
@@ -120,38 +120,38 @@ testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:40:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAMethodThatAnswersItsReceiverSaysSo
 
 	probeClass new mcpAnswerSelf.
 
 	self
-		assert: (self answerOf: 'smalltalk_return_types_of_method' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools returnTypesOfMethodToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswerSelf';
 			yourself))
 		equals: #('self')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAnInstanceVariableThatHeldNothingHasNoTypes
 
 	self
-		assert: (self answerOf: 'smalltalk_types_of_instance_variable' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: #()
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 
 	| withPossible |
 
 	self defineProbeHierarchy.
 
-	withPossible := self answerOf: 'smalltalk_actual_senders_of' with: (Dictionary new
+	withPossible := self answerOf: MCPLiveTypingTools actualSendersOfToolName with: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		at: 'selector' put: 'mcpAnswered';
 		at: 'includingPossible' put: 'true';
@@ -160,38 +160,38 @@ testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 	self assert: withPossible size equals: 2
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 
 	probeClass new mcpHold: 42.
 
 	self
-		assert: (self answerOf: 'smalltalk_types_of_instance_variables' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools typesOfEveryInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself))
 		equals: (Dictionary new at: 'held' put: #('SmallInteger'); yourself)
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self answerOf: 'smalltalk_actual_implementors_of' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswered';
 			yourself))
 		equals: #('MCPLiveTypingProbe mcpAnswered' 'MCPLiveTypingProbeChild mcpAnswered')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 10:37:34 am (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheActualSendersAreTheOnesSeenSendingItToThisClass
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self answerOf: 'smalltalk_actual_senders_of' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools actualSendersOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswered';
 			yourself))
@@ -214,19 +214,19 @@ testTheDefinitionOfAClassIsStillAnsweredWhenTheTypesAreAddedToIt
 
 	self assert: (self definitionAnswerOfTheProbe at: 'superclass') equals: 'Object'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
 
 	self defineProbeHierarchy.
 
 	self
-		deny: ((self answerOf: 'smalltalk_implementors_of' with: (Dictionary new
+		deny: ((self answerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
 			at: 'selector' put: 'mcpAnswered';
 			yourself)) includesKey: 'actual')
 
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 
 	"The stranger writes the same selector and is in no hierarchy with the probe, so a send to
@@ -245,38 +245,38 @@ testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 	^3' classified: 'probing'.
 
 	self
-		deny: (((self answerOf: 'smalltalk_implementors_of' with: (Dictionary new
+		deny: (((self answerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
 			at: 'selector' put: 'mcpAnswered';
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself)) at: 'actual') includes: 'MCPLiveTypingStranger mcpAnswered')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheReturnTypesOfAMethodAreTheClassesItAnswered
 
 	probeClass new mcpHold: 42.
 
 	self
-		assert: (self answerOf: 'smalltalk_return_types_of_method' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools returnTypesOfMethodToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpHold:';
 			yourself))
 		equals: #('SmallInteger')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 testTheSendersOfASelectorAreStillAnsweredWhenTheActualOnesAreAddedToThem
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (((self answerOf: 'smalltalk_senders_of' with: (Dictionary new
+		assert: (((self answerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
 			at: 'selector' put: 'mcpAnswered';
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself)) at: 'methods') includes: 'MCPLiveTypingProbe mcpCaller')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:46:54 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheSendersOfASelectorCarryTheOnesReallySendingIt
 
 	"The caller writes the selector twice, and only one of them is a send to an object that
@@ -285,7 +285,7 @@ testTheSendersOfASelectorCarryTheOnesReallySendingIt
 	self defineProbeHierarchy.
 
 	self
-		assert: ((self answerOf: 'smalltalk_senders_of' with: (Dictionary new
+		assert: ((self answerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
 			at: 'selector' put: 'mcpAnswered';
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself)) at: 'actual')
@@ -331,7 +331,7 @@ testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
 		equals: (probeClass sourceCodeAt: #mcpHold:) asString
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:34:56 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
 	| server |
@@ -339,19 +339,20 @@ testTheToolsAreOfferedByEveryServer
 	server := MCPServer servingOver: MCPTransportMock new.
 
 	self assert: ((server toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
-		includesAllOf: #('smalltalk_types_of_instance_variable' 'smalltalk_types_of_instance_variables'
-			'smalltalk_types_of_method_variable' 'smalltalk_return_types_of_method'))
+		includesAllOf: {
+			MCPLiveTypingTools typesOfInstanceVariableToolName.
+			MCPLiveTypingTools typesOfEveryInstanceVariableToolName.
+			MCPLiveTypingTools typesOfMethodVariableToolName.
+			MCPLiveTypingTools returnTypesOfMethodToolName })! !
 
-! !
-
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheTypesOfAParameterAreTheClassesItWasSent
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: 'a string'.
 
 	self
-		assert: (self answerOf: 'smalltalk_types_of_method_variable' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools typesOfMethodVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpHold:';
 			at: 'variableName' put: 'anObject';
@@ -359,14 +360,14 @@ testTheTypesOfAParameterAreTheClassesItWasSent
 		equals: #('SmallInteger' 'String')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 24/Aug/2026, 11:39:01 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: 'a string'.
 
 	self
-		assert: (self answerOf: 'smalltalk_types_of_instance_variable' with: (Dictionary new
+		assert: (self answerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))

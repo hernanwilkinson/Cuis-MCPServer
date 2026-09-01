@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 9:18:52 am'!
-'Description Say what the instance variables hold when reading a method'!
-!provides: 'MCPServerLiveTyping' 1 14!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:48:15 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerLiveTyping' 1 16!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -109,11 +109,10 @@ actualImplementorNamesOf: aSelector in: aClassName
 
 ! !
 
-!MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:01 pm (UTC)'!
 decoratedToolName
 
-	^'smalltalk_implementors_of'
-! !
+	^MCPSearchTools implementorsOfToolName! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
 addedProperties
@@ -171,11 +170,10 @@ implementorsOf: aSelector in: aClassName
 				reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]
 ! !
 
-!MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:18 pm (UTC)'!
 decoratedToolName
 
-	^'smalltalk_senders_of'
-! !
+	^MCPSearchTools sendersOfToolName! !
 
 !MCPInstanceVariableTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:15:42 pm (UTC)'!
 instanceVariableTypeNamesOf: aClass
@@ -210,10 +208,10 @@ valueWithArguments: anArguments
 
 	^Json render: answer! !
 
-!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 12:15:34 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:25 pm (UTC)'!
 decoratedToolName
 
-	^'smalltalk_class_definition'! !
+	^MCPModelStructureTools classDefinitionToolName! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:17:52 pm (UTC)'!
 description
@@ -266,11 +264,10 @@ variableTypeNamesOf: aMethod
 
 	^typesByVariable! !
 
-!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:31 pm (UTC)'!
 decoratedToolName
 
-	^'smalltalk_method_source'
-! !
+	^MCPModelStructureTools methodSourceToolName! !
 
 !MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -298,14 +295,14 @@ renderTypeNames: aTypeInfo
 	^Json render: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 25/Aug/2026, 11:06:10 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
 	class does not have to implement the selector: which classes do is what is being asked."
 
 	^MCPPluggableTool
-		named: 'smalltalk_actual_implementors_of'
+		named: self class actualImplementorsOfToolName
 		describedBy: 'List the methods that really answer a selector sent to an object of a class, which are the ones implemented by that class and by every subclass of the one highest up that implements it. The class does not have to implement the selector itself.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
@@ -320,11 +317,11 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_actual_senders_of'
+		named: self class actualSendersOfToolName
 		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -337,22 +334,22 @@ actualSendersOfTool
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_return_types_of_method'
+		named: self class returnTypesOfMethodToolName
 		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.'
 		properties: { MCPMethodProperty newDefault }
 		executingWith: [ :aMethod |
 			Json render: ((aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_types_of_instance_variables'
+		named: self class typesOfEveryInstanceVariableToolName
 		describedBy: 'List, for every instance variable of a class, the classes it has held while the image ran.'
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass |
@@ -365,11 +362,11 @@ typesOfEveryInstanceVariableTool
 			Json render: typesByVariable ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 typesOfInstanceVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_types_of_instance_variable'
+		named: self class typesOfInstanceVariableToolName
 		describedBy: 'List the classes an instance variable has held, as LiveTyping saw them while the image ran. A variable of code that has not run yet holds none.'
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
@@ -380,11 +377,11 @@ typesOfInstanceVariableTool
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:50:03 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_types_of_method_variable'
+		named: self class typesOfMethodVariableToolName
 		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -401,3 +398,33 @@ variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
 	^'Variable not found: ', aVariableName, ' in ',
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
 ! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+actualImplementorsOfToolName
+
+	^'smalltalk_actual_implementors_of'! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+actualSendersOfToolName
+
+	^'smalltalk_actual_senders_of'! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:18 pm (UTC)'!
+returnTypesOfMethodToolName
+
+	^'smalltalk_return_types_of_method'! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+typesOfEveryInstanceVariableToolName
+
+	^'smalltalk_types_of_instance_variables'! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+typesOfInstanceVariableToolName
+
+	^'smalltalk_types_of_instance_variable'! !
+
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+typesOfMethodVariableToolName
+
+	^'smalltalk_types_of_method_variable'! !

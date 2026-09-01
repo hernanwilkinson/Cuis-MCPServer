@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:56:08 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerMethodFinderTests' 1 2!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:46:06 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerMethodFinderTests' 1 3!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerMethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
@@ -74,18 +74,18 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 expressionsFoundWith: anArguments
 
-	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
+	^(self jsonAnswerOf: MCPMethodFinderTools findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'expression' ]
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 messagesFoundWith: anArguments
 
 	"Answer the name of each message the finder found, which is what names it in the image."
 
-	^(self jsonAnswerOf: 'smalltalk_find_messages_by_example' with: anArguments)
+	^(self jsonAnswerOf: MCPMethodFinderTools findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
 ! !

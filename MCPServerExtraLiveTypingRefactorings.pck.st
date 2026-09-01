@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 7:55:55 am'!
-'Description File the rest of the packages out in the new format'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 4!
+'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:45:03 am'!
+'Description Let a class method say the name of each tool'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 5!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
@@ -29,11 +29,11 @@ addToolsTo: anMCPServer
 	anMCPServer addTool: self extractParameterObjectInActualScopeTool
 ! !
 
-!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 3:58:17 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
 extractParameterObjectInActualScopeTool
 
 	^MCPPluggableTool
-		named: 'smalltalk_refactor_extract_parameter_object_in_actual_scope'
+		named: self class extractParameterObjectInActualScopeToolName
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, changing only the sends LiveTyping saw were to objects of the class that implements it. A send of the same name to anything else is left as it was.'
 		properties: {
 			MCPMethodProperty newDefault.
@@ -64,3 +64,8 @@ extractParameterObjectInActualScopeTool
 						withPossibleMessageSends: keepingPossibleSends ]) ]
 
 ! !
+
+!MCPExtraLiveTypingRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:55 pm (UTC)'!
+extractParameterObjectInActualScopeToolName
+
+	^'smalltalk_refactor_extract_parameter_object_in_actual_scope'! !
