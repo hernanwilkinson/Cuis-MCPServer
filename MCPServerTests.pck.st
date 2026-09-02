@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 12:32:21 pm'!
-'Description Act on the code packages through tools of their own'!
-!provides: 'MCPServerTests' 1 51!
+'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:38:06 pm'!
+'Description Read a whole method category or a whole class at once'!
+!provides: 'MCPServerTests' 1 52!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -815,6 +815,14 @@ saveImage
 
 	savedImageCount := savedImageCount + 1! !
 
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 4:40:11 pm (UTC)'!
+defineTestSubjectFarewellIn: aMethodCategory
+
+	^client callTool: MCPModelStructureTools defineMethodToolName with: (self
+		arguments: 'className' being: 'MCPTestSubject'
+		and: 'source' being: self subjectFarewellMethodSource
+		and: 'category' being: aMethodCategory)! !
+
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 defineTestSubjectMethodIn: aMethodCategory
 
@@ -847,6 +855,28 @@ propertyNamed: aPropertyName of: aToolName
 	^(server toolNamed: aToolName) properties
 		detect: [ :eachProperty | eachProperty name = aPropertyName ]
 ! !
+
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 4:40:07 pm (UTC)'!
+subjectFarewellMethodSource
+
+	"Answer a second method of the subject class, so that a test can file two of them under
+	different categories and tell one category from the other."
+
+	^'despedida
+
+	^''¡Adiós, Hernán!!'''! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:48:19 pm (UTC)'!
+testACategoryHoldingNoMethodIsLeftOut
+
+	"Cuis gives a new class an empty as yet unclassified, which says nothing about it."
+
+	self defineTestSubjectClass.
+
+	self
+		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject'))
+		equals: OrderedDictionary new! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testClassDefinitionAnswersTheSuperclassOfTheClass
@@ -890,6 +920,36 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 			jsonAnswerOf: MCPModelStructureTools subclassesToolName 
 			with: (self arguments: 'className' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubjectChild')! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:47:26 pm (UTC)'!
+testTheMethodsOfAClassAreAnsweredInTheOrderItHoldsItsCategories
+
+	"The categories are kept in the order whoever wrote the class put them in, and not sorted,
+	which is what tells reading a class apart from listing its selectors."
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+	self defineTestSubjectFarewellIn: 'despedidas'.
+
+	self
+		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject')) keys asArray
+		equals: #('saludos' 'despedidas')! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:47:20 pm (UTC)'!
+testTheSourceOfEveryMethodOfAClassIsAnsweredUnderTheCategoryItIsFiledIn
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+	self defineTestSubjectFarewellIn: 'despedidas'.
+
+	self
+		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject'))
+		equals: (OrderedDictionary new
+			at: 'saludos' put: (OrderedDictionary new at: 'saludo' put: self subjectMethodSource; yourself);
+			at: 'despedidas' put: (OrderedDictionary new at: 'despedida' put: self subjectFarewellMethodSource; yourself);
+			yourself)! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
@@ -1060,6 +1120,42 @@ testMethodsInACategoryTheClassDoesNotHaveFails
 			(MCPModelStructureTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
 
 ! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:40:17 pm (UTC)'!
+testOnlyTheMethodsOfTheCategoryAskedForAreAnswered
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+	self defineTestSubjectFarewellIn: 'despedidas'.
+
+	self
+		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesInCategoryToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas'))
+		equals: (OrderedDictionary new at: 'despedida' put: self subjectFarewellMethodSource; yourself)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:39:36 pm (UTC)'!
+testTheSourceOfEveryMethodInACategoryIsAnsweredUnderItsSelector
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+
+	self
+		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesInCategoryToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'saludos'))
+		equals: (OrderedDictionary new at: 'saludo' put: self subjectMethodSource; yourself)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:39:48 pm (UTC)'!
+testTheSourcesOfAMethodCategoryTheClassDoesNotHaveFails
+
+	self defineTestSubjectClass.
+
+	self
+		should: [ client
+			callTool: MCPModelStructureTools methodSourcesInCategoryToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(MCPModelStructureTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 testDefineClassCreatesTheClass

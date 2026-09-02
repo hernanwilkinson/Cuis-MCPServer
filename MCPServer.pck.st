@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 3:21:42 pm'!
-'Description Let a decorator ask the tool it decorates for the class'!
-!provides: 'MCPServer' 1 61!
+'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:38:03 pm'!
+'Description Read a whole method category or a whole class at once'!
+!provides: 'MCPServer' 1 62!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -2167,6 +2167,27 @@ methodSourceTool
 			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
 ! !
 
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 2/Sep/2026, 4:39:19 pm (UTC)'!
+methodSourcesInCategoryTool
+
+	^MCPPluggableTool
+		named: self class methodSourcesInCategoryToolName
+		describedBy: 'Read the source of every method a class files under one of its method categories, each under its selector, so that what a category says is read at once instead of a method at a time. Name the class side the way it prints, as in MCPServer class.'
+		properties: {
+			self classProperty.
+			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category' }
+		executingWith: [ :aClass :aMethodCategory |
+			Json render: (self sourcesIn: aMethodCategory of: aClass) ]! !
+
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 2/Sep/2026, 4:48:13 pm (UTC)'!
+methodSourcesOfClassTool
+
+	^MCPPluggableTool
+		named: self class methodSourcesOfClassToolName
+		describedBy: 'Read the source of every method of a class, each under its selector and grouped by the method category it is filed under, in the order the class holds its categories, so that a whole class is read at once. A category holding no method is left out. Name the class side the way it prints, as in MCPServer class.'
+		properties: { self classProperty }
+		executingWith: [ :aClass | Json render: (self sourcesOf: aClass) ]! !
+
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 methodsInCategoryTool
 
@@ -2192,7 +2213,7 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 1/Sep/2026, 12:13:13 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 2/Sep/2026, 4:47:13 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -2200,6 +2221,8 @@ addToolsTo: anMCPServer
 		addTool: self classOrganizationTool;
 		addTool: self methodsInCategoryTool;
 		addTool: self methodSourceTool;
+		addTool: self methodSourcesInCategoryTool;
+		addTool: self methodSourcesOfClassTool;
 		addTool: self listClassesTool;
 		addTool: self hierarchyTool;
 		addTool: self subclassesTool;
@@ -2291,6 +2314,38 @@ selectorsIn: aMethodCategory of: aClass
 	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
 ! !
 
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:39:24 pm (UTC)'!
+sourcesIn: aMethodCategory of: aClass
+
+	"Answer the source of each method filed under aMethodCategory, under its selector, in the
+	order the selectors of that category are listed in."
+
+	| sourcesBySelector |
+
+	sourcesBySelector := OrderedDictionary new.
+	(self selectorsIn: aMethodCategory of: aClass) do: [ :eachSelector |
+		sourcesBySelector at: eachSelector asString put: (aClass >> eachSelector) sourceCode ].
+
+	^sourcesBySelector! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:48:07 pm (UTC)'!
+sourcesOf: aClass
+
+	"Answer the source of every method of aClass under its selector, grouped by the method
+	category it is filed under and keeping the order the class holds its categories in, which
+	is the order whoever wrote it put them in. A category holding no method is left out: it
+	says nothing about the class, and Cuis gives every new one an empty as yet unclassified."
+
+	| sourcesByCategory |
+
+	sourcesByCategory := OrderedDictionary new.
+	aClass organization categories do: [ :eachMethodCategory | | sourcesInCategory |
+		sourcesInCategory := self sourcesIn: eachMethodCategory asString of: aClass.
+		sourcesInCategory ifNotEmpty: [
+			sourcesByCategory at: eachMethodCategory asString put: sourcesInCategory ] ].
+
+	^sourcesByCategory! !
+
 !MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
 
@@ -2356,6 +2411,16 @@ listClassesToolName
 methodSourceToolName
 
 	^'smalltalk_method_source'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 2/Sep/2026, 4:39:12 pm (UTC)'!
+methodSourcesInCategoryToolName
+
+	^'smalltalk_method_sources_in_category'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 2/Sep/2026, 4:46:56 pm (UTC)'!
+methodSourcesOfClassToolName
+
+	^'smalltalk_method_sources_of_class'! !
 
 !MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
 methodsInCategoryToolName
