@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 1:37:52 pm'!
-'Description Let a refactoring work over the scope LiveTyping saw'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 7!
+'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 7:35:37 pm'!
+'Description Reach a LiveTyping refactoring only as the actual scope'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 8!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -28,6 +28,19 @@ setUp
 		poolDictionaries: ''
 		category: self classCategoryOfTestData
 ! !
+
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
+apply: aToolName inActualScopeWith: anArguments
+
+	"Ask the tool that applies the refactoring over the scope it is told for the actual one,
+	which is how a client reaches the refactoring LiveTyping makes possible now that it is
+	not offered under a name of its own."
+
+	anArguments
+		at: MCPRefactoringToolGroup scopePropertyName
+		put: MCPActualScopeRefactoringDecorator actualScopeName.
+
+	^(self toolNamed: aToolName) valueWithArguments: anArguments! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 4:31:15 pm (UTC)'!
 compileProbeHoldingATarget
@@ -71,16 +84,15 @@ compileProbeSending: aCallerSource
 	probeClass new mcpCaller
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 6:46:18 pm (UTC)'!
 gatherFirstParameterOf: aSelector
 
-	^(self toolNamed: MCPExtraLiveTypingRefactoringTools extractParameterObjectInActualScopeToolName) valueWithArguments: (Dictionary new
+	^self apply: MCPExtraRefactoringTools extractParameterObjectToolName inActualScopeWith: (Dictionary new
 		at: 'className' put: 'MCPExtraLiveTypingRefactoringProbe';
 		at: 'selector' put: aSelector;
 		at: 'newClassName' put: 'MCPExtraLiveTypingRefactoringParameters';
 		at: 'parameterNames' put: 'aFirst';
-		yourself)
-! !
+		yourself)! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
 parameterObjectClass
@@ -166,7 +178,7 @@ testGatheringParametersInTheActualScopeTakesThemToTheNewClass
 	self assert: (self parameterObjectClass instVarNames includes: 'first')
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 4:31:58 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 testGatheringParametersTakesTheActualScopeThroughTheToolThatWorksOverAScope
 
 	"The send inside the ifTrue: is to a variable LiveTyping never saw hold anything, so the
@@ -185,30 +197,29 @@ testGatheringParametersTakesTheActualScopeThroughTheToolThatWorksOverAScope
 			at: 'selector' put: 'mcpFirst:second:';
 			at: 'newClassName' put: 'MCPExtraLiveTypingRefactoringParameters';
 			at: 'parameterNames' put: 'aFirst';
-			at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringToolGroup actualScopeName;
+			at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringDecorator actualScopeName;
 			yourself).
 
 	self assert: ((probeClass sourceCodeAt: #mcpCaller)
 		includesSubstring: 'anythingElse mcpFirst: 3 second: 4' caseSensitive: true).
 	self assert: (self parameterObjectClass instVarNames includes: 'first')! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 4:31:30 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:46:23 pm (UTC)'!
 testMovingAMethodInTheActualScopeTakesItToTheClassLiveTypingSaw
 
 	| targetClass |
 
 	targetClass := self compileProbeHoldingATarget.
 
-	(self toolNamed: MCPExtraLiveTypingRefactoringTools moveMethodInActualScopeToolName)
-		valueWithArguments: (Dictionary new
-			at: 'className' put: probeClass name;
-			at: 'selector' put: 'mcpAskTheHolder';
-			at: 'accessingThrough' put: 'holder';
-			yourself).
+	self apply: MCPExtraRefactoringTools moveMethodToolName inActualScopeWith: (Dictionary new
+		at: 'className' put: probeClass name;
+		at: 'selector' put: 'mcpAskTheHolder';
+		at: 'accessingThrough' put: 'holder';
+		yourself).
 
 	self assert: (targetClass includesSelector: #mcpAskTheHolder)! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 4:31:23 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:46:30 pm (UTC)'!
 testMovingAnInstanceVariableInTheActualScopeTakesItToTheClassLiveTypingSaw
 
 	"The class it is moved to is not named: it is the one LiveTyping saw the instance variable
@@ -218,17 +229,16 @@ testMovingAnInstanceVariableInTheActualScopeTakesItToTheClassLiveTypingSaw
 
 	targetClass := self compileProbeHoldingATarget.
 
-	(self toolNamed: MCPExtraLiveTypingRefactoringTools moveInstanceVariableInActualScopeToolName)
-		valueWithArguments: (Dictionary new
-			at: 'className' put: probeClass name;
-			at: 'variableName' put: 'moved';
-			at: 'accessingThrough' put: 'holder';
-			yourself).
+	self apply: MCPExtraRefactoringTools moveInstanceVariableToolName inActualScopeWith: (Dictionary new
+		at: 'className' put: probeClass name;
+		at: 'variableName' put: 'moved';
+		at: 'accessingThrough' put: 'holder';
+		yourself).
 
 	self assert: (targetClass instVarNames includes: 'moved').
 	self deny: (probeClass instVarNames includes: 'moved')! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 4:31:36 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 testMovingAnInstanceVariableTakesTheActualScopeThroughTheToolThatIsToldTheClass
 
 	"The tool that moves is told the class to move to and knows no scope of its own, so the
@@ -243,23 +253,10 @@ testMovingAnInstanceVariableTakesTheActualScopeThroughTheToolThatIsToldTheClass
 			at: 'className' put: probeClass name;
 			at: 'variableName' put: 'moved';
 			at: 'accessingThrough' put: 'holder';
-			at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringToolGroup actualScopeName;
+			at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringDecorator actualScopeName;
 			yourself).
 
 	self assert: (targetClass instVarNames includes: 'moved')! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 4:31:43 pm (UTC)'!
-testTheToolsAreOfferedByEveryServer
-
-	| server |
-
-	server := MCPServer servingOver: MCPTransportMock new.
-
-	self assert: ((server toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
-		includesAllOf: {
-			MCPExtraLiveTypingRefactoringTools extractParameterObjectInActualScopeToolName.
-			MCPExtraLiveTypingRefactoringTools moveInstanceVariableInActualScopeToolName.
-			MCPExtraLiveTypingRefactoringTools moveMethodInActualScopeToolName })! !
 
 !MCPExtraLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
 classCategoryOfTestData
