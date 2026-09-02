@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 3:21:45 pm'!
-'Description Let a decorator ask the tool it decorates for the class'!
-!provides: 'MCPServerLiveTyping' 1 17!
+'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:37:57 pm'!
+'Description Read a list of types the way the browser prints it'!
+!provides: 'MCPServerLiveTyping' 1 18!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -175,27 +175,20 @@ decoratedToolName
 
 	^MCPSearchTools sendersOfToolName! !
 
-!MCPInstanceVariableTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:15:42 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 7:00:10 pm (UTC)'!
 instanceVariableTypeNamesOf: aClass
 
 	"Answer the classes each instance variable of aClass has held, as LiveTyping saw them while
 	the image ran. A variable of code that has not run holds none."
 
-	| typesByVariable |
+	^aClass instanceVariablesTypes describedTypesNamesByVariable! !
 
-	typesByVariable := OrderedDictionary new.
-	aClass instanceVariablesTypes typesInfoDo: [ :eachTypeInfo |
-		typesByVariable
-			at: eachTypeInfo variableName asString
-			put: ((eachTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort) ].
-
-	^typesByVariable! !
-
-!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:15:55 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 7:01:13 pm (UTC)'!
 description
 
 	^self decoratee description ,
-		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.'! !
+		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.',
+		MCPLiveTypingTools howTypesAreListedDescription! !
 
 !MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 5:49:36 pm (UTC)'!
 valueWithArguments: anArguments
@@ -213,11 +206,12 @@ decoratedToolName
 
 	^MCPModelStructureTools classDefinitionToolName! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 12:17:52 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 7:01:09 pm (UTC)'!
 description
 
 	^self decoratee description ,
-		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.'! !
+		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.',
+		MCPLiveTypingTools howTypesAreListedDescription! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:34 pm (UTC)'!
 valueWithArguments: anArguments
@@ -233,26 +227,12 @@ valueWithArguments: anArguments
 	^Json render: answer
 ! !
 
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 12:17:45 pm (UTC)'!
-addTypeNamesOf: aTypeInfo to: aDictionaryOfTypesByVariable
-
-	aDictionaryOfTypesByVariable
-		at: aTypeInfo variableName asString
-		put: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)! !
-
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 5:54:23 pm (UTC)'!
-addTypesOf: types to: typesByVariable
-
-	types typesInfoDo: [ :eachTypeInfo |
-		self addTypeNamesOf: eachTypeInfo to: typesByVariable ]! !
-
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 27/Aug/2026, 7:07:13 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 6:59:55 pm (UTC)'!
 returnTypeNamesOf: aMethod
 
-	^(aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort
-! !
+	^aMethod returnTypeInfo describedTypesNames! !
 
-!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 5:53:57 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 6:59:51 pm (UTC)'!
 variableTypeNamesOf: aMethod
 
 	"Answer the classes each variable a method reads held, its parameters and temporaries along
@@ -263,8 +243,8 @@ variableTypeNamesOf: aMethod
 	| typesByVariable |
 
 	typesByVariable := OrderedDictionary new.
-	self addTypesOf: aMethod methodClass instanceVariablesTypes to: typesByVariable.
-	self addTypesOf: aMethod methodVariablesTypes to: typesByVariable.
+	aMethod methodClass instanceVariablesTypes addDescribedTypesNamesByVariableTo: typesByVariable.
+	aMethod methodVariablesTypes addDescribedTypesNamesByVariableTo: typesByVariable.
 
 	^typesByVariable! !
 
@@ -288,15 +268,6 @@ addToolsTo: anMCPServer
 renderMethodReferences: someMethodReferences
 
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
-! !
-
-!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
-renderTypeNames: aTypeInfo
-
-	"Answer the names of the types a variable has held. They are what LiveTyping saw while the
-	image ran, so a variable of a method that has not run yet has none."
-
-	^Json render: ((aTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort)
 ! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
@@ -338,63 +309,61 @@ actualSendersOfTool
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:19 pm (UTC)'!
+renderTypeNames: aTypeInfo
+
+	^Json render: aTypeInfo describedTypesNames! !
+
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:49 pm (UTC)'!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
 		named: self class returnTypesOfMethodToolName
-		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.'
+		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.',
+			self class howTypesAreListedDescription
 		properties: { MCPMethodProperty newDefault }
-		executingWith: [ :aMethod |
-			Json render: ((aMethod returnTypes collect: [ :eachType | eachType typeName asString ]) asArray sort) ]
-! !
+		executingWith: [ :aMethod | self renderTypeNames: aMethod returnTypeInfo ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:44 pm (UTC)'!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfEveryInstanceVariableToolName
-		describedBy: 'List, for every instance variable of a class, the classes it has held while the image ran.'
+		describedBy: 'List, for every instance variable of a class, the classes it has held while the image ran.',
+			self class howTypesAreListedDescription
 		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
 		executingWith: [ :aClass |
-			| typesByVariable |
-			typesByVariable := OrderedDictionary new.
-			aClass instanceVariablesTypes typesInfoDo: [ :eachTypeInfo |
-				typesByVariable
-					at: eachTypeInfo variableName asString
-					put: ((eachTypeInfo typesNames collect: [ :eachTypeName | eachTypeName asString ]) asArray sort) ].
-			Json render: typesByVariable ]
-! !
+			Json render: aClass instanceVariablesTypes describedTypesNamesByVariable ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:56 pm (UTC)'!
 typesOfInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfInstanceVariableToolName
-		describedBy: 'List the classes an instance variable has held, as LiveTyping saw them while the image ran. A variable of code that has not run yet holds none.'
+		describedBy: 'List the classes an instance variable has held, as LiveTyping saw them while the image ran. A variable of code that has not run yet holds none.',
+			self class howTypesAreListedDescription
 		properties: {
 			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
 		executingWith: [ :aClass :aVariableName |
 			self renderTypeNames: (aClass instanceVariablesTypes
 				typeInfoOf: aVariableName
-				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]
-! !
+				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:01:02 pm (UTC)'!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfMethodVariableToolName
-		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.'
+		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.',
+			self class howTypesAreListedDescription
 		properties: {
 			MCPMethodProperty newDefault.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
 		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod
 				typeInfoOfVariableNamed: aVariableName
-				ifAbsent: [ self error: (self class variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]
-! !
+				ifAbsent: [ self error: (self class variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]! !
 
 !MCPLiveTypingTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
@@ -432,3 +401,75 @@ typesOfInstanceVariableToolName
 typesOfMethodVariableToolName
 
 	^'smalltalk_types_of_method_variable'! !
+
+!MCPLiveTypingTools class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 7:00:38 pm (UTC)'!
+howTypesAreListedDescription
+
+	"Answer how a client reads a list of types, which every tool and decorator that answers one
+	says, so that the marks in it are not read as classes."
+
+	^' A list of types is led by the class they all inherit from, or by ', VariableTypeInfo anyTypeMark,
+		' when the only one they share is Object, and ends with ', VariableTypeInfo canBeNilMark,
+		' when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.'! !
+
+!VariableTypeInfo methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:50 pm (UTC)'!
+commonSupertypeName
+
+	^self
+		withCommonSupertypeDo: [ :aCommonSupertype | aCommonSupertype typeName asString ]
+		ifGeneric: [ :aGenericSupertype | self class anyTypeMark ]! !
+
+!VariableTypeInfo methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:40 pm (UTC)'!
+describedTypesNames
+
+	"Answer my types the way they are printed, as a list: led by the name of the one they all
+	inherit from, or by any when they share none, and closed by can be nil when nil was one of
+	them. A class name is capitalized and a mark is not, so one is told from the other."
+
+	| describedNames typesNames |
+
+	typesNames := self typesNamesWithoutNil.
+	describedNames := OrderedCollection new.
+	typesNames size > 1 ifTrue: [ describedNames add: self commonSupertypeName ].
+	describedNames addAll: typesNames.
+	self includesNil ifTrue: [ describedNames add: self class canBeNilMark ].
+
+	^describedNames asArray! !
+
+!VariableTypeInfo methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:46 pm (UTC)'!
+typesNamesWithoutNil
+
+	"Answer the names of my types leaving nil out, because that nil was assigned is said by a
+	mark of its own and not by naming the class of nil among the classes a variable held."
+
+	^((self types reject: [ :eachType | eachType = UndefinedObject ])
+		collect: [ :eachType | eachType typeName asString ]) asArray sort! !
+
+!VariableTypeInfo class methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:55 pm (UTC)'!
+anyTypeMark
+
+	"Answer what leads a list of types that share no supertype other than Object."
+
+	^'any'! !
+
+!VariableTypeInfo class methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:59 pm (UTC)'!
+canBeNilMark
+
+	"Answer what closes a list of types when nil was assigned too."
+
+	^'can be nil'! !
+
+!VariablesTypes methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:59:05 pm (UTC)'!
+addDescribedTypesNamesByVariableTo: aDictionaryOfTypesNamesByVariable
+
+	self typesInfoDo: [ :eachTypeInfo |
+		aDictionaryOfTypesNamesByVariable
+			at: eachTypeInfo variableName asString
+			put: eachTypeInfo describedTypesNames ].
+
+	^aDictionaryOfTypesNamesByVariable! !
+
+!VariablesTypes methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:59:10 pm (UTC)'!
+describedTypesNamesByVariable
+
+	^self addDescribedTypesNamesByVariableTo: OrderedDictionary new! !

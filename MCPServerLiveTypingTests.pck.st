@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:05 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerLiveTypingTests' 1 11!
+'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:38:00 pm'!
+'Description Read a list of types the way the browser prints it'!
+!provides: 'MCPServerLiveTypingTests' 1 12!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -132,6 +132,19 @@ testAMethodThatAnswersItsReceiverSaysSo
 			yourself))
 		equals: #('self')
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 7:02:15 pm (UTC)'!
+testAVariableThatHeldNilSaysSoAtTheEndOfItsTypes
+
+	probeClass new mcpHold: 42.
+	probeClass new mcpHold: nil.
+
+	self
+		assert: (self answerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'variableName' put: 'held';
+			yourself))
+		equals: (Array with: 'SmallInteger' with: VariableTypeInfo canBeNilMark)! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAnInstanceVariableThatHeldNothingHasNoTypes
@@ -345,7 +358,7 @@ testTheToolsAreOfferedByEveryServer
 			MCPLiveTypingTools typesOfMethodVariableToolName.
 			MCPLiveTypingTools returnTypesOfMethodToolName })! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 7:02:26 pm (UTC)'!
 testTheTypesOfAParameterAreTheClassesItWasSent
 
 	probeClass new mcpHold: 42.
@@ -357,10 +370,22 @@ testTheTypesOfAParameterAreTheClassesItWasSent
 			at: 'selector' put: 'mcpHold:';
 			at: 'variableName' put: 'anObject';
 			yourself))
-		equals: #('SmallInteger' 'String')
-! !
+		equals: (Array with: VariableTypeInfo anyTypeMark with: 'SmallInteger' with: 'String')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 7:02:09 pm (UTC)'!
+testTheTypesOfAVariableAreLedByTheClassTheyAllInheritFrom
+
+	probeClass new mcpHold: 42.
+	probeClass new mcpHold: 1000000000000000000000.
+
+	self
+		assert: (self answerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+			at: 'className' put: 'MCPLiveTypingProbe';
+			at: 'variableName' put: 'held';
+			yourself))
+		equals: #('Integer' 'LargePositiveInteger' 'SmallInteger')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 7:02:20 pm (UTC)'!
 testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 
 	probeClass new mcpHold: 42.
@@ -371,8 +396,7 @@ testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
-		equals: #('SmallInteger' 'String')
-! !
+		equals: (Array with: VariableTypeInfo anyTypeMark with: 'SmallInteger' with: 'String')! !
 
 !MCPLiveTypingToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 classCategoryOfTestData
