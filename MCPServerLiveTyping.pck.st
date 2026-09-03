@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:37:57 pm'!
-'Description Read a list of types the way the browser prints it'!
-!provides: 'MCPServerLiveTyping' 1 18!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:12 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServerLiveTyping' 1 19!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -87,18 +87,17 @@ description
 		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:26:20 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 9:04:46 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| answer className |
 
 	answer := self decorateeAnswerFor: anArguments.
-	className := anArguments at: 'className' ifAbsent: [ '' ].
+	className := anArguments at: MCPClassToolProperty defaultName ifAbsent: [ '' ].
 	className ifNotEmpty: [ :aName |
 		answer at: 'actual' put: (self actualImplementorNamesOf: (anArguments at: 'selector') asSymbol in: aName) ].
 
-	^Json render: answer
-! !
+	^Json render: answer! !
 
 !MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
 actualImplementorNamesOf: aSelector in: aClassName
@@ -213,12 +212,12 @@ description
 		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.',
 		MCPLiveTypingTools howTypesAreListedDescription! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:34 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| method answer |
 
-	method := MCPMethodProperty newDefault valueFrom: anArguments.
+	method := MCPMethodProperty default valueFrom: anArguments.
 	answer := self decorateeAnswerFor: anArguments.
 	answer
 		at: 'returns' put: (self returnTypeNamesOf: method);
@@ -292,14 +291,14 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
 		named: self class actualSendersOfToolName
 		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
@@ -314,14 +313,14 @@ renderTypeNames: aTypeInfo
 
 	^Json render: aTypeInfo describedTypesNames! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:49 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
 		named: self class returnTypesOfMethodToolName
 		describedBy: 'List the classes a method has answered while the image ran. The name self means it answered its receiver.',
 			self class howTypesAreListedDescription
-		properties: { MCPMethodProperty newDefault }
+		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self renderTypeNames: aMethod returnTypeInfo ]! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:44 pm (UTC)'!
@@ -350,7 +349,7 @@ typesOfInstanceVariableTool
 				typeInfoOf: aVariableName
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:01:02 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:15 pm (UTC)'!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
@@ -358,7 +357,7 @@ typesOfMethodVariableTool
 		describedBy: 'List the classes a parameter or a temporary of a method has held while the image ran.',
 			self class howTypesAreListedDescription
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
 		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod

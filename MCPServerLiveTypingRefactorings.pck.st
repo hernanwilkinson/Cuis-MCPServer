@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 5:08:34 pm'!
-'Description Say what a refactoring changed with one applier, not a hierarchy'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 12!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:18 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 13!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -137,7 +137,7 @@ sayWhatTheActualScopeIsIn: aDefinition
 				put: (aScopeDefinition at: 'description') , '. ' , self class actualScopeDescription ]
 		ifAbsent: [ self class scopeProperty addTo: properties ]! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 8:26:30 pm (UTC)'!
 valueWithArguments: anArguments
 
 	"A client that names the actual scope is asking for the refactoring only LiveTyping makes
@@ -145,7 +145,9 @@ valueWithArguments: anArguments
 	over, and it is the one that answers."
 
 	^(self isAskedForTheActualScopeIn: anArguments)
-		ifTrue: [ self applyInActualScopeWith: anArguments ]
+		ifTrue: [
+			self assertAClassIsNamedIn: anArguments.
+			self applyInActualScopeWith: anArguments ]
 		ifFalse: [ self decoratee valueWithArguments: anArguments ]! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
@@ -190,6 +192,17 @@ applyInActualScopeWith: anArguments
 	"Apply my refactoring over the scope LiveTyping saw and answer what it changed."
 
 	^self subclassResponsibility! !
+
+!MCPActualScopeRefactoringDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 9:04:39 pm (UTC)'!
+assertAClassIsNamedIn: anArguments
+
+	"The scope LiveTyping saw is the sends that really reached an object of one class, so there
+	is no such scope without one. The tool I decorate works over scopes that need no class, so
+	its className is one a client may leave out, and leaving it out here is answered by saying
+	which scope asked for it rather than by saying that no class was found."
+
+	(anArguments includesKey: MCPClassToolProperty defaultName)
+		ifFalse: [ self error: self class classNameNeededForTheActualScopeErrorDescription ]! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
 messageSendsRefactoringOn: aMethodToInline using: aRefactoringClass keepingPossibleSends: aBoolean builtWith: aBlock
@@ -290,6 +303,11 @@ actualScopeName
 
 	^'actual'! !
 
+!MCPActualScopeRefactoringDecorator class methodsFor: 'error descriptions' stamp: 'HAW 3/Sep/2026, 8:26:16 pm (UTC)'!
+classNameNeededForTheActualScopeErrorDescription
+
+	^'The ', self actualScopeName, ' scope needs className: it is the sends that really reached an object of that class'! !
+
 !MCPAddParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:22 pm (UTC)'!
 properties
 
@@ -368,11 +386,11 @@ decoratedToolName
 
 	^MCPRefactoringTools changeKeywordsOrderRefactoringToolName! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:31 pm (UTC)'!
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 properties
 
 	^{
-		MCPMethodProperty newDefault.
+		MCPMethodProperty default.
 		MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
 		MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 		MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -408,11 +426,11 @@ description
 	^self decoratee description ,
 		' It also takes actual as the scope, which inlines every send LiveTyping saw really reaching an object of the class that implements the selector, instead of the one send named here.'! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:22 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 properties
 
 	^{
-		MCPMethodProperty newDefault.
+		MCPMethodProperty default.
 		MCPPlainToolProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false'.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is inlined too, true or false' defaultingTo: 'false' }! !
 

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 5:08:35 pm'!
-'Description Say what a refactoring changed with one applier, not a hierarchy'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 8!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:20 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 9!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -39,11 +39,11 @@ MCPMoveMethodInActualScopeDecorator class
 	instanceVariableNames: ''!
 
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:43 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 properties
 
 	^{
-		MCPMethodProperty newDefault.
+		MCPMethodProperty default.
 		MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 		MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 		MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.

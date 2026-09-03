@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 5:08:33 pm'!
-'Description Say what a refactoring changed with one applier, not a hierarchy'!
-!provides: 'MCPServer' 1 64!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:09 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServer' 1 65!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1011,10 +1011,10 @@ descriptionOfNewSource
 			newLine;
 			nextPutAll: refactoredMethod sourceCode ]! !
 
-!MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 4:29:39 pm (UTC)'!
+!MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 8:15:52 pm (UTC)'!
 applying: aRefactoring
 
-	^self applying: aRefactoring changing: nil ! !
+	^self applying: aRefactoring changing: (MethodReference class: self selector: #notExisting) ! !
 
 !MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 2/Sep/2026, 11:02:26 pm (UTC)'!
 applying: aRefactoring changing: aMethod
@@ -2005,14 +2005,6 @@ addToolsTo: anMCPServer
 
 	^self subclassResponsibility! !
 
-!MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 1/Sep/2026, 1:58:16 pm (UTC)'!
-classProperty
-
-	^MCPClassToolProperty
-		named: 'className'
-		describedBy: 'Name of the class, or of its class side as in MCPServer class'
-! !
-
 !MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:57 pm (UTC)'!
 namesFrom: aCommaSeparatedText
 
@@ -2225,21 +2217,21 @@ screenshotToolName
 
 	^'smalltalk_screenshot'! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 classDefinitionTool
 
 	^MCPClassDefinitionTool
 		named: self class classDefinitionToolName
 		describedBy: 'Read the definition of a class: its superclass, its instance and class variables, its selectors and its comment.'
-		properties: { self classProperty }! !
+		properties: { MCPClassToolProperty default }! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 classOrganizationTool
 
 	^MCPPluggableTool
 		named: self class classOrganizationToolName
 		describedBy: 'List the method categories of a class, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.'
-		properties: { self classProperty }
+		properties: { MCPClassToolProperty default }
 		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
 ! !
 
@@ -2254,14 +2246,14 @@ classesInCategoryTool
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 classifyMethodsTool
 
 	^MCPPluggableTool
 		named: self class classifyMethodsToolName
 		describedBy: 'File methods of a class under a method category, making the category when the class does not have it yet and taking away the ones they left behind when nothing else is filed under them. Answers where each method was filed before, which is what nothing says once it has moved.'
 		properties: {
-			self classProperty.
+			MCPClassToolProperty default.
 			MCPPlainToolProperty named: 'selectors' describedBy: 'Selectors of the methods to file, separated by commas'.
 			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category to file them under' }
 		executingWith: [ :aClass :someSelectors :aMethodCategory |
@@ -2279,14 +2271,14 @@ defineClassTool
 		properties: { MCPPlainToolProperty named: 'definition' describedBy: 'Full class definition expression' }
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 defineMethodTool
 
 	^MCPPluggableTool
 		named: self class defineMethodToolName
 		describedBy: 'Define or modify a method on a class.'
 		properties: {
-			self classProperty.
+			MCPClassToolProperty default.
 			MCPPlainToolProperty named: 'source' describedBy: 'Full method source including selector'.
 			MCPPlainToolProperty
 				named: 'category'
@@ -2358,46 +2350,46 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 methodSourceTool
 
 	^MCPPluggableTool
 		named: self class methodSourceToolName
 		describedBy: 'Get the source code of a specific method, as the source field of the answer.'
-		properties: { MCPMethodProperty newDefault }
+		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod |
 			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 2/Sep/2026, 4:39:19 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 methodSourcesInCategoryTool
 
 	^MCPPluggableTool
 		named: self class methodSourcesInCategoryToolName
 		describedBy: 'Read the source of every method a class files under one of its method categories, each under its selector, so that what a category says is read at once instead of a method at a time. Name the class side the way it prints, as in MCPServer class.'
 		properties: {
-			self classProperty.
+			MCPClassToolProperty default.
 			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category' }
 		executingWith: [ :aClass :aMethodCategory |
 			Json render: (self sourcesIn: aMethodCategory of: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 2/Sep/2026, 4:48:13 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 methodSourcesOfClassTool
 
 	^MCPPluggableTool
 		named: self class methodSourcesOfClassToolName
 		describedBy: 'Read the source of every method of a class, each under its selector and grouped by the method category it is filed under, in the order the class holds its categories, so that a whole class is read at once. A category holding no method is left out. Name the class side the way it prints, as in MCPServer class.'
-		properties: { self classProperty }
+		properties: { MCPClassToolProperty default }
 		executingWith: [ :aClass | Json render: (self sourcesOf: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 methodsInCategoryTool
 
 	^MCPPluggableTool
 		named: self class methodsInCategoryToolName
 		describedBy: 'List the selectors a class files under one of its method categories. Name the class side the way it prints, as in MCPServer class.'
 		properties: {
-			self classProperty.
+			MCPClassToolProperty default.
 			MCPPlainToolProperty named: 'category' describedBy: 'Name of the method category' }
 		executingWith: [ :aClass :aMethodCategory |
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
@@ -2697,22 +2689,22 @@ packageDefinitionTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self definitionOf: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:59:01 pm (UTC)'!
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 packageOfClassTool
 
 	^MCPPluggableTool
 		named: self class packageOfClassToolName
 		describedBy: 'Answer the package a class belongs to, which is the one a change to the class leaves with changes to write out.'
-		properties: { self classProperty }
+		properties: { MCPClassToolProperty default }
 		executingWith: [ :aClass | self nameOfPackageOf: aClass ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:59:06 pm (UTC)'!
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 packageOfMethodTool
 
 	^MCPPluggableTool
 		named: self class packageOfMethodToolName
 		describedBy: 'Answer the package a method belongs to, which is the package of its class unless it is filed under a method category naming another one, as an extension of a package is.'
-		properties: { MCPMethodProperty newDefault }
+		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self nameOfPackageOfMethod: aMethod ]! !
 
 !MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:29 pm (UTC)'!
@@ -3712,14 +3704,14 @@ pushUpMethodRefactoringTool
 				pushingUp: OrderedCollection new) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 inlineTemporaryVariableRefactoringTool
 
 	^MCPPluggableTool
 		named: self class inlineTemporaryVariableRefactoringToolName
 		describedBy: 'Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to inline'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the use to replace, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the use, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -3733,14 +3725,14 @@ inlineTemporaryVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 renameTemporaryRefactoringTool
 
 	^MCPPluggableTool
 		named: self class renameTemporaryRefactoringToolName
 		describedBy: 'Rename a temporary or an argument of a method, in every use it has inside it.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to rename'.
 			MCPPlainToolProperty named: 'newVariableName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aMethod :aVariableName :aNewVariableName |
@@ -3753,14 +3745,14 @@ renameTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 temporaryToInstanceVariableRefactoringTool
 
 	^MCPPluggableTool
 		named: self class temporaryToInstanceVariableRefactoringToolName
 		describedBy: 'Turn a temporary of a method into an instance variable of its class.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to turn into an instance variable' }
 		executingWith: [ :aMethod :aVariableName |
 			self
@@ -3768,14 +3760,14 @@ temporaryToInstanceVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
 extractAsParameterRefactoringTool
 
 	^MCPPluggableTool
 		named: self class extractAsParameterRefactoringToolName
 		describedBy: 'Turn a piece of a method into a parameter of it, giving every sender the scope takes in the piece to pass. The piece is named by the text it is written with, or by the interval it occupies.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -3838,14 +3830,14 @@ extractMethodRefactoringTool
 				replacing: aReplacing ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 extractToTemporaryRefactoringTool
 
 	^MCPPluggableTool
 		named: self class extractToTemporaryRefactoringToolName
 		describedBy: 'Extract a piece of a method into a temporary of it. The piece is named by the text it is written with, or by the interval it occupies. Replacing all of them replaces every piece that is the same expression, which is found in the parse tree and so does not include a comment or a string saying the same.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the temporary to extract into'.
 			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
@@ -4227,13 +4219,13 @@ runTestClassTool
 		executingWith: [ :aClass | self runTestsIn: (TestSuite forTestCaseClass: aClass) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
 runTestMethodTool
 
 	^MCPPluggableTool
 		named: self class runTestMethodToolName
 		describedBy: 'Run one test and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.'
-		properties: { MCPMethodProperty newDefault }
+		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self runTestsIn: (TestSuite forTestMethod: aMethod) ]
 ! !
 
@@ -4459,6 +4451,32 @@ classNotFoundErrorDescriptionFor: aClassName
 	^'Class not found: ', aClassName
 ! !
 
+!MCPClassToolProperty class methodsFor: 'defaults' stamp: 'HAW 3/Sep/2026, 9:04:23 pm (UTC)'!
+defaultDescription
+
+	^'Name of the class, or of its class side as in MCPServer class'! !
+
+!MCPClassToolProperty class methodsFor: 'defaults' stamp: 'HAW 3/Sep/2026, 9:04:18 pm (UTC)'!
+defaultName
+
+	"The name a client sends the class under. Whoever declares a property for it, or reads it
+	out of the arguments, does so by this name and not by a text of its own."
+
+	^'className'! !
+
+!MCPClassToolProperty class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 9:30:01 pm (UTC)'!
+default
+
+	^self withDefaultNameDescribedBy: self defaultDescription! !
+
+!MCPClassToolProperty class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 9:29:56 pm (UTC)'!
+withDefaultNameDescribedBy: aDescription
+
+	"Answer one named the way a client always sends the class, described the way the tool that
+	takes it needs, which is what a tool asking for a class of its own kind describes itself."
+
+	^self named: self defaultName describedBy: aDescription! !
+
 !MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 1/Sep/2026, 1:55:42 pm (UTC)'!
 valueFor: aPackageName
 
@@ -4520,19 +4538,18 @@ valueFrom: anArguments
 
 ! !
 
-!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 9:30:08 pm (UTC)'!
 classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
 
 	^self
-		ofClass: (MCPClassToolProperty named: 'className' describedBy: aClassDescription)
+		ofClass: (MCPClassToolProperty withDefaultNameDescribedBy: aClassDescription)
 		andSelector: (MCPPluggableToolProperty
 			named: 'selector'
 			describedBy: aSelectorDescription
-			valuedWith: [ :aSelector | aSelector asSymbol ])
-! !
+			valuedWith: [ :aSelector | aSelector asSymbol ])! !
 
-!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 26/Aug/2026, 3:50:01 pm (UTC)'!
-newDefault
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+default
 
 	^self selectorDescribedBy: self defaultSelectorDescription
 ! !

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 7:35:35 pm'!
-'Description Reach a LiveTyping refactoring only as the actual scope'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 10!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:23 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 11!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -154,6 +154,26 @@ testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue
 	self assert: (self probeClass includesSelector: 'mcpProbe:' asSymbol).
 	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
 		includesSubstring: 'self mcpProbe: 7' caseSensitive: true)! !
+
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 3/Sep/2026, 8:26:38 pm (UTC)'!
+testAskingForTheActualScopeWithoutNamingAClassSaysWhichScopeNeedsIt
+
+	"The tool works over scopes that need no class, so the one a client leaves out is not a
+	class that was not found: it is the one the actual scope asked for."
+
+	| renameTool arguments |
+
+	renameTool := self toolNamed: MCPRefactoringTools renameSelectorRefactoringToolName.
+	arguments := Dictionary new
+		at: 'selector' put: 'mcpProbe';
+		at: 'newSelector' put: 'mcpRenamed';
+		at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringDecorator actualScopeName;
+		yourself.
+
+	self
+		should: [ renameTool valueWithArguments: arguments ]
+		raise: Error
+		withMessageText: MCPActualScopeRefactoringDecorator classNameNeededForTheActualScopeErrorDescription! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:27 pm (UTC)'!
 testExtractingAsAParameterInTheActualScopeLeavesASendToAnythingElseAlone

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:32 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerExtraRefactoring' 1 10!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:15 pm'!
+'Description Let a tool property answer its own default'!
+!provides: 'MCPServerExtraRefactoring' 1 11!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -49,14 +49,14 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
 extractParameterObjectTool
 
 	^MCPPluggableTool
 		named: self class extractParameterObjectToolName
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
-			MCPMethodProperty newDefault.
+			MCPMethodProperty default.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
