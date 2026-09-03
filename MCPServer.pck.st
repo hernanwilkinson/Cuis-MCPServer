@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 7:35:32 pm'!
-'Description Apply a refactoring and say what it changed with a method object'!
-!provides: 'MCPServer' 1 63!
+'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 5:08:33 pm'!
+'Description Say what a refactoring changed with one applier, not a hierarchy'!
+!provides: 'MCPServer' 1 64!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -79,92 +79,12 @@ MCPHttpSession class
 
 !classDefinition: #MCPRefactoringApplier category: #MCPServer!
 Object subclass: #MCPRefactoringApplier
-	instanceVariableNames: 'refactoring'
+	instanceVariableNames: 'refactoring method'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
 !classDefinition: 'MCPRefactoringApplier class' category: #MCPServer!
 MCPRefactoringApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPChangedClassesApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPChangedClassesApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPChangedClassesApplier class' category: #MCPServer!
-MCPChangedClassesApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPChangedClassApplier category: #MCPServer!
-MCPChangedClassesApplier subclass: #MCPChangedClassApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPChangedClassApplier class' category: #MCPServer!
-MCPChangedClassApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPChangedMethodsApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPChangedMethodsApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPChangedMethodsApplier class' category: #MCPServer!
-MCPChangedMethodsApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPCreatedClassApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPCreatedClassApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPCreatedClassApplier class' category: #MCPServer!
-MCPCreatedClassApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPMethodSourceApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPMethodSourceApplier
-	instanceVariableNames: 'method'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPMethodSourceApplier class' category: #MCPServer!
-MCPMethodSourceApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPCompilingMethodSourceApplier category: #MCPServer!
-MCPMethodSourceApplier subclass: #MCPCompilingMethodSourceApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPCompilingMethodSourceApplier class' category: #MCPServer!
-MCPCompilingMethodSourceApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPRemovedClassesApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPRemovedClassesApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPRemovedClassesApplier class' category: #MCPServer!
-MCPRemovedClassesApplier class
-	instanceVariableNames: ''!
-
-!classDefinition: #MCPRemovedInstanceVariablesApplier category: #MCPServer!
-MCPRefactoringApplier subclass: #MCPRemovedInstanceVariablesApplier
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MCPServer'!
-!classDefinition: 'MCPRemovedInstanceVariablesApplier class' category: #MCPServer!
-MCPRemovedInstanceVariablesApplier class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPServer category: #MCPServer!
@@ -456,43 +376,9 @@ I am one open Server-Sent Events stream between an MCPTransportHttpCopy and a cl
 I know my identifier, which the client sends back in the sessionId parameter of every message it posts, and the socket stream my events are written to. Only one writer at a time writes on that stream. A write that fails closes me, and a closed session never writes again.!
 
 !MCPRefactoringApplier commentStamp: '<historical>' prior: 0!
-I apply a refactoring and answer what it did, said the way a client of the server reads it.
+I apply a refactoring and say what it changed, the way a client of the server reads it.
 
-I am created with the refactoring and applied with one message, apply, so a tool that has built a refactoring hands it to me and has nothing left to do with it.
-
-What a refactoring answers when it is applied is what it changed, and it is not the same kind of thing for all of them: methods, classes, the names of what was removed, or the new source of one method. Each of my subclasses knows how to say one of those, which is why there are several of us and only one message to apply one.!
-
-!MCPChangedClassesApplier commentStamp: '<historical>' prior: 0!
-I say which classes a refactoring changed, each by its definition, which is where a client reads what the class holds now.!
-
-!MCPChangedClassApplier commentStamp: '<historical>' prior: 0!
-I say which class a refactoring changed when it answers the one class and not a collection of them.!
-
-!MCPChangedMethodsApplier commentStamp: '<historical>' prior: 0!
-I say which methods a refactoring changed and which it removed.
-
-A refactoring names a method it took away among its changes just as it names the ones it wrote, so the one that is gone is told from the rest by no longer being implemented.!
-
-!MCPCreatedClassApplier commentStamp: '<historical>' prior: 0!
-I say which class a refactoring created, by its definition, which says everything a client would ask the class about.!
-
-!MCPMethodSourceApplier commentStamp: '<historical>' prior: 0!
-I say what one method reads like once a refactoring has changed it.
-
-I read the source back from the system instead of from what the refactoring answered, so a client sees the source that was really saved.
-
-The refactoring I am created with compiles the method itself; MCPCompilingMethodSourceApplier is for the one that answers the new source and leaves the compiling to its applier.!
-
-!MCPCompilingMethodSourceApplier commentStamp: '<historical>' prior: 0!
-I compile the new source a refactoring answers, and then say what the method reads like.
-
-A refactoring such as RenameTemporary changes the source of one method without installing it, and it is its applier that saves it. The method keeps the category it is already in.!
-
-!MCPRemovedClassesApplier commentStamp: '<historical>' prior: 0!
-I say which classes a refactoring removed, by name, which is all that is left of them.!
-
-!MCPRemovedInstanceVariablesApplier commentStamp: '<historical>' prior: 0!
-I say which instance variables a refactoring removed, by name, which is the only way to know which ones it took, and I say so when it took none.!
+I am created with the refactoring, and with the method too when what is described is the new source of one, and I answer one message per way of reading the result: applyReportingChanges, applyReportingChangedClasses, applyReportingNewClass and the rest. What a refactoring answers when it is applied is not the same kind of thing for all of them - methods, classes, the names of what was removed, the new source of one method - so the sender picks the message that says the kind its refactoring answers.!
 
 !MCPTool commentStamp: '<historical>' prior: 0!
 I am something a server serves: I say my name, what I am for, the definition a client reads to know how to call me, and I answer what a client asked when it does.
@@ -953,32 +839,125 @@ identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
 
-!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:46:25 pm (UTC)'!
-apply
+!MCPRefactoringApplier methodsFor: 'initialization' stamp: 'HAW 2/Sep/2026, 11:02:26 pm (UTC)'!
+initializeApplying: aRefactoring changing: aMethod
 
-	"Apply my refactoring and answer what it did, said the way a client reads it. What a
-	refactoring answers is what it changed, and each of my subclasses knows how to say one
-	kind of it, so this is the only message that applies one."
+	refactoring := aRefactoring.
+	method := aMethod! !
 
-	^self descriptionOf: refactoring apply! !
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyCompilingNewSource
 
-!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:46:29 pm (UTC)'!
-descriptionOf: aRefactoringResult
+	"A refactoring such as RenameTemporary answers the new source of the method instead of
+	installing it, and it is its applier that compiles it. The method keeps the category it
+	is already in."
 
-	^self subclassResponsibility! !
+	| refactoredClass |
 
-!MCPRefactoringApplier methodsFor: 'initialization' stamp: 'HAW 2/Sep/2026, 8:46:33 pm (UTC)'!
-initializeApplying: aRefactoring
+	refactoredClass := method methodClass.
+	refactoredClass
+		compile: refactoring apply
+		classified: (refactoredClass organization categoryOfElement: method selector).
 
-	refactoring := aRefactoring! !
+	^self descriptionOfNewSource! !
 
-!MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 2/Sep/2026, 8:46:38 pm (UTC)'!
-applying: aRefactoring
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingChangedClass
 
-	^self new initializeApplying: aRefactoring! !
+	"A refactoring that changes one class answers that class and not a collection of them, so
+	the one class it answers is described as the only one that changed."
 
-!MCPChangedClassesApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:01 pm (UTC)'!
-descriptionOf: someClasses
+	^self descriptionOfChangedClasses: (Array with: refactoring apply)! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingChangedClasses
+
+	^self descriptionOfChangedClasses: refactoring apply! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingChanges
+
+	^self descriptionOfChanges: refactoring apply! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingNewClass
+
+	"A refactoring that makes a class answers it. Answer its definition, which says everything
+	a client would ask the class about."
+
+	^'Refactoring applied. Class created:' , String newLineString , String newLineString ,
+		refactoring apply definition! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingNewSource
+
+	"A refactoring that changes one method compiles it itself, so what it answers says nothing
+	a client needs and the source that was saved is what is described."
+
+	refactoring apply.
+
+	^self descriptionOfNewSource! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingRemovedClasses
+
+	"A refactoring that takes a class away answers the names of the ones it removed, which are
+	all that is left of them."
+
+	| removedClassNames |
+
+	removedClassNames := refactoring apply.
+
+	^String streamContents: [ :aStream |
+		aStream
+			nextPutAll: 'Refactoring applied. ';
+			print: removedClassNames size;
+			space;
+			nextPutAll: ('class' pluralize: removedClassNames size ~= 1);
+			space;
+			nextPutAll: 'removed:';
+			space;
+			nextPutAll: (', ' join: removedClassNames asSortedCollection) ]! !
+
+!MCPRefactoringApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 11:02:40 pm (UTC)'!
+applyReportingRemovedVariables
+
+	"A refactoring that removes the variables it finds answers their names, which are the only
+	way to know which ones it took."
+
+	| removedVariableNames |
+
+	removedVariableNames := refactoring apply.
+
+	removedVariableNames ifEmpty: [ ^'Refactoring applied. No instance variable removed' ].
+
+	^String streamContents: [ :aStream |
+		aStream
+			nextPutAll: 'Refactoring applied. ';
+			print: removedVariableNames size;
+			space;
+			nextPutAll: ('instance variable' pluralize: removedVariableNames size ~= 1);
+			space;
+			nextPutAll: 'removed:';
+			space;
+			nextPutAll: (', ' join: removedVariableNames asSortedCollection) ]! !
+
+!MCPRefactoringApplier methodsFor: 'describing' stamp: 'HAW 2/Sep/2026, 11:02:53 pm (UTC)'!
+description: someMethods asHavingBeen: aChange
+
+	^String streamContents: [ :aStream |
+		aStream
+			print: someMethods size;
+			space;
+			nextPutAll: ('method' pluralize: someMethods size ~= 1);
+			space;
+			nextPutAll: aChange;
+			nextPut: $:.
+		(someMethods collect: [ :eachMethod | eachMethod classAndSelector ]) asSortedCollection
+			do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]! !
+
+!MCPRefactoringApplier methodsFor: 'describing' stamp: 'HAW 2/Sep/2026, 11:02:53 pm (UTC)'!
+descriptionOfChangedClasses: someClasses
 
 	"Answer the definition of each class that changed, which says where the variable is now
 	and what else the class holds."
@@ -994,38 +973,16 @@ descriptionOf: someClasses
 		(someClasses asSortedCollection: [ :aClass :anotherClass | aClass name <= anotherClass name ])
 			do: [ :eachClass | aStream newLine; newLine; nextPutAll: eachClass definition ] ]! !
 
-!MCPChangedClassApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:06 pm (UTC)'!
-descriptionOf: aClass
-
-	"A refactoring that changes one class answers that class and not a collection of them, so
-	the one class it answers is described as the only one that changed."
-
-	^super descriptionOf: (Array with: aClass)! !
-
-!MCPChangedMethodsApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:46:50 pm (UTC)'!
-description: someMethods asHavingBeen: aChange
-
-	^String streamContents: [ :aStream |
-		aStream
-			print: someMethods size;
-			space;
-			nextPutAll: ('method' pluralize: someMethods size ~= 1);
-			space;
-			nextPutAll: aChange;
-			nextPut: $:.
-		(someMethods collect: [ :eachMethod | eachMethod classAndSelector ]) asSortedCollection
-			do: [ :eachName | aStream newLine; nextPutAll: eachName ] ]! !
-
-!MCPChangedMethodsApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:46:44 pm (UTC)'!
-descriptionOf: someMethods
+!MCPRefactoringApplier methodsFor: 'describing' stamp: 'HAW 3/Sep/2026, 4:34:32 pm (UTC)'!
+descriptionOfChanges: someMethods
 
 	"A refactoring that takes a method away names it among its changes just as it names the
 	ones it wrote, and the one that is gone is the one that is no longer implemented."
 
 	| changedMethods removedMethods sections |
 
-	changedMethods := someMethods select: [ :eachMethod | self isImplemented: eachMethod ].
-	removedMethods := someMethods reject: [ :eachMethod | self isImplemented: eachMethod ].
+	changedMethods := someMethods select: [ :eachMethod | eachMethod isValid ].
+	removedMethods := someMethods reject: [ :eachMethod | eachMethod isValid ].
 
 	sections := OrderedCollection new.
 	changedMethods ifNotEmpty: [ sections add: (self description: changedMethods asHavingBeen: 'changed') ].
@@ -1035,29 +992,7 @@ descriptionOf: someMethods
 
 	^'Refactoring applied. ' , (String newLineString join: sections)! !
 
-!MCPChangedMethodsApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:46:55 pm (UTC)'!
-isImplemented: aMethod
-
-	^aMethod methodClass includesSelector: aMethod selector! !
-
-!MCPCreatedClassApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:11 pm (UTC)'!
-descriptionOf: aCreatedClass
-
-	"A refactoring that makes a class answers it. Answer its definition, which says everything
-	a client would ask the class about."
-
-	^'Refactoring applied. Class created:' , String newLineString , String newLineString ,
-		aCreatedClass definition! !
-
-!MCPMethodSourceApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:28 pm (UTC)'!
-descriptionOf: aRefactoringResult
-
-	"A refactoring that changes one method compiles it itself, so what it answers says nothing
-	a client needs and the source that was saved is what is described."
-
-	^self descriptionOfNewSource! !
-
-!MCPMethodSourceApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:34 pm (UTC)'!
+!MCPRefactoringApplier methodsFor: 'describing' stamp: 'HAW 2/Sep/2026, 11:02:53 pm (UTC)'!
 descriptionOfNewSource
 
 	"The source is read from the system and not from what the refactoring answered, so a client
@@ -1076,75 +1011,15 @@ descriptionOfNewSource
 			newLine;
 			nextPutAll: refactoredMethod sourceCode ]! !
 
-!MCPMethodSourceApplier methodsFor: 'initialization' stamp: 'HAW 2/Sep/2026, 8:47:38 pm (UTC)'!
-initializeApplying: aRefactoring changing: aMethod
-
-	refactoring := aRefactoring.
-	method := aMethod! !
-
-!MCPMethodSourceApplier class methodsFor: 'instance creation' stamp: 'HAW 2/Sep/2026, 8:47:59 pm (UTC)'!
+!MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 3/Sep/2026, 4:29:39 pm (UTC)'!
 applying: aRefactoring
 
-	"I describe the new source of a method, so I am not built without one."
+	^self applying: aRefactoring changing: nil ! !
 
-	^self shouldNotImplement! !
-
-!MCPMethodSourceApplier class methodsFor: 'instance creation' stamp: 'HAW 2/Sep/2026, 8:47:43 pm (UTC)'!
+!MCPRefactoringApplier class methodsFor: 'instance creation' stamp: 'HAW 2/Sep/2026, 11:02:26 pm (UTC)'!
 applying: aRefactoring changing: aMethod
 
 	^self new initializeApplying: aRefactoring changing: aMethod! !
-
-!MCPCompilingMethodSourceApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:48 pm (UTC)'!
-descriptionOf: aNewSource
-
-	"A refactoring such as RenameTemporary answers the new source of the method instead of
-	installing it, and it is its applier that compiles it. The method keeps the category it
-	is already in."
-
-	| refactoredClass |
-
-	refactoredClass := method methodClass.
-	refactoredClass
-		compile: aNewSource
-		classified: (refactoredClass organization categoryOfElement: method selector).
-
-	^super descriptionOf: aNewSource! !
-
-!MCPRemovedClassesApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:17 pm (UTC)'!
-descriptionOf: someRemovedClassNames
-
-	"A refactoring that takes a class away answers the names of the ones it removed, which are
-	all that is left of them."
-
-	^String streamContents: [ :aStream |
-		aStream
-			nextPutAll: 'Refactoring applied. ';
-			print: someRemovedClassNames size;
-			space;
-			nextPutAll: ('class' pluralize: someRemovedClassNames size ~= 1);
-			space;
-			nextPutAll: 'removed:';
-			space;
-			nextPutAll: (', ' join: someRemovedClassNames asSortedCollection) ]! !
-
-!MCPRemovedInstanceVariablesApplier methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:47:23 pm (UTC)'!
-descriptionOf: someRemovedVariableNames
-
-	"A refactoring that removes the variables it finds answers their names, which are the only
-	way to know which ones it took."
-
-	someRemovedVariableNames ifEmpty: [ ^'Refactoring applied. No instance variable removed' ].
-
-	^String streamContents: [ :aStream |
-		aStream
-			nextPutAll: 'Refactoring applied. ';
-			print: someRemovedVariableNames size;
-			space;
-			nextPutAll: ('instance variable' pluralize: someRemovedVariableNames size ~= 1);
-			space;
-			nextPutAll: 'removed:';
-			space;
-			nextPutAll: (', ' join: someRemovedVariableNames asSortedCollection) ]! !
 
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 9:44:59 pm (UTC)'!
 initializeServingOver: aTransport smalltalk: aSmalltalk
@@ -3075,45 +2950,45 @@ notInAnyPackageDescription
 
 	^'It is not in any package'! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 apply: aRefactoring reportingNewSourceOf: aMethod
 
-	^(MCPMethodSourceApplier applying: aRefactoring changing: aMethod) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyReportingNewSource! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingChangedClass: aRefactoring
 
-	^(MCPChangedClassApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChangedClass! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingChangedClasses: aRefactoring
 
-	^(MCPChangedClassesApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChangedClasses! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingChanges: aRefactoring
 
-	^(MCPChangedMethodsApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChanges! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingNewClass: aRefactoring
 
-	^(MCPCreatedClassApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingNewClass! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingRemovedClasses: aRefactoring
 
-	^(MCPRemovedClassesApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingRemovedClasses! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applyReportingRemovedVariables: aRefactoring
 
-	^(MCPRemovedInstanceVariablesApplier applying: aRefactoring) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring) applyReportingRemovedVariables! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 2/Sep/2026, 8:48:24 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
 applySourceChanging: aRefactoring to: aMethod
 
-	^(MCPCompilingMethodSourceApplier applying: aRefactoring changing: aMethod) apply! !
+	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
 
 !MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 27/Aug/2026, 1:36:28 pm (UTC)'!
 implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector in: aClassName when: aScopeName
