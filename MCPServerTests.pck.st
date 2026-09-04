@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 8:37:17 am'!
-'Description Name every fork and answer a test run that was cut short'!
-!provides: 'MCPServerTests' 1 54!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:56 am'!
+'Description Name the parameters of an extracted method as the client asked'!
+!provides: 'MCPServerTests' 1 55!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -2680,6 +2680,35 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 		includesSubstring: '^10' caseSensitive: true)
 
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 4/Sep/2026, 1:03:38 pm (UTC)'!
+testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked
+
+	"The name a client asks for is the one the new method calls its parameter. The code the
+	extraction replaces keeps passing the variable it already had, which is a different name."
+
+	| newMethodSource |
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpTotalFor: aNumber
+
+	^aNumber + 1'.
+
+	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+		with: (Dictionary new
+			at: 'className' put: 'MCPTestSubject';
+			at: 'selector' put: 'mcpTotalFor:';
+			at: 'newSelector' put: 'mcpIncremented:';
+			at: 'argumentNames' put: 'aDifferentName';
+			at: 'text' put: 'aNumber + 1';
+			yourself).
+
+	newMethodSource := self createdClassInTest sourceCodeAt: 'mcpIncremented:' asSymbol.
+	self assert: (newMethodSource includesSubstring: 'mcpIncremented: aDifferentName' caseSensitive: true).
+	self assert: (newMethodSource includesSubstring: 'aDifferentName + 1' caseSensitive: true).
+	self deny: (newMethodSource includesSubstring: 'aNumber' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpTotalFor:' asSymbol)
+		includesSubstring: 'self mcpIncremented: aNumber' caseSensitive: true)! !
 
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 methodsFoundBy: aToolName with: anArguments

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:03 am'!
-'Description Let a text say whether it means true'!
-!provides: 'MCPServer' 1 67!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:52 am'!
+'Description Name the parameters of an extracted method as the client asked'!
+!provides: 'MCPServer' 1 68!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3193,33 +3193,51 @@ positionsIn: aCompiledMethod of: someParameterNames
 		aCompiledMethod methodNode argumentNames indexOf: eachName ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 27/Aug/2026, 11:48:25 am (UTC)'!
-extractMethodFrom: aMethodReference at: anInterval to: aMessage replacing: aReplacing
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+assert: someParameters isNamedBy: someAskedNames
+
+	"The new selector needs one keyword for each parameter the extracted code uses, which is
+	what the applier checks before it lets the extraction be made."
+
+	someParameters size = someAskedNames size
+		ifFalse: [ ExtractMethodNewMethod signalExtractMethodWithWrongNumberOfArgumentsError ]! !
+
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:02 pm (UTC)'!
+extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgumentNames: someArgumentNames replacing: aReplacing
 
 	"Extract the code the interval covers into a method of its own, the way the applier does
 	once it has been told what to call it: the finder says which pieces the new message
 	replaces, each of them is told the message, and the extraction is made of the new method
-	and of those pieces."
+	and of those pieces.
 
-	| trimmedInterval finder replacements |
+	The message is named with the parameters the extracted code really uses and not with the
+	names a client asked for, because the message is what replaces the code and there it is the
+	variables already there that are passed. What the new method calls each of them is said
+	apart, in the names it renames them to."
+
+	| trimmedInterval finder replacements parameters newMessage |
 
 	trimmedInterval := anInterval trimToMatchExpressionOn: aMethodReference sourceCode.
 	ExtractMethodNewMethod assertCanApplyRefactoringOn: aMethodReference at: trimmedInterval.
 
+	parameters := ExtractMethodParametersDetector
+		valueFor: aMethodReference notOptimizedMethodNode
+		at: trimmedInterval.
+	newMessage := self messageNamed: aNewSelector takingTheNamesOf: parameters.
+
 	finder := ExtractMethodReplacementsFinder ofCodeIn: trimmedInterval at: aMethodReference.
 	finder value.
 	replacements := self replacementsFoundBy: finder replacing: aReplacing.
-	replacements do: [ :eachReplacement | eachReplacement newMessage: aMessage ].
+	replacements do: [ :eachReplacement | eachReplacement newMessage: newMessage ].
 
 	^self applyReportingChanges: (ExtractMethod
 		newDefinition: (ExtractMethodNewMethod
 			fromInterval: trimmedInterval
 			of: aMethodReference
-			to: aMessage
+			to: newMessage
 			categorizedAs: aMethodReference category
-			withArgumentNames: Dictionary new)
-		replacements: replacements)
-! !
+			withArgumentNames: (self namesRenaming: parameters asAskedIn: someArgumentNames))
+		replacements: replacements)! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:31:09 pm (UTC)'!
 extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
@@ -3275,6 +3293,15 @@ extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval repla
 		reportingNewSourceOf: aMethodReference
 ! !
 
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+messageNamed: aNewSelector takingTheNamesOf: someParameters
+
+	^someParameters
+		ifEmpty: [ Message selector: aNewSelector asSymbol ]
+		ifNotEmpty: [ Message
+			selector: aNewSelector asSymbol
+			arguments: (someParameters collect: [ :eachParameter | eachParameter name ]) asArray ]! !
+
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 messageNamed: aNewSelector withArgumentNames: someArgumentNames
 
@@ -3307,6 +3334,23 @@ messageSendIn: aCompiledMethod at: anInterval
 		class: aCompiledMethod methodClass
 		completeSourceRange: nodeAndRange value
 ! !
+
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+namesRenaming: someParameters asAskedIn: someArgumentNames
+
+	"Answer what the new method calls each parameter a client asked to name differently. One it
+	named the way the code already does is left out, because only the differences are renamed."
+
+	| askedNames renamedNames |
+
+	askedNames := self namesFrom: someArgumentNames.
+	self assert: someParameters isNamedBy: askedNames.
+
+	renamedNames := Dictionary new.
+	someParameters with: askedNames do: [ :eachParameter :eachAskedName |
+		eachParameter name = eachAskedName ifFalse: [ renamedNames at: eachParameter name put: eachAskedName ] ].
+
+	^renamedNames! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: someParseNodes
@@ -3821,28 +3865,6 @@ extractMethodFromSimilarCodeRefactoringTool
 				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
-extractMethodRefactoringTool
-
-	^MCPPluggableTool
-		named: self class extractMethodRefactoringToolName
-		describedBy: 'Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced, and how far it is looked for is what replacing says.'
-		properties: {
-			MCPMethodProperty selectorDescribedBy: 'Selector of the method to extract from'.
-			MCPPlainToolProperty named: 'newSelector' describedBy: 'Selector of the method to create, with its keywords, as in totalFor:at:'.
-			MCPPlainToolProperty named: 'argumentNames' describedBy: 'Names of the parameters of the new method, separated by commas, in the order of its keywords' defaultingTo: ''.
-			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
-			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
-			MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
-			MCPPlainToolProperty named: 'replacing' describedBy: 'Which pieces the new message replaces: selection for the one named, method for every piece of that method that is the same code, class for every piece of that class, hierarchy for every piece of that class and of all its subclasses. Defaults to selection' defaultingTo: 'selection' }
-		executingWith: [ :aMethod :aNewSelector :someArgumentNames :aText :aStart :aStop :aReplacing |
-			self
-				extractMethodFrom: aMethod asMethodReference
-				at: (self firstIntervalIn: aMethod matching: aText from: aStart to: aStop)
-				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames)
-				replacing: aReplacing ]
-! !
-
 !MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 4/Sep/2026, 11:53:30 am (UTC)'!
 extractToTemporaryRefactoringTool
 
@@ -3894,6 +3916,28 @@ inlineMethodRefactoringTool
 					at: (self intervalIn: aSendingMethod matching: aText from: aStart to: aStop)))
 				removeMethod: false) ]
 ! !
+
+!MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 4/Sep/2026, 1:04:18 pm (UTC)'!
+extractMethodRefactoringTool
+
+	^MCPPluggableTool
+		named: self class extractMethodRefactoringToolName
+		describedBy: 'Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced, and how far it is looked for is what replacing says.'
+		properties: {
+			MCPMethodProperty selectorDescribedBy: 'Selector of the method to extract from'.
+			MCPPlainToolProperty named: 'newSelector' describedBy: 'Selector of the method to create, with its keywords, as in totalFor:at:'.
+			MCPPlainToolProperty named: 'argumentNames' describedBy: 'Names of the parameters of the new method, separated by commas, in the order of its keywords' defaultingTo: ''.
+			MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
+			MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
+			MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
+			MCPPlainToolProperty named: 'replacing' describedBy: 'Which pieces the new message replaces: selection for the one named, method for every piece of that method that is the same code, class for every piece of that class, hierarchy for every piece of that class and of all its subclasses. Defaults to selection' defaultingTo: 'selection' }
+		executingWith: [ :aMethod :aNewSelector :someArgumentNames :aText :aStart :aStop :aReplacing |
+			self
+				extractMethodFrom: aMethod asMethodReference
+				at: (self firstIntervalIn: aMethod matching: aText from: aStart to: aStop)
+				named: aNewSelector
+				withArgumentNames: someArgumentNames
+				replacing: aReplacing ]! !
 
 !MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 noMessageSendErrorDescriptionIn: aCompiledMethod at: anIndex
