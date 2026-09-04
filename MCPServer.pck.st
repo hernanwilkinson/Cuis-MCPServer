@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:09 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServer' 1 65!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 8:36:43 am'!
+'Description Name every fork and answer a test run that was cut short'!
+!provides: 'MCPServer' 1 66!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1881,7 +1881,7 @@ signalIsNotASingleMessageSend
 	self error: self isNotASingleMessageSendErrorDescription
 ! !
 
-!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
+!MCPEvaluateToDebugOnErrorTool methodsFor: 'executing' stamp: 'HAW 3/Sep/2026, 10:23:22 pm (UTC)'!
 valueWithArguments: anArguments
 
 	"The evaluation runs in a process of its own so that the one answering the request is not
@@ -1899,11 +1899,19 @@ valueWithArguments: anArguments
 			result := 'Error: ', anError messageText.
 			MCPDebuggingSession openOnErrorAt: anError signalerContext.
 			semaphore signal.
-			Processor activeProcess suspend ]] fork.
+			Processor activeProcess suspend ]]
+		forkNamed: self class evaluatedCodeProcessName.
 	semaphore wait.
 
-	^result printString
-! !
+	^result printString! !
+
+!MCPEvaluateToDebugOnErrorTool class methodsFor: 'process names' stamp: 'HAW 3/Sep/2026, 10:23:27 pm (UTC)'!
+evaluatedCodeProcessName
+
+	"The process the code runs in, which is the one a debugger drives when it fails, so it is
+	named to be told apart in the process browser from the one answering the request."
+
+	^'MCP evaluating to debug on error'! !
 
 !MCPPluggableTool methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
@@ -2158,7 +2166,7 @@ evaluateTool
 		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 10:23:09 pm (UTC)'!
 saveImageTool
 
 	^MCPPluggableTool
@@ -2166,10 +2174,9 @@ saveImageTool
 		describedBy: 'Save the Smalltalk image to disk.'
 		properties: #()
 		executingWith: [
-			[ smalltalk saveImage ] fork.
+			[ smalltalk saveImage ] forkNamed: self class saveImageProcessName.
 			(Delay forSeconds: 1) wait.
-			'Image saved: ', smalltalk imageName ]
-! !
+			'Image saved: ', smalltalk imageName ]! !
 
 !MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 screenshotTool
@@ -2216,6 +2223,11 @@ saveImageToolName
 screenshotToolName
 
 	^'smalltalk_screenshot'! !
+
+!MCPImageTools class methodsFor: 'process names' stamp: 'HAW 3/Sep/2026, 10:23:14 pm (UTC)'!
+saveImageProcessName
+
+	^'MCP saving the image'! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:38:18 pm (UTC)'!
 classDefinitionTool
@@ -2838,11 +2850,12 @@ requirementNamesOf: aCodePackage
 
 	^(aCodePackage requires collect: [ :eachRequirement | eachRequirement name asString ]) asArray sorted! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:11 pm (UTC)'!
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
 save: aCodePackage
 
 	"Asking a package that does not know its file to save itself opens a dialog on screen asking
-	where, and a request has nobody to answer it, so it is told what is wrong instead."
+	where, and that dialog blocks the process that draws the world, so every other piece of work
+	waiting on it waits for ever. It must never be reached."
 
 	self assertKnowsItsFile: aCodePackage.
 	aCodePackage save.
@@ -4242,27 +4255,6 @@ runTestsForClassesTool
 				named: someClassNames) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
-runTestsIn: aTestSuite
-
-	"The suite is run in a process of its own. A test that signals is recorded as an error only
-	when what it signalled reaches the default handler, and the handler that turns an error
-	into an answer for a client is on the stack of the process answering the request."
-
-	| result done |
-
-	done := Semaphore new.
-	[ result := aTestSuite run. done signal ] fork.
-	done wait.
-
-	^Json render: (OrderedDictionary new
-		at: 'passedCount' put: result passedCount;
-		at: 'failedCount' put: result failureCount;
-		at: 'errorCount' put: result errorCount;
-		at: 'failed' put: (self namesOfTests: result failures);
-		at: 'errors' put: (self namesOfTests: result errors);
-		yourself)! !
-
 !MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 runTestsInCategoryTool
 
@@ -4284,6 +4276,42 @@ addToolsTo: anMCPServer
 		addTool: self runTestsForClassesTool
 ! !
 
+!MCPTestRunningTools methodsFor: 'running tests' stamp: 'HAW 3/Sep/2026, 10:26:43 pm (UTC)'!
+descriptionOf: aTestResult
+
+	^OrderedDictionary new
+		at: 'passedCount' put: aTestResult passedCount;
+		at: 'failedCount' put: aTestResult failureCount;
+		at: 'errorCount' put: aTestResult errorCount;
+		at: 'failed' put: (self namesOfTests: aTestResult failures);
+		at: 'errors' put: (self namesOfTests: aTestResult errors);
+		yourself! !
+
+!MCPTestRunningTools methodsFor: 'running tests' stamp: 'HAW 4/Sep/2026, 11:28:53 am (UTC)'!
+runTestsIn: aTestSuite
+
+	"The suite runs in a process of its own and this one waits for it. Not for concurrency: a
+	test that signals is recorded by TestResult only when what it signalled goes unhandled,
+	because runCase: catches UnhandledError and not Error, and the handler that turns an error
+	into an answer for a client is on the stack of the process answering the request. On that
+	stack the error is caught before it can go unhandled, so one signalling test would fail the
+	whole call and lose the results of every test beside it. A process of its own carries no
+	such handler.
+
+	The semaphore is signalled however the run ends, so that a process terminated before it
+	finished frees this one instead of leaving it waiting for a signal nobody sends. Then there
+	is no result, and that is what is said rather than a failure to read one."
+
+	| result done |
+
+	done := Semaphore new.
+	[ [ result := aTestSuite run ] ensure: [ done signal ] ] forkNamed: aTestSuite name.
+	done wait.
+
+	^result
+		ifNil: [ self error: (self class testsDidNotFinishErrorDescriptionFor: aTestSuite) ]
+		ifNotNil: [ :aTestResult | Json render: (self descriptionOf: aTestResult) ]! !
+
 !MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
 runTestClassToolName
 
@@ -4303,6 +4331,11 @@ runTestsForClassesToolName
 runTestsInCategoryToolName
 
 	^'smalltalk_run_tests_in_category'! !
+
+!MCPTestRunningTools class methodsFor: 'error descriptions' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
+testsDidNotFinishErrorDescriptionFor: aTestSuite
+
+	^'The tests of ', aTestSuite name, ' did not finish: the process running them was terminated before it answered'! !
 
 !MCPToolProperty methodsFor: 'initialization' stamp: 'HAW 21/Aug/2026, 5:14:33 pm (UTC)'!
 initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock

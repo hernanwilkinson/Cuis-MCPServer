@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:38:06 pm'!
-'Description Read a whole method category or a whole class at once'!
-!provides: 'MCPServerTests' 1 52!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 8:37:17 am'!
+'Description Name every fork and answer a test run that was cut short'!
+!provides: 'MCPServerTests' 1 54!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1484,7 +1484,7 @@ testAPackageThatDoesNotKnowItsFileIsNotSaved
 		withMessageText: (self serverErrorTextFor:
 			(MCPPackageTools doesNotKnowItsFileErrorDescriptionFor: testPackage))! !
 
-!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:05:00 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 4/Sep/2026, 11:15:08 am (UTC)'!
 testSavingAPackageWritesItToItsFileAndLeavesNothingToWriteOut
 
 	| fileName |
@@ -2913,7 +2913,7 @@ testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
 		equals: #(1 1 1)
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 4/Sep/2026, 11:15:08 am (UTC)'!
 testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
 
 	| answer |
@@ -2925,8 +2925,7 @@ testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
 
 	self
 		assert: (Array with: (answer at: 'failed') with: (answer at: 'errors'))
-		equals: #(#('MCPTestProbeCase>>#testThatFails') #('MCPTestProbeCase>>#testThatSignals'))
-! !
+		equals: #(#('MCPTestProbeCase>>#testThatFails') #('MCPTestProbeCase>>#testThatSignals'))! !
 
 !MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 testRunningOneTestMethodRunsThatOneAlone
@@ -2966,7 +2965,7 @@ testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
 		equals: #(1 1 1)
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'test support' stamp: 'HAW 4/Sep/2026, 11:15:08 am (UTC)'!
 countsOfRunning: aToolName with: anArguments
 
 	| answer |
@@ -2976,8 +2975,7 @@ countsOfRunning: aToolName with: anArguments
 	^Array
 		with: (answer at: 'passedCount')
 		with: (answer at: 'failedCount')
-		with: (answer at: 'errorCount')
-! !
+		with: (answer at: 'errorCount')! !
 
 !MCPTestRunningToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 defineTestCaseProbe
