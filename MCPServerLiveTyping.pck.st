@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:12 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServerLiveTyping' 1 19!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:06 am'!
+'Description Let a text say whether it means true'!
+!provides: 'MCPServerLiveTyping' 1 20!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -269,7 +269,7 @@ renderMethodReferences: someMethodReferences
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:13 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 4/Sep/2026, 11:53:36 am (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -285,13 +285,13 @@ actualImplementorsOfTool
 		executingWith: [ :aClass :aSelector :aPossibleAnswer |
 			| implementors |
 			implementors := smalltalk actualImplementorsOf: aSelector in: aClass.
-			self renderMethodReferences: (aPossibleAnswer = 'true'
+			self renderMethodReferences: (aPossibleAnswer isTrue
 				ifTrue: [ implementors ]
 				ifFalse: [ implementors reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]) ]
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 4/Sep/2026, 11:53:34 am (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
@@ -303,7 +303,7 @@ actualSendersOfTool
 		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
 			sureAndPossibleSenders := smalltalk allActualSendersOn: aMethod.
-			self renderMethodReferences: (aPossibleAnswer = 'true'
+			self renderMethodReferences: (aPossibleAnswer isTrue
 				ifTrue: [ sureAndPossibleSenders first , sureAndPossibleSenders second ]
 				ifFalse: [ sureAndPossibleSenders first ]) ]
 ! !

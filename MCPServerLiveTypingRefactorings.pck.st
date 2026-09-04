@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:18 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 13!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:09 am'!
+'Description Let a text say whether it means true'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 14!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -321,7 +321,7 @@ properties
 		MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
-!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:30 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aKeepingAnswer |
@@ -329,7 +329,7 @@ applyInActualScopeWith: anArguments
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
 			using: AddParameterWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :senders |
 				aMethod selector isUnary
 					ifTrue: [ AddParameterWithActualScope
@@ -338,7 +338,7 @@ applyInActualScopeWith: anArguments
 						toUnarySelector: aMethod selector
 						implementors: implementors
 						senders: senders
-						withPossibleMessageSends: aKeepingAnswer = 'true' ]
+						withPossibleMessageSends: aKeepingAnswer isTrue ]
 					ifFalse: [ AddParameterWithActualScope
 						named: aParameterName
 						at: aParameterIndex asNumber
@@ -347,7 +347,7 @@ applyInActualScopeWith: anArguments
 						toKeywordSelector: aMethod selector
 						implementors: implementors
 						senders: senders
-						withPossibleMessageSends: aKeepingAnswer = 'true' ] ])) applyReportingChanges ]! !
+						withPossibleMessageSends: aKeepingAnswer isTrue ] ])) applyReportingChanges ]! !
 
 !MCPAddParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:31 pm (UTC)'!
 decoratedToolName
@@ -364,7 +364,7 @@ properties
 		MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
-!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector :aKeepingAnswer |
@@ -372,14 +372,14 @@ applyInActualScopeWith: anArguments
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
 			using: ChangeKeywordsSelectorOrderWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :senders |
 				ChangeKeywordsSelectorOrderWithActualScope
 					from: aMethod selector
 					to: aNewSelector
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer = 'true' ])) applyReportingChanges ]! !
+					withPossibleMessageSends: aKeepingAnswer isTrue ])) applyReportingChanges ]! !
 
 !MCPChangeKeywordsOrderInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:14 pm (UTC)'!
 decoratedToolName
@@ -397,7 +397,7 @@ properties
 		MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aText :aStart :aStop :aKeepingAnswer |
@@ -405,7 +405,7 @@ applyInActualScopeWith: anArguments
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
 			using: ExtractAsParameterWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :senders |
 				ExtractAsParameterWithActualScope
 					named: aParameterName
@@ -413,7 +413,7 @@ applyInActualScopeWith: anArguments
 					at: aMethod
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer = 'true' ])) applyReportingChanges ]! !
+					withPossibleMessageSends: aKeepingAnswer isTrue ])) applyReportingChanges ]! !
 
 !MCPExtractAsParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:45:04 pm (UTC)'!
 decoratedToolName
@@ -434,19 +434,19 @@ properties
 		MCPPlainToolProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false'.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is inlined too, true or false' defaultingTo: 'false' }! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aRemoveAnswer :aKeepingAnswer |
 		(MCPRefactoringApplier applying: (self
 			messageSendsRefactoringOn: aMethod
 			using: InlineMethodWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :messageSends |
 				InlineMethodWithActualScope
 					from: aMethod
 					intoSendersAndUsages: messageSends
-					removeMethod: aRemoveAnswer = 'true' ])) applyReportingChanges ]! !
+					removeMethod: aRemoveAnswer isTrue ])) applyReportingChanges ]! !
 
 !MCPInlineMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:21:58 pm (UTC)'!
 decoratedToolName
@@ -469,7 +469,7 @@ properties
 		MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
-!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterIndex :aKeepingAnswer |
@@ -477,7 +477,7 @@ applyInActualScopeWith: anArguments
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
 			using: RemoveParameterWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :senders |
 				RemoveParameterWithActualScope
 					atIndex: aParameterIndex asNumber
@@ -485,7 +485,7 @@ applyInActualScopeWith: anArguments
 					from: aMethod selector
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer = 'true' ])) applyReportingChanges ]! !
+					withPossibleMessageSends: aKeepingAnswer isTrue ])) applyReportingChanges ]! !
 
 !MCPRemoveParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:23 pm (UTC)'!
 decoratedToolName
@@ -502,7 +502,7 @@ properties
 		MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }! !
 
-!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector :aKeepingAnswer |
@@ -510,14 +510,14 @@ applyInActualScopeWith: anArguments
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
 			using: RenameSelectorWithActualScope
-			keepingPossibleSends: aKeepingAnswer = 'true'
+			keepingPossibleSends: aKeepingAnswer isTrue
 			builtWith: [ :implementors :senders |
 				RenameSelectorWithActualScope
 					from: aMethod selector
 					to: aNewSelector
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer = 'true' ])) applyReportingChanges ]! !
+					withPossibleMessageSends: aKeepingAnswer isTrue ])) applyReportingChanges ]! !
 
 !MCPRenameSelectorInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:00 pm (UTC)'!
 decoratedToolName

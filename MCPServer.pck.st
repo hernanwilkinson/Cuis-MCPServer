@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 8:36:43 am'!
-'Description Name every fork and answer a test run that was cut short'!
-!provides: 'MCPServer' 1 66!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:03 am'!
+'Description Let a text say whether it means true'!
+!provides: 'MCPServer' 1 67!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3843,7 +3843,7 @@ extractMethodRefactoringTool
 				replacing: aReplacing ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 4/Sep/2026, 11:53:30 am (UTC)'!
 extractToTemporaryRefactoringTool
 
 	^MCPPluggableTool
@@ -3858,7 +3858,7 @@ extractToTemporaryRefactoringTool
 			MCPPlainToolProperty named: 'replaceAll' describedBy: 'Whether every piece that is the same expression is replaced, true or false. Defaults to replacing only the one named' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aVariableName :aText :aStart :aStop :aReplaceAllAnswer |
 			| replacingAll |
-			replacingAll := aReplaceAllAnswer = 'true'.
+			replacingAll := aReplaceAllAnswer isTrue.
 			self
 				extractToTemporaryNamed: aVariableName
 				in: aMethod asMethodReference
@@ -5231,6 +5231,14 @@ readingFrom: aReadStream writingTo: aWriteStream
 
 	^self new initializeReadingFrom: aReadStream writingTo: aWriteStream
 ! !
+
+!CharacterSequence methodsFor: '*MCPServer' stamp: 'HAW 4/Sep/2026, 12:06:49 pm (UTC)'!
+isTrue
+
+	"Answer whether I say what a client sends for true. Every value reaches a tool as text, so
+	what stands for a boolean is read here once instead of at each place that takes one."
+
+	^self = 'true'! !
 
 !UISupervisor class methodsFor: '*MCPServer' stamp: 'HAW 28/Aug/2026, 6:40:03 pm (UTC)'!
 waitToDone: aBlock

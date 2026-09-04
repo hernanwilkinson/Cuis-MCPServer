@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:20 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 9!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:12 am'!
+'Description Let a text say whether it means true'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 10!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -50,13 +50,13 @@ properties
 		MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
 		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 11:53:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory :aKeepingAnswer |
 		| parameterNames isKeepingPossibleSends |
 		parameterNames := (MCPToolGroup namesFrom: someParameterNames) asArray.
-		isKeepingPossibleSends := aKeepingAnswer = 'true'.
+		isKeepingPossibleSends := aKeepingAnswer isTrue.
 		(MCPRefactoringApplier applying: (self
 			refactoringOn: aMethod selector
 			in: aMethod methodClass
