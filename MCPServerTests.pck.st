@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:56 am'!
-'Description Name the parameters of an extracted method as the client asked'!
-!provides: 'MCPServerTests' 1 55!
+'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 11:38:21 am'!
+'Description Say when a class of an earlier run is still in the system'!
+!provides: 'MCPServerTests' 1 56!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -337,6 +337,27 @@ sendingThrough: aTransport
 
 	^self new initializeSendingThrough: aTransport! !
 
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 4/Sep/2026, 2:05:06 pm (UTC)'!
+assertNoClassOfAnEarlierRunIsLeftOver
+
+	"A class still in the system but in no class category is one that removing it never
+	finished taking away: a run cut short between taking a class out of the organization and
+	out of Smalltalk leaves exactly that. My superclass checks what the class category of the
+	test data holds, so it cannot see one, and every test that creates that class again fails
+	deep in the class builder, where the category it has not got is asked for its symbol.
+	Saying it once here is worth more than that failing many times."
+
+	| leftOver |
+
+	leftOver := Smalltalk allClasses select: [ :eachClass |
+		eachClass category isNil
+			and: [ eachClass name beginsWith: self class classNamePrefixOfTestData ] ].
+
+	self
+		assert: leftOver isEmpty
+		description: 'A class of an earlier run is still in the system, in no class category: ',
+			(leftOver collect: [ :eachClass | eachClass name ]) asArray printString! !
+
 !MCPToolsTest methodsFor: 'running' stamp: 'HAW 20/Aug/2026, 9:31:35 pm (UTC)'!
 registerClassCategoryOfTestData
 
@@ -345,7 +366,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:47:57 am (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 4/Sep/2026, 2:05:13 pm (UTC)'!
 setUp
 
 	"Serve a server over a mock transport, so a mock client can send it requests the way a real
@@ -354,6 +375,7 @@ setUp
 	| transport |
 
 	super setUp.
+	self assertNoClassOfAnEarlierRunIsLeftOver.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
 	server := self serverClass servingOver: transport smalltalk: self smalltalkForTheServer.
@@ -526,6 +548,14 @@ classCategoryOfTestData
 	^'__MCPServerTestData__'
 
 ! !
+
+!MCPToolsTest class methodsFor: 'test data' stamp: 'HAW 4/Sep/2026, 2:04:55 pm (UTC)'!
+classNamePrefixOfTestData
+
+	"What every class these tests create through the server is named with, which is how one
+	left over from an earlier run is found by name when it can no longer be found by category."
+
+	^'MCPTest'! !
 
 !MCPToolsTest class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:11:09 pm (UTC)'!
 isAbstract
