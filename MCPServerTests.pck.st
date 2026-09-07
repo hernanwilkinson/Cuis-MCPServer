@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:06 pm'!
-'Description Let each test declare the tools its server has'!
-!provides: 'MCPServerTests' 1 58!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:43:04 pm'!
+'Description Let every tools test run in the same fixture'!
+!provides: 'MCPServerTests' 1 60!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -535,6 +535,11 @@ subjectMethodSource
 subjectSubclassDefinition
 
 	^self definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 10:42:59 pm (UTC)'!
+toolNamed: aToolName
+
+	^server toolNamed: aToolName! !
 
 !MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:07 pm (UTC)'!
 toolDecoratorClasses

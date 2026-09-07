@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:31 pm'!
-'Description Let each test declare the tools its server has'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 9!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:32 pm'!
+'Description Let every tools test run in the same fixture'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 10!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
 
 
 !classDefinition: #MCPExtraLiveTypingRefactoringToolsTest category: #MCPServerExtraLiveTypingRefactoringsTests!
-DynamicallyCodeCreatingTest subclass: #MCPExtraLiveTypingRefactoringToolsTest
+MCPToolsTest subclass: #MCPExtraLiveTypingRefactoringToolsTest
 	instanceVariableNames: 'probeClass'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -17,17 +17,15 @@ MCPExtraLiveTypingRefactoringToolsTest class
 	instanceVariableNames: ''!
 
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 7/Sep/2026, 9:49:32 pm (UTC)'!
 setUp
 
 	super setUp.
-	classCategories add: self classCategoryOfTestData.
 	probeClass := Object subclass: #MCPExtraLiveTypingRefactoringProbe
 		instanceVariableNames: ''
 		classVariableNames: ''
 		poolDictionaries: ''
-		category: self classCategoryOfTestData
-! !
+		category: self classCategoryOfTestData! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 apply: aToolName inActualScopeWith: anArguments
@@ -105,17 +103,6 @@ probeClass
 
 	^probeClass
 ! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:50:04 pm (UTC)'!
-toolNamed: aToolName
-
-	"Ask a server for the tool, which is how a client reaches it."
-
-	^(MCPServer
-		servingOver: MCPTransportMock new
-		smalltalk: Smalltalk
-		providing: self toolGroupClasses
-		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
@@ -279,3 +266,8 @@ classCategoryOfTestData
 
 	^'__MCPExtraLiveTypingRefactoringTestData__'
 ! !
+
+!MCPExtraLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 7/Sep/2026, 10:27:21 pm (UTC)'!
+classNamePrefixOfTestData
+
+	^'MCPExtraLiveTypingRefactoring'! !

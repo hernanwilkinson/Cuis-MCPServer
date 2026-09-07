@@ -1,13 +1,13 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:37 pm'!
-'Description Let each test declare the tools its server has'!
-!provides: 'MCPServerExtraRefactoringTest' 1 10!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:39 pm'!
+'Description Let every tools test run in the same fixture'!
+!provides: 'MCPServerExtraRefactoringTest' 1 11!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
 
 
 !classDefinition: #MCPExtraRefactoringToolsTest category: #MCPServerExtraRefactoringTest!
-DynamicallyCodeCreatingTest subclass: #MCPExtraRefactoringToolsTest
+MCPToolsTest subclass: #MCPExtraRefactoringToolsTest
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -17,13 +17,6 @@ MCPExtraRefactoringToolsTest class
 	instanceVariableNames: ''!
 
 
-!MCPExtraRefactoringToolsTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-setUp
-
-	super setUp.
-	self registerClassCategoryOfTestData
-! !
-
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 defineClassNamed: aClassName instanceVariableNames: someInstanceVariableNames
 
@@ -32,15 +25,6 @@ defineClassNamed: aClassName instanceVariableNames: someInstanceVariableNames
 		classVariableNames: ''
 		poolDictionaries: ''
 		category: self classCategoryOfTestData
-! !
-
-!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
-registerClassCategoryOfTestData
-
-	"The classes these tests make are made by the refactorings themselves and not by
-	createClassNamed:, so the category has to be registered for tearDown to remove them."
-
-	classCategories add: self classCategoryOfTestData
 ! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
@@ -54,17 +38,6 @@ targetClass
 
 	^Smalltalk classNamed: 'MCPExtraTestTarget'
 ! !
-
-!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:50:11 pm (UTC)'!
-toolNamed: aToolName
-
-	"Ask a server for the tool, which is how a client reaches it."
-
-	^(MCPServer
-		servingOver: MCPTransportMock new
-		smalltalk: Smalltalk
-		providing: self toolGroupClasses
-		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
@@ -296,14 +269,14 @@ testMovingAnInstanceVariableTakesItToTheOtherClass
 	self assert: (self targetClass instVarNames includes: 'movingVariable')
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:35:10 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 9:48:50 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
-	| server |
+	| serverWithEveryTool |
 
-	server := MCPServer servingOver: MCPTransportMock new.
+	serverWithEveryTool := MCPServer servingOver: MCPTransportMock new.
 
-	self assert: ((server toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
+	self assert: ((serverWithEveryTool toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
 		includesAllOf: {
 			MCPExtraRefactoringTools moveInstanceVariableToolName.
 			MCPExtraRefactoringTools moveMethodToolName.
@@ -324,3 +297,8 @@ classCategoryOfTestData
 
 	^'__MCPExtraRefactoringTestData__'
 ! !
+
+!MCPExtraRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 7/Sep/2026, 10:27:23 pm (UTC)'!
+classNamePrefixOfTestData
+
+	^'MCPExtraTest'! !
