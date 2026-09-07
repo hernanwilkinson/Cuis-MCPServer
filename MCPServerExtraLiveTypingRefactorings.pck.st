@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:48 am'!
-'Description Let a method of its own build each actual scope refactoring'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 11!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:30 pm'!
+'Description Declare the instance variable a tool takes as one property'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 12!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -104,12 +104,11 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:54:16 pm (UTC)'!
+!MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:19:22 pm (UTC)'!
 properties
 
 	^{
-		MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
-		MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to move'.
+		MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to move'.
 		MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }! !
 
 !MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!

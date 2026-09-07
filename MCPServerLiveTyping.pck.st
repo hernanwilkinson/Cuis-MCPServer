@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:12:40 pm'!
-'Description Take the class property of a tool from its default'!
-!provides: 'MCPServerLiveTyping' 1 21!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:14 pm'!
+'Description Declare the instance variable a tool takes as one property'!
+!provides: 'MCPServerLiveTyping' 1 22!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -87,13 +87,13 @@ description
 		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 9:04:46 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| answer className |
 
 	answer := self decorateeAnswerFor: anArguments.
-	className := anArguments at: MCPClassToolProperty defaultName ifAbsent: [ '' ].
+	className := anArguments at: MCPClassProperty defaultName ifAbsent: [ '' ].
 	className ifNotEmpty: [ :aName |
 		answer at: 'actual' put: (self actualImplementorNamesOf: (anArguments at: 'selector') asSymbol in: aName) ].
 
@@ -269,7 +269,7 @@ renderMethodReferences: someMethodReferences
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 4/Sep/2026, 11:53:36 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -279,7 +279,7 @@ actualImplementorsOfTool
 		named: self class actualImplementorsOfToolName
 		describedBy: 'List the methods that really answer a selector sent to an object of a class, which are the ones implemented by that class and by every subclass of the one highest up that implements it. The class does not have to implement the selector itself.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
+			MCPClassProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
 			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector that is sent' valuedWith: [ :aSelector | aSelector asSymbol ].
 			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether a class that answers the selector nowhere is listed too, saying so, true or false' defaultingTo: 'false' }
 		executingWith: [ :aClass :aSelector :aPossibleAnswer |
@@ -323,27 +323,25 @@ returnTypesOfMethodTool
 		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self renderTypeNames: aMethod returnTypeInfo ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 10:52:54 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfEveryInstanceVariableToolName
 		describedBy: 'List, for every instance variable of a class, the classes it has held while the image ran.',
 			self class howTypesAreListedDescription
-		properties: { MCPClassToolProperty default }
+		properties: { MCPClassProperty default }
 		executingWith: [ :aClass |
 			Json render: aClass instanceVariablesTypes describedTypesNamesByVariable ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:56 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:16 pm (UTC)'!
 typesOfInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfInstanceVariableToolName
 		describedBy: 'List the classes an instance variable has held, as LiveTyping saw them while the image ran. A variable of code that has not run yet holds none.',
 			self class howTypesAreListedDescription
-		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable' }
+		properties: { MCPInstanceVariableProperty default }
 		executingWith: [ :aClass :aVariableName |
 			self renderTypeNames: (aClass instanceVariablesTypes
 				typeInfoOf: aVariableName

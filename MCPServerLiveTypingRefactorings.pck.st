@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:45 am'!
-'Description Let a method of its own build each actual scope refactoring'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 15!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:19 pm'!
+'Description Declare the instance variable a tool takes as one property'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 16!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -150,6 +150,14 @@ valueWithArguments: anArguments
 			self applyInActualScopeWith: anArguments ]
 		ifFalse: [ self decoratee valueWithArguments: anArguments ]! !
 
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:31:52 pm (UTC)'!
+valuesFrom: anArguments
+
+	^(self properties 
+		inject: OrderedCollection new 
+		into: [ :someValues :eachProperty |
+			eachProperty addValueFrom: anArguments to: someValues ]) asArray! !
+
 !MCPActualScopeRefactoringDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
 addedProperties
 
@@ -173,11 +181,6 @@ properties
 
 	^self subclassResponsibility! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
-valuesFrom: anArguments
-
-	^self properties collect: [ :eachProperty | eachProperty valueFrom: anArguments ]! !
-
 !MCPActualScopeRefactoringDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:55 pm (UTC)'!
 withValuesFrom: anArguments do: aBlock
 
@@ -193,7 +196,7 @@ applyInActualScopeWith: anArguments
 
 	^self subclassResponsibility! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 9:04:39 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'applying' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 assertAClassIsNamedIn: anArguments
 
 	"The scope LiveTyping saw is the sends that really reached an object of one class, so there
@@ -201,7 +204,7 @@ assertAClassIsNamedIn: anArguments
 	its className is one a client may leave out, and leaving it out here is answered by saying
 	which scope asked for it rather than by saying that no class was found."
 
-	(anArguments includesKey: MCPClassToolProperty defaultName)
+	(anArguments includesKey: MCPClassProperty defaultName)
 		ifFalse: [ self error: self class classNameNeededForTheActualScopeErrorDescription ]! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!

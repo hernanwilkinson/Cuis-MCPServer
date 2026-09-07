@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:15 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServerExtraRefactoring' 1 11!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:25 pm'!
+'Description Declare the instance variable a tool takes as one property'!
+!provides: 'MCPServerExtraRefactoring' 1 12!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -27,14 +27,14 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 extractClassTool
 
 	^MCPPluggableTool
 		named: self class extractClassToolName
 		describedBy: 'Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class to extract from'.
+			MCPClassProperty named: 'className' describedBy: 'Name of the class to extract from'.
 			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class to create'.
 			MCPPlainToolProperty named: 'instanceVariableName' describedBy: 'Name of the instance variable that will hold the new class'.
 			MCPPlainToolProperty named: 'variableNames' describedBy: 'Names of the instance variables to extract, separated by commas' defaultingTo: ''.
@@ -104,26 +104,24 @@ extractToMethodObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:20 pm (UTC)'!
 moveInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class moveInstanceVariableToolName
 		describedBy: 'Move an instance variable to another class, which the class it is moved from reaches through an instance variable of its own.'
 		properties: {
-			MCPClassToolProperty named: 'className' describedBy: 'Name of the class that has the instance variable'.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the instance variable to move'.
-			MCPClassToolProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
+			MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to move'.
+			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }
 		executingWith: [ :aClass :aVariableName :aTargetClass :anAccessingVariableName |
 			self applyReportingChangedClasses: (MoveInstanceVariable
 				named: aVariableName
 				from: aClass
 				to: aTargetClass
-				accessingThrough: anAccessingVariableName) ]
-! !
+				accessingThrough: anAccessingVariableName) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 moveMethodTool
 
 	^MCPPluggableTool
@@ -131,7 +129,7 @@ moveMethodTool
 		describedBy: 'Move a method to another class, which the class it is moved from reaches through an instance variable of its own. When the moved method still needs what it was moved from, it is given as a parameter named here.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
-			MCPClassToolProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
+			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to'.
 			MCPPlainToolProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }
 		executingWith: [ :aMethod :aTargetClass :anAccessingVariableName :anExtraParameterName |
