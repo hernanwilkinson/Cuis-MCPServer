@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 11:38:21 am'!
-'Description Say when a class of an earlier run is still in the system'!
-!provides: 'MCPServerTests' 1 56!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 5:10:22 pm'!
+'Description Let a server be told the tools it provides and their decorators'!
+!provides: 'MCPServerTests' 1 57!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -2913,6 +2913,24 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')
 
 ! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:36 pm (UTC)'!
+testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
+
+	| aServer |
+
+	aServer := MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: (Array with: MCPImageTools)
+		decoratedBy: #().
+
+	self
+		assert: (aServer toolDefinitions collect: [ :eachToolDefinition | eachToolDefinition at: 'name' ]) asSet
+		equals: (Set
+			with: MCPImageTools evaluateToolName
+			with: MCPImageTools screenshotToolName
+			with: MCPImageTools saveImageToolName)! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 testCallingAnUnknownToolFails

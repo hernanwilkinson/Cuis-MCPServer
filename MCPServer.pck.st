@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 10:40:52 am'!
-'Description Name the parameters of an extracted method as the client asked'!
-!provides: 'MCPServer' 1 68!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 5:10:17 pm'!
+'Description Let a server be told the tools it provides and their decorators'!
+!provides: 'MCPServer' 1 69!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -89,7 +89,7 @@ MCPRefactoringApplier class
 
 !classDefinition: #MCPServer category: #MCPServer!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk calledTools'
+	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk calledTools toolGroupClasses toolDecoratorClasses'
 	classVariableNames: 'OnStartupInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -1021,18 +1021,19 @@ applying: aRefactoring changing: aMethod
 
 	^self new initializeApplying: aRefactoring changing: aMethod! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 9:44:59 pm (UTC)'!
-initializeServingOver: aTransport smalltalk: aSmalltalk
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 7/Sep/2026, 7:04:28 pm (UTC)'!
+initializeServingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
 
 	transport := aTransport.
 	smalltalk := aSmalltalk.
+	toolGroupClasses := someToolGroupClasses.
+	toolDecoratorClasses := someDecoratorClasses.
 	running := false.
 	calledTools := Bag new.
 	
 	self 
 		initializeTools;
-		doNotLogMessages
-! !
+		doNotLogMessages! !
 
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
 initializeTools
@@ -1309,17 +1310,10 @@ toolNamed: aToolName
 	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
 ! !
 
-!MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 8:58:38 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:30 pm (UTC)'!
 addProvidedTools
 
-	"Ask every group of tools there is for the ones it has. A package that has tools has a
-	subclass of MCPToolGroup, so a package that is not loaded adds none."
-
-	MCPToolGroup allSubclasses 
-		reject: [ :eachToolGroupClass | eachToolGroupClass isAbstract ]
-		thenDo: [ :eachToolGroupClass | (eachToolGroupClass for: smalltalk) addToolsTo: self ]
-
-! !
+	toolGroupClasses do: [ :eachToolGroupClass | (eachToolGroupClass for: smalltalk) addToolsTo: self ]! !
 
 !MCPServer methodsFor: 'tool installation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
 addTool: aTool
@@ -1338,20 +1332,13 @@ decorateToolNamed: aToolName with: aDecoratorClass
 
 ! !
 
-!MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 8:58:00 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:31 pm (UTC)'!
 decorateTools
 
-	"Ask every decorator there is to wrap the tool it decorates, once every tool is in place.
-	A package that decorates a tool has a subclass of MCPToolDecorator, so a package that is
-	not loaded decorates none."
-
-	MCPToolDecorator allSubclasses 
-		reject: [ :eachDecoratorClass | eachDecoratorClass isAbstract ]
-		thenDo: [:eachDecoratorClass |
-			self 
-				decorateToolNamed: eachDecoratorClass decoratedToolName 
-				with: eachDecoratorClass ] 
-! !
+	toolDecoratorClasses do: [ :eachDecoratorClass |
+		self 
+			decorateToolNamed: eachDecoratorClass decoratedToolName 
+			with: eachDecoratorClass ]! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
 servingOver: aTransport
@@ -1361,11 +1348,23 @@ servingOver: aTransport
 	^self servingOver: aTransport smalltalk: Smalltalk
 ! !
 
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 7/Sep/2026, 8:05:28 pm (UTC)'!
 servingOver: aTransport smalltalk: aSmalltalk
 
-	^self new initializeServingOver: aTransport smalltalk: aSmalltalk
-! !
+	^self
+		servingOver: aTransport
+		smalltalk: aSmalltalk
+		providing: self defaultToolGroupClasses
+		decoratedBy: self defaultToolDecoratorClasses! !
+
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 7/Sep/2026, 7:04:23 pm (UTC)'!
+servingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
+
+	^self new
+		initializeServingOver: aTransport
+		smalltalk: aSmalltalk
+		providing: someToolGroupClasses
+		decoratedBy: someDecoratorClasses! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: ''!
 servingOverHttpAtPort: aPortNumber
@@ -1597,6 +1596,16 @@ classCreationSelectors
 	"Answer the messages Class understands to create a subclass."
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
+
+!MCPServer class methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:27 pm (UTC)'!
+defaultToolDecoratorClasses
+
+	^MCPToolDecorator allSubclasses reject: [ :eachDecoratorClass | eachDecoratorClass isAbstract ]! !
+
+!MCPServer class methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:25 pm (UTC)'!
+defaultToolGroupClasses
+
+	^MCPToolGroup allSubclasses reject: [ :eachToolGroupClass | eachToolGroupClass isAbstract ]! !
 
 !MCPTool methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:50:46 pm (UTC)'!
 definition

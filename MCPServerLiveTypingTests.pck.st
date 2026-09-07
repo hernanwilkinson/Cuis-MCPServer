@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 3:38:00 pm'!
-'Description Read a list of types the way the browser prints it'!
-!provides: 'MCPServerLiveTypingTests' 1 12!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 5:10:25 pm'!
+'Description Let a server be told the tools it provides and their decorators'!
+!provides: 'MCPServerLiveTypingTests' 1 13!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -132,6 +132,34 @@ testAMethodThatAnswersItsReceiverSaysSo
 			yourself))
 		equals: #('self')
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:41 pm (UTC)'!
+testAServerAnswersTheToolUnwrappedWhenItIsGivenNoDecorator
+
+	| aServer |
+
+	aServer := MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: MCPServer defaultToolGroupClasses
+		decoratedBy: #().
+
+	self deny: ((aServer toolNamed: MCPMethodTypesDecorator decoratedToolName) description
+		includesSubString: MCPLiveTypingTools howTypesAreListedDescription)! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:39 pm (UTC)'!
+testAServerAnswersTheToolWrappedByTheDecoratorItIsGiven
+
+	| aServer |
+
+	aServer := MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: MCPServer defaultToolGroupClasses
+		decoratedBy: (Array with: MCPMethodTypesDecorator).
+
+	self assert: ((aServer toolNamed: MCPMethodTypesDecorator decoratedToolName) description
+		includesSubString: MCPLiveTypingTools howTypesAreListedDescription)! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 7:02:15 pm (UTC)'!
 testAVariableThatHeldNilSaysSoAtTheEndOfItsTypes
