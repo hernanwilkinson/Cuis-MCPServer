@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 4 September 2026 at 9:11:06 am'!
-'Description Let a text say whether it means true'!
-!provides: 'MCPServerLiveTyping' 1 20!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:12:40 pm'!
+'Description Take the class property of a tool from its default'!
+!provides: 'MCPServerLiveTyping' 1 21!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -323,14 +323,14 @@ returnTypesOfMethodTool
 		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self renderTypeNames: aMethod returnTypeInfo ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:44 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 10:52:54 pm (UTC)'!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
 		named: self class typesOfEveryInstanceVariableToolName
 		describedBy: 'List, for every instance variable of a class, the classes it has held while the image ran.',
 			self class howTypesAreListedDescription
-		properties: { MCPClassToolProperty named: 'className' describedBy: 'Name of the class' }
+		properties: { MCPClassToolProperty default }
 		executingWith: [ :aClass |
 			Json render: aClass instanceVariablesTypes describedTypesNamesByVariable ]! !
 
