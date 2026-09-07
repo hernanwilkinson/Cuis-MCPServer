@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 2 September 2026 at 7:35:37 pm'!
-'Description Reach a LiveTyping refactoring only as the actual scope'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 8!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:31 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 9!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -106,13 +106,16 @@ probeClass
 	^probeClass
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:50:04 pm (UTC)'!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
 
-	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName
-! !
+	^(MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: self toolGroupClasses
+		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
@@ -257,6 +260,19 @@ testMovingAnInstanceVariableTakesTheActualScopeThroughTheToolThatIsToldTheClass
 			yourself).
 
 	self assert: (targetClass instVarNames includes: 'moved')! !
+
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:50:03 pm (UTC)'!
+toolDecoratorClasses
+
+	^{
+		MCPExtractParameterObjectInActualScopeDecorator.
+		MCPMoveInstanceVariableInActualScopeDecorator.
+		MCPMoveMethodInActualScopeDecorator }! !
+
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:50:02 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPExtraRefactoringTools }! !
 
 !MCPExtraLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
 classCategoryOfTestData

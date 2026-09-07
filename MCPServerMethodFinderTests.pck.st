@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:46:06 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerMethodFinderTests' 1 3!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:12 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerMethodFinderTests' 1 4!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerMethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
@@ -89,3 +89,13 @@ messagesFoundWith: anArguments
 	^(self jsonAnswerOf: MCPMethodFinderTools findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
 ! !
+
+!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:22 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:19 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPMethodFinderTools }! !

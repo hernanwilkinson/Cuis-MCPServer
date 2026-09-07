@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 5:10:22 pm'!
-'Description Let a server be told the tools it provides and their decorators'!
-!provides: 'MCPServerTests' 1 57!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:06 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerTests' 1 58!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -366,7 +366,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 4/Sep/2026, 2:05:13 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 7/Sep/2026, 8:49:09 pm (UTC)'!
 setUp
 
 	"Serve a server over a mock transport, so a mock client can send it requests the way a real
@@ -378,7 +378,11 @@ setUp
 	self assertNoClassOfAnEarlierRunIsLeftOver.
 	self registerClassCategoryOfTestData.
 	transport := MCPTransportMock new.
-	server := self serverClass servingOver: transport smalltalk: self smalltalkForTheServer.
+	server := self serverClass
+		servingOver: transport
+		smalltalk: self smalltalkForTheServer
+		providing: self toolGroupClasses
+		decoratedBy: self toolDecoratorClasses.
 	transport serveRequestsFor: server.
 	client := MCPMockClient sendingThrough: transport! !
 
@@ -531,6 +535,16 @@ subjectMethodSource
 subjectSubclassDefinition
 
 	^self definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'! !
+
+!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:07 pm (UTC)'!
+toolDecoratorClasses
+
+	^self subclassResponsibility! !
+
+!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:06 pm (UTC)'!
+toolGroupClasses
+
+	^self subclassResponsibility! !
 
 !MCPToolsTest class methodsFor: 'test constants' stamp: 'HAW 27/Aug/2026, 6:10:18 pm (UTC)'!
 sideEffectGlobalName
@@ -791,6 +805,16 @@ testSteppingOverDrivesTheDebuggerLeftByAFailure
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
+!MCPDebuggingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:15 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPDebuggingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:14 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPDebugTools }! !
+
 !MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 testEvaluateAnswersThePrintStringOfTheResult
 
@@ -844,6 +868,16 @@ imageName
 saveImage
 
 	savedImageCount := savedImageCount + 1! !
+
+!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:18 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:16 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPImageTools }! !
 
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 4:40:11 pm (UTC)'!
 defineTestSubjectFarewellIn: aMethodCategory
@@ -1326,6 +1360,16 @@ testDeleteMethodRemovesTheMethodFromTheClass
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
+!MCPModelStructureToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:27 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPModelStructureToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:26 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools }! !
+
 !MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 1/Sep/2026, 2:15:52 pm (UTC)'!
 setUp
 
@@ -1544,6 +1588,16 @@ testTheClassOfAPackageIsAnsweredWithThatPackage
 
 	self assert: (self packageOfClassNamed: 'MCPTestSubject')
 		equals: self class packageNameOfTestData! !
+
+!MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:30 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:29 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools. MCPPackageTools }! !
 
 !MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:17 pm (UTC)'!
 directoryNameOfTestData
@@ -2740,6 +2794,16 @@ testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpTotalFor:' asSymbol)
 		includesSubstring: 'self mcpIncremented: aNumber' caseSensitive: true)! !
 
+!MCPRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:33 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:31 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools. MCPRefactoringTools }! !
+
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 methodsFoundBy: aToolName with: anArguments
 
@@ -2914,6 +2978,16 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 
 ! !
 
+!MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:39 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:37 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools. MCPSearchTools }! !
+
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:36 pm (UTC)'!
 testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
 
@@ -2978,6 +3052,16 @@ testUnknownMethodAnswersAMethodNotFoundError
 	response := client sendMethod: 'no/such/method'.
 
 	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
+
+!MCPServerToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:42 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPServerToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:40 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPImageTools }! !
 
 !MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
@@ -3071,6 +3155,16 @@ defineTestCaseProbe
 
 	self error: ''probing'''
 ! !
+
+!MCPTestRunningToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:44 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPTestRunningToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:43 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools. MCPTestRunningTools }! !
 
 !MCPAuthenticationTest methodsFor: 'running' stamp: 'HAW 24/Aug/2026, 10:35:00 pm (UTC)'!
 setUp

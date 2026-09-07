@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 3 September 2026 at 7:21:23 pm'!
-'Description Let a tool property answer its own default'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 11!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:25 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 12!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -84,12 +84,16 @@ sourceOfTheCaller
 
 	^probeClass sourceCodeAt: #mcpCaller! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:23 am (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:50:00 pm (UTC)'!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
 
-	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
+	^(MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: self toolGroupClasses
+		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 testARefactoringToolSaysTheActualScopeIsOneOfTheValuesItTakes
@@ -273,6 +277,22 @@ MCPLiveTypingRefactoringProbe>>#mcpCaller
 MCPLiveTypingRefactoringProbe>>#mcpRenamed
 1 method removed:
 MCPLiveTypingRefactoringProbe>>#mcpProbe'! !
+
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:59 pm (UTC)'!
+toolDecoratorClasses
+
+	^{
+		MCPRenameSelectorInActualScopeDecorator.
+		MCPChangeKeywordsOrderInActualScopeDecorator.
+		MCPAddParameterInActualScopeDecorator.
+		MCPRemoveParameterInActualScopeDecorator.
+		MCPExtractAsParameterInActualScopeDecorator.
+		MCPInlineMethodInActualScopeDecorator }! !
+
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:57 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPRefactoringTools }! !
 
 !MCPLiveTypingRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:45:21 pm (UTC)'!
 classCategoryOfTestData

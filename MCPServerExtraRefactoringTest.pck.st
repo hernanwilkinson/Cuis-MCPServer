@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:43:53 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerExtraRefactoringTest' 1 9!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:37 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerExtraRefactoringTest' 1 10!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -55,12 +55,16 @@ targetClass
 	^Smalltalk classNamed: 'MCPExtraTestTarget'
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:06 am (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:50:11 pm (UTC)'!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
 
-	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
+	^(MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: self toolGroupClasses
+		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingAClassAnswersTheDefinitionOfTheOneItCreated
@@ -304,6 +308,16 @@ testTheToolsAreOfferedByEveryServer
 			MCPExtraRefactoringTools moveInstanceVariableToolName.
 			MCPExtraRefactoringTools moveMethodToolName.
 			MCPExtraRefactoringTools extractClassToolName })! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:50:09 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:50:08 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPExtraRefactoringTools }! !
 
 !MCPExtraRefactoringToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:32:16 pm (UTC)'!
 classCategoryOfTestData

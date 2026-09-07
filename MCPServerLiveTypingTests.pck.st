@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 5:10:25 pm'!
-'Description Let a server be told the tools it provides and their decorators'!
-!provides: 'MCPServerLiveTypingTests' 1 13!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:18 pm'!
+'Description Let each test declare the tools its server has'!
+!provides: 'MCPServerLiveTypingTests' 1 14!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -91,12 +91,16 @@ sourceAnswerOfTheProbe
 		yourself)) readStream
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 10:54:14 am (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 8:49:52 pm (UTC)'!
 toolNamed: aToolName
 
 	"Ask a server for the tool, which is how a client reaches it."
 
-	^(MCPServer servingOver: MCPTransportMock new) toolNamed: aToolName! !
+	^(MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: self toolGroupClasses
+		decoratedBy: self toolDecoratorClasses) toolNamed: aToolName! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
 testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
@@ -425,6 +429,20 @@ testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: (Array with: VariableTypeInfo anyTypeMark with: 'SmallInteger' with: 'String')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:51 pm (UTC)'!
+toolDecoratorClasses
+
+	^{
+		MCPMethodTypesDecorator.
+		MCPInstanceVariableTypesDecorator.
+		MCPActualSendersDecorator.
+		MCPActualImplementorsDecorator }! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:49 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPModelStructureTools. MCPSearchTools. MCPLiveTypingTools }! !
 
 !MCPLiveTypingToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 classCategoryOfTestData
