@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:01 pm'!
-'Description Drop Tool from the name of every property of a tool'!
-!provides: 'MCPServer' 1 73!
+'From Cuis7.9 [latest update: #8160] on 8 September 2026 at 7:29:41 pm'!
+'Description Ask the image a tool was given instead of the running one'!
+!provides: 'MCPServer' 1 74!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -279,7 +279,7 @@ MCPClassProperty class
 
 !classDefinition: #MCPCodePackageProperty category: #MCPServer!
 MCPToolProperty subclass: #MCPCodePackageProperty
-	instanceVariableNames: ''
+	instanceVariableNames: 'smalltalk'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -2773,6 +2773,11 @@ assertKnowsItsFile: aCodePackage
 	(self knowsItsFile: aCodePackage)
 		ifFalse: [ self error: (self class doesNotKnowItsFileErrorDescriptionFor: aCodePackage) ]! !
 
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:36 pm (UTC)'!
+codePackageClass
+
+	^smalltalk classNamed: #CodePackage! !
+
 !MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:18 pm (UTC)'!
 definitionOf: aCodePackage
 
@@ -2791,13 +2796,13 @@ definitionOf: aCodePackage
 		at: 'extensionMethodCount' put: aCodePackage extensionMethodCount;
 		yourself! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:02 pm (UTC)'!
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:37 pm (UTC)'!
 installedPackages
 
 	"Answer every package installed in the image, sorted by name, so that the same request is
 	always answered with the same list."
 
-	^(CodePackage installedPackages values asSortedCollection: [ :onePackage :anotherPackage |
+	^(self codePackageClass installedPackages values asSortedCollection: [ :onePackage :anotherPackage |
 		onePackage packageName <= anotherPackage packageName ]) asArray! !
 
 !MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:21 pm (UTC)'!
@@ -2821,23 +2826,23 @@ name: aFileName asTheFileOf: aCodePackage
 
 	^aFileName! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 2:00:09 pm (UTC)'!
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:39 pm (UTC)'!
 nameOfPackageOf: aClass
 
 	"A class no package holds - one just created, or one of the base image - is said to be in
 	none rather than signalled about: being in no package is an answer and not a failure."
 
-	^(CodePackage packageOfClass: aClass ifNone: [ nil ])
+	^(self codePackageClass packageOfClass: aClass ifNone: [ nil ])
 		ifNil: [ self class notInAnyPackageDescription ]
 		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 2:00:14 pm (UTC)'!
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:41 pm (UTC)'!
 nameOfPackageOfMethod: aMethod
 
 	"A method is looked for by its reference and not by its class, so that a method filed under
 	a category naming another package is answered with that one and not with its class's."
 
-	^(CodePackage packageOfMethod: aMethod asMethodReference ifNone: [ nil ])
+	^(self codePackageClass packageOfMethod: aMethod asMethodReference ifNone: [ nil ])
 		ifNil: [ self class notInAnyPackageDescription ]
 		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
 
@@ -2895,12 +2900,13 @@ summaryOf: aCodePackage
 		at: 'hasUnsavedChanges' put: aCodePackage hasUnsavedChanges;
 		yourself! !
 
-!MCPPackageTools methodsFor: 'arguments' stamp: 'HAW 1/Sep/2026, 1:55:56 pm (UTC)'!
+!MCPPackageTools methodsFor: 'arguments' stamp: 'HAW 8/Sep/2026, 2:44:34 pm (UTC)'!
 packageProperty
 
 	^MCPCodePackageProperty
 		named: 'packageName'
-		describedBy: 'Name of the package'! !
+		describedBy: 'Name of the package'
+		in: smalltalk! !
 
 !MCPPackageTools methodsFor: 'tools' stamp: 'HAW 1/Sep/2026, 2:00:23 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -3564,7 +3570,7 @@ insertSuperclassRefactoringTool
 		executingWith: [ :aClass :aNewClassName |
 			self applyReportingNewClass: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 8/Sep/2026, 9:37:06 pm (UTC)'!
 renameClassRefactoringTool
 
 	^MCPPluggableTool
@@ -3574,7 +3580,7 @@ renameClassRefactoringTool
 			MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to rename'.
 			MCPPlainProperty named: 'newClassName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aClass :aNewClassName |
-			self applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: Smalltalk undeclared: Undeclared) ]! !
+			self applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: smalltalk) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 renameGlobalRefactoringTool
@@ -4091,7 +4097,7 @@ temporaryToInstanceVariableRefactoringToolName
 
 	^'smalltalk_refactor_temporary_to_instance_variable'! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:43 pm (UTC)'!
 implementorsOfTool
 
 	^MCPPluggableTool
@@ -4102,20 +4108,18 @@ implementorsOfTool
 				named: 'selector'
 				describedBy: 'Selector the methods implement'
 				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allImplementorsOf: aSelector) ]
-! !
+		executingWith: [ :aSelector | self renderReferences: (smalltalk allImplementorsOf: aSelector) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:50 pm (UTC)'!
 referencesToClassTool
 
 	^MCPPluggableTool
 		named: self class referencesToClassToolName
 		describedBy: 'List the methods that refer to a class.'
 		properties: { MCPClassProperty default }
-		executingWith: [ :aClass | self renderReferences: (Smalltalk allCallsOn: (Smalltalk associationAt: aClass name)) ]
-! !
+		executingWith: [ :aClass | self renderReferences: (smalltalk allCallsOn: (smalltalk associationAt: aClass name)) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:53 pm (UTC)'!
 referencesToClassVariableTool
 
 	^MCPPluggableTool
@@ -4128,8 +4132,7 @@ referencesToClassVariableTool
 			| definingClass |
 			definingClass := aClass classThatDefinesClassVariable: aVariableName.
 			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
-			self renderReferences: (Smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]
-! !
+			self renderReferences: (smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:13 pm (UTC)'!
 referencesToInstanceVariableTool
@@ -4170,15 +4173,14 @@ searchSelectorsTool
 		executingWith: [ :aText | self renderSelectors: (self selectorsContaining: aText) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:10:18 pm (UTC)'!
 searchSourceTool
 
 	^MCPPluggableTool
 		named: self class searchSourceToolName
 		describedBy: 'List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.'
 		properties: { MCPPlainProperty named: 'text' describedBy: 'Text the source code contains' }
-		executingWith: [ :aText | self renderReferences: (Smalltalk allMethodsWithSourceString: aText matchCase: true) ]
-! !
+		executingWith: [ :aText | self renderReferences: (smalltalk allMethodsWithSourceString: aText matchCase: true) ]! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 selectorsContaining: aText
@@ -4191,7 +4193,7 @@ selectorsContaining: aText
 	^messageNames computeSelectorListFromSearchString
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:46 pm (UTC)'!
 sendersOfTool
 
 	^MCPPluggableTool
@@ -4202,8 +4204,7 @@ sendersOfTool
 				named: 'selector'
 				describedBy: 'Selector the methods send'
 				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (Smalltalk allCallsOn: aSelector) ]
-! !
+		executingWith: [ :aSelector | self renderReferences: (smalltalk allCallsOn: aSelector) ]! !
 
 !MCPSearchTools methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:43 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -4561,10 +4562,15 @@ withDefaultNameDescribedBy: aDescription
 
 	^self named: self defaultName describedBy: aDescription! !
 
-!MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 1/Sep/2026, 1:55:42 pm (UTC)'!
+!MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 8/Sep/2026, 2:44:28 pm (UTC)'!
+codePackageClass
+
+	^smalltalk classNamed: #CodePackage! !
+
+!MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 8/Sep/2026, 2:44:27 pm (UTC)'!
 valueFor: aPackageName
 
-	^CodePackage installedPackages
+	^self codePackageClass installedPackages
 		at: aPackageName
 		ifAbsent: [ self signalPackageNotFound: aPackageName ]! !
 
@@ -4573,10 +4579,30 @@ signalPackageNotFound: aPackageName
 
 	self error: (self class packageNotFoundErrorDescriptionFor: aPackageName)! !
 
+!MCPCodePackageProperty methodsFor: 'initialization' stamp: 'HAW 8/Sep/2026, 2:44:25 pm (UTC)'!
+initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentValueBlock in: aSmalltalk
+
+	self
+		initializeNamed: aName
+		describedBy: aDescription
+		required: isRequired
+		ifAbsent: anAbsentValueBlock.
+	smalltalk := aSmalltalk! !
+
 !MCPCodePackageProperty class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:55:51 pm (UTC)'!
 packageNotFoundErrorDescriptionFor: aPackageName
 
 	^'Package not found: ', aPackageName! !
+
+!MCPCodePackageProperty class methodsFor: 'instance creation' stamp: 'HAW 8/Sep/2026, 2:44:23 pm (UTC)'!
+named: aName describedBy: aDescription in: aSmalltalk
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		required: true
+		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
+		in: aSmalltalk! !
 
 !MCPInstanceVariableProperty methodsFor: 'initialization' stamp: 'HAW 7/Sep/2026, 11:18:15 pm (UTC)'!
 initializeOfClass: aClassProperty andVariableName: aVariableNameProperty

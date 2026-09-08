@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:43:04 pm'!
-'Description Let every tools test run in the same fixture'!
-!provides: 'MCPServerTests' 1 60!
+'From Cuis7.9 [latest update: #8160] on 8 September 2026 at 7:29:48 pm'!
+'Description Ask the image a tool was given instead of the running one'!
+!provides: 'MCPServerTests' 1 61!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -24,6 +24,16 @@ MCPTransport subclass: #MCPTransportMock
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPTransportMock class' category: #MCPServerTests!
 MCPTransportMock class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPCodePackageSimulator category: #MCPServerTests!
+Object subclass: #MCPCodePackageSimulator
+	instanceVariableNames: 'name classCategory description fileName hasUnsavedChanges featureSpec savedCount'
+	classVariableNames: 'InstalledPackages'
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPCodePackageSimulator class' category: #MCPServerTests!
+MCPCodePackageSimulator class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPMockClient category: #MCPServerTests!
@@ -78,7 +88,7 @@ MCPModelStructureToolsTest class
 
 !classDefinition: #MCPPackageToolsTest category: #MCPServerTests!
 MCPToolsTest subclass: #MCPPackageToolsTest
-	instanceVariableNames: 'testPackage testDirectory'
+	instanceVariableNames: 'testPackage'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
@@ -98,7 +108,7 @@ MCPRefactoringToolsTest class
 
 !classDefinition: #MCPSearchToolsTest category: #MCPServerTests!
 MCPToolsTest subclass: #MCPSearchToolsTest
-	instanceVariableNames: ''
+	instanceVariableNames: 'methodsFound'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
@@ -161,6 +171,13 @@ MCPTransportTextTest class
 I am a stream on text that reports itself closed once it is exhausted.
 
 A stream on a collection answers false to closed forever, while MCPTransportText waits for input until the input says it is closed, the way a non blocking standard input does. Being closed at the end is what lets a script of requests end the serving loop.!
+
+!MCPCodePackageSimulator commentStamp: '<historical>' prior: 0!
+I stand in for a CodePackage while a test runs.
+
+My class side plays the part of the CodePackage class: it holds the packages a test installed, and answers them to whoever asks which packages there are. Where a class or a method lives is still asked of the real CodePackage, so a test about the packages of the running image is answered by the image itself.
+
+Saving me writes nothing to disk. I count how many times I was asked to save, which is what a test asserts on instead of looking for a file.!
 
 !MCPToolsTest commentStamp: '<historical>' prior: 0!
 I am the fixture a test of the tools a server serves runs in: a server over a mock transport and a mock client sending it requests the way a real one does, with no socket in between.
@@ -226,6 +243,136 @@ responseTo: anEncodedRequest
 	a transport reading a socket does."
 
 	^mcpServer jsonResponseTo: (self utf8Decode: anEncodedRequest)! !
+
+!MCPCodePackageSimulator methodsFor: 'initialization' stamp: 'HAW 8/Sep/2026, 2:46:53 pm (UTC)'!
+initializeNamed: aPackageName holdingTheClassCategory: aClassCategory
+
+	name := aPackageName.
+	classCategory := aClassCategory.
+	description := ''.
+	hasUnsavedChanges := false.
+	featureSpec := FeatureSpec new.
+	savedCount := 0! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:31 pm (UTC)'!
+classNames
+
+	^(SystemOrganization classesAt: classCategory asSymbol)
+		collect: [ :aClass | aClass name asString ]! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:13 pm (UTC)'!
+description
+
+	^description! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:14 pm (UTC)'!
+description: aDescription
+
+	description := aDescription.
+	hasUnsavedChanges := true! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:36 pm (UTC)'!
+extensionMethodCount
+
+	^0! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:26 pm (UTC)'!
+featureSpec
+
+	^featureSpec! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:23 pm (UTC)'!
+fullFileName
+
+	^fileName! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:25 pm (UTC)'!
+fullFileName: aFileName
+
+	fileName := aFileName! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:20 pm (UTC)'!
+hasUnsavedChanges
+
+	^hasUnsavedChanges! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:22 pm (UTC)'!
+hasUnsavedChanges: aBoolean
+
+	hasUnsavedChanges := aBoolean! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:38 pm (UTC)'!
+includesClass: aClass
+
+	^aClass category = classCategory asSymbol! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:11 pm (UTC)'!
+packageFileName
+
+	^name , '.pck.st'! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:08 pm (UTC)'!
+packageName
+
+	^name! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:10 pm (UTC)'!
+packageNameAndVersion
+
+	^name , ' 1'! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:28 pm (UTC)'!
+requires
+
+	^featureSpec requires ifNil: [ #() ]! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:39 pm (UTC)'!
+save
+
+	savedCount := savedCount + 1.
+	hasUnsavedChanges := false! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:30 pm (UTC)'!
+systemCategories
+
+	^Array with: classCategory! !
+
+!MCPCodePackageSimulator methodsFor: 'accessing' stamp: 'HAW 8/Sep/2026, 2:47:41 pm (UTC)'!
+savedCount
+
+	^savedCount! !
+
+!MCPCodePackageSimulator class methodsFor: 'instance creation' stamp: 'HAW 8/Sep/2026, 2:46:51 pm (UTC)'!
+named: aPackageName holdingTheClassCategory: aClassCategory
+
+	^self new initializeNamed: aPackageName holdingTheClassCategory: aClassCategory! !
+
+!MCPCodePackageSimulator class methodsFor: 'installed packages' stamp: 'HAW 8/Sep/2026, 2:46:58 pm (UTC)'!
+forgetTheInstalledPackages
+
+	InstalledPackages := nil! !
+
+!MCPCodePackageSimulator class methodsFor: 'installed packages' stamp: 'HAW 8/Sep/2026, 2:46:55 pm (UTC)'!
+installedPackages
+
+	^InstalledPackages ifNil: [ InstalledPackages := Dictionary new ]! !
+
+!MCPCodePackageSimulator class methodsFor: 'installed packages' stamp: 'HAW 8/Sep/2026, 2:46:57 pm (UTC)'!
+register: aCodePackageSimulator
+
+	self installedPackages at: aCodePackageSimulator packageName put: aCodePackageSimulator! !
+
+!MCPCodePackageSimulator class methodsFor: 'searching' stamp: 'HAW 8/Sep/2026, 2:47:05 pm (UTC)'!
+packageOfClass: aClass ifNone: aNoneBlock
+
+	^self installedPackages
+		detect: [ :eachPackage | eachPackage includesClass: aClass ]
+		ifNone: [ CodePackage packageOfClass: aClass ifNone: aNoneBlock ]! !
+
+!MCPCodePackageSimulator class methodsFor: 'searching' stamp: 'HAW 8/Sep/2026, 2:47:07 pm (UTC)'!
+packageOfMethod: aMethodReference ifNone: aNoneBlock
+
+	^CodePackage packageOfMethod: aMethodReference ifNone: aNoneBlock! !
 
 !MCPMockClient methodsFor: 'initialization' stamp: 'HAW 20/Aug/2026, 5:52:07 pm (UTC)'!
 initializeSendingThrough: aTransport
@@ -1375,26 +1522,23 @@ toolGroupClasses
 
 	^{ MCPModelStructureTools }! !
 
-!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 1/Sep/2026, 2:15:52 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 8/Sep/2026, 2:47:50 pm (UTC)'!
 setUp
 
-	"The package these tests act on is registered like any other, so the tools find it the way
-	they find the ones the image was loaded with, and it is taken away in tearDown."
+	"The package these tests act on is simulated and installed in the simulator the server
+	reaches through me, so no package of the running image is touched and nothing is written
+	to disk."
 
 	super setUp.
-	testDirectory := DirectoryEntry currentDirectory / self class directoryNameOfTestData.
-	testDirectory assureExistence.
-	testPackage := CodePackage new packageName: self class packageNameOfTestData.
-	CodePackage register: testPackage! !
+	testPackage := MCPCodePackageSimulator
+		named: self class packageNameOfTestData
+		holdingTheClassCategory: self class classCategoryOfTestData.
+	MCPCodePackageSimulator register: testPackage! !
 
-!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 1/Sep/2026, 2:03:28 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 8/Sep/2026, 2:47:52 pm (UTC)'!
 tearDown
 
-	"The package goes before my superclass empties the class category, so that taking its
-	classes away is not noted as a change of a package the image still holds."
-
-	CodePackage deregister: testPackage.
-	testDirectory recursiveDelete.
+	MCPCodePackageSimulator forgetTheInstalledPackages.
 	super tearDown! !
 
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:50 pm (UTC)'!
@@ -1410,10 +1554,10 @@ definitionOfTestPackage
 
 	^self jsonAnswerOf: MCPPackageTools packageDefinitionToolName with: self testPackageArgument! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:59 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 2:47:57 pm (UTC)'!
 fileNameOfTestPackage
 
-	^(testDirectory // testPackage packageFileName) pathName! !
+	^(DirectoryEntry currentDirectory // testPackage packageFileName) pathName! !
 
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:04 pm (UTC)'!
 nameTheFileOfTestPackage: aFileName
@@ -1454,6 +1598,11 @@ saveTestPackage
 
 	^client callTool: MCPPackageTools savePackageToolName with: self testPackageArgument! !
 
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 2:47:54 pm (UTC)'!
+smalltalkForTheServer
+
+	^self! !
+
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:32 pm (UTC)'!
 testPackageArgument
 
@@ -1464,15 +1613,19 @@ unsavedPackageNames
 
 	^Json readFrom: (self answerOf: MCPPackageTools unsavedPackagesToolName) readStream! !
 
-!MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 1/Sep/2026, 2:04:28 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 8/Sep/2026, 2:48:27 pm (UTC)'!
 testListingThePackagesLeavesOutTheOnesNotNamedWithThePrefix
 
 	| listedNames |
 
-	listedNames := (self packagesNamedStartingWith: 'MCPServer')
+	MCPCodePackageSimulator register: (MCPCodePackageSimulator
+		named: 'AnotherPackageUnderTest'
+		holdingTheClassCategory: self class classCategoryOfTestData).
+
+	listedNames := (self packagesNamedStartingWith: 'Another')
 		collect: [ :eachPackage | eachPackage at: 'name' ].
 
-	self assert: (listedNames includes: 'MCPServer').
+	self assert: (listedNames includes: 'AnotherPackageUnderTest').
 	self deny: (listedNames includes: self class packageNameOfTestData)! !
 
 !MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 1/Sep/2026, 2:04:23 pm (UTC)'!
@@ -1538,12 +1691,12 @@ testChangingTheRequirementsReplacesTheOnesItHad
 	self assert: (self require: 'OSProcess') equals: #('OSProcess').
 	self assert: (self definitionOfTestPackage at: 'requires') equals: #('OSProcess')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:15:59 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 8/Sep/2026, 2:48:06 pm (UTC)'!
 testAPackageIsNotNamedAFileInADirectoryThatIsNotThere
 
 	| fileName |
 
-	fileName := (testDirectory / 'notThere' // testPackage packageFileName) pathName.
+	fileName := (DirectoryEntry currentDirectory / 'notThere' // testPackage packageFileName) pathName.
 
 	self
 		should: [ self nameTheFileOfTestPackage: fileName ]
@@ -1563,16 +1716,15 @@ testAPackageThatDoesNotKnowItsFileIsNotSaved
 		withMessageText: (self serverErrorTextFor:
 			(MCPPackageTools doesNotKnowItsFileErrorDescriptionFor: testPackage))! !
 
-!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 4/Sep/2026, 11:15:08 am (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 8/Sep/2026, 2:48:04 pm (UTC)'!
 testSavingAPackageWritesItToItsFileAndLeavesNothingToWriteOut
 
 	| fileName |
 
-	self defineTestSubjectClass.
 	fileName := self nameTheFileOfTestPackage: self fileNameOfTestPackage.
 
 	self assert: self saveTestPackage equals: fileName.
-	self assert: fileName asFullFileEntry exists.
+	self assert: testPackage savedCount equals: 1.
 	self deny: (self definitionOfTestPackage at: 'hasUnsavedChanges').
 	self deny: (self unsavedPackageNames includes: self class packageNameOfTestData)! !
 
@@ -1604,10 +1756,12 @@ toolGroupClasses
 
 	^{ MCPModelStructureTools. MCPPackageTools }! !
 
-!MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:17 pm (UTC)'!
-directoryNameOfTestData
+!MCPPackageToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 2:47:55 pm (UTC)'!
+classNamed: aClassName
 
-	^'__MCPServerTestPackages__'! !
+	^aClassName = #CodePackage
+		ifTrue: [ MCPCodePackageSimulator ]
+		ifFalse: [ Smalltalk classNamed: aClassName ]! !
 
 !MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:13 pm (UTC)'!
 packageNameOfTestData
@@ -2809,6 +2963,11 @@ toolGroupClasses
 
 	^{ MCPModelStructureTools. MCPRefactoringTools }! !
 
+!MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 9:37:51 pm (UTC)'!
+answerToEverySearch: someMethods
+
+	methodsFound := someMethods collect: [ :eachMethod | eachMethod methodReference ]! !
+
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
 methodsFoundBy: aToolName with: anArguments
 
@@ -2825,26 +2984,31 @@ phraseNoOtherMethodCarries
 	^'una ', 'frase ', 'que ', 'nadie ', 'mas ', 'dice'
 ! !
 
+!MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 9:10:20 pm (UTC)'!
+smalltalkForTheServer
+
+	^self! !
+
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
 sortedAnswerOf: aToolName with: anArguments
 
 	^(self jsonAnswerOf: aToolName with: anArguments) asSortedCollection asArray
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 8/Sep/2026, 9:40:09 pm (UTC)'!
 testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
 
 	^42'.
+	self answerToEverySearch: { self createdClassInTest >> 'mcpProbe' asSymbol }.
 
 	self
 		assert: (self methodsFoundBy: MCPSearchTools implementorsOfToolName with: (self arguments: 'selector' being: 'mcpProbe'))
-		equals: #('MCPTestSubject mcpProbe')
-! !
+		equals: #('MCPTestSubject mcpProbe')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 8/Sep/2026, 9:40:13 pm (UTC)'!
 testSendersOfAnswersEveryMethodThatSendsTheSelector
 
 	self defineTestSubjectClass.
@@ -2854,26 +3018,26 @@ testSendersOfAnswersEveryMethodThatSendsTheSelector
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeCaller
 
 	^self mcpProbe'.
+	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeCaller' asSymbol }.
 
 	self
 		assert: (self methodsFoundBy: MCPSearchTools sendersOfToolName with: (self arguments: 'selector' being: 'mcpProbe'))
-		equals: #('MCPTestSubject mcpProbeCaller')
-! !
+		equals: #('MCPTestSubject mcpProbeCaller')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 8/Sep/2026, 9:40:15 pm (UTC)'!
 testReferencesToAClassAnswerEveryMethodThatNamesIt
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbeNamingItsClass
 
 	^MCPTestSubject'.
+	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeNamingItsClass' asSymbol }.
 
 	self
 		assert: (self methodsFoundBy: MCPSearchTools referencesToClassToolName with: (self arguments: 'className' being: 'MCPTestSubject'))
-		equals: #('MCPTestSubject mcpProbeNamingItsClass')
-! !
+		equals: #('MCPTestSubject mcpProbeNamingItsClass')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 8/Sep/2026, 9:40:23 pm (UTC)'!
 testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 
 	self defineClassWith: (self
@@ -2888,13 +3052,14 @@ testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbeReading
 
 	^ProbeVariable'.
+	self answerToEverySearch: {
+		self createdClassInTest >> 'mcpProbeWriting' asSymbol.
+		(Smalltalk classNamed: 'MCPTestSubjectChild') >> 'mcpProbeReading' asSymbol }.
 
 	self
 		assert: (self methodsFoundBy: MCPSearchTools referencesToClassVariableToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'ProbeVariable'))
-		equals: #('MCPTestSubject mcpProbeWriting' 'MCPTestSubjectChild mcpProbeReading')
-
-! !
+		equals: #('MCPTestSubject mcpProbeWriting' 'MCPTestSubjectChild mcpProbeReading')! !
 
 !MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 testReferencesToAClassVariableTheClassDoesNotHaveFails
@@ -2964,7 +3129,7 @@ testSearchingSelectorsAnswersTheOnesWhoseNameContainsTheText
 		equals: #('pluralize:')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 8/Sep/2026, 9:40:18 pm (UTC)'!
 testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 
 	| phrase |
@@ -2976,12 +3141,11 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 	"', phrase, '"
 
 	^42'.
+	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeCarryingAPhrase' asSymbol }.
 
 	self
 		assert: (self methodsFoundBy: MCPSearchTools searchSourceToolName with: (self arguments: 'text' being: phrase))
-		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')
-
-! !
+		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')! !
 
 !MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:39 pm (UTC)'!
 toolDecoratorClasses
@@ -2992,6 +3156,32 @@ toolDecoratorClasses
 toolGroupClasses
 
 	^{ MCPModelStructureTools. MCPSearchTools }! !
+
+!MCPSearchToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 9:38:00 pm (UTC)'!
+allCallsOn: aSelectorOrAnAssociation
+
+	^methodsFound! !
+
+!MCPSearchToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 9:37:55 pm (UTC)'!
+allImplementorsOf: aSelector
+
+	^methodsFound! !
+
+!MCPSearchToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 9:38:02 pm (UTC)'!
+allMethodsWithSourceString: aText matchCase: shouldMatchCase
+
+	^methodsFound! !
+
+!MCPSearchToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 9:38:05 pm (UTC)'!
+associationAt: aName
+
+	^Smalltalk associationAt: aName! !
+
+!MCPSearchToolsTest methodsFor: 'running' stamp: 'HAW 8/Sep/2026, 9:37:47 pm (UTC)'!
+setUp
+
+	super setUp.
+	methodsFound := #()! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:36 pm (UTC)'!
 testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
