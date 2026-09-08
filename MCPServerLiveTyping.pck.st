@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:14 pm'!
-'Description Declare the instance variable a tool takes as one property'!
-!provides: 'MCPServerLiveTyping' 1 22!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:17 pm'!
+'Description Drop Tool from the name of every property of a tool'!
+!provides: 'MCPServerLiveTyping' 1 23!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -71,10 +71,10 @@ I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 addedProperties
 
-	^{ MCPPlainToolProperty
+	^{ MCPPlainProperty
 		named: 'className'
 		describedBy: 'Name of the class the selector is sent to. Without it there is nothing to narrow, because every implementor implements it'
 		defaultingTo: '' }
@@ -113,10 +113,10 @@ decoratedToolName
 
 	^MCPSearchTools implementorsOfToolName! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:44:59 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 addedProperties
 
-	^{ MCPPlainToolProperty
+	^{ MCPPlainProperty
 		named: 'className'
 		describedBy: 'Name of the class the sends to narrow to are sent to. Defaults to every class that implements the selector'
 		defaultingTo: '' }
@@ -269,7 +269,7 @@ renderMethodReferences: someMethodReferences
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -280,8 +280,8 @@ actualImplementorsOfTool
 		describedBy: 'List the methods that really answer a selector sent to an object of a class, which are the ones implemented by that class and by every subclass of the one highest up that implements it. The class does not have to implement the selector itself.'
 		properties: {
 			MCPClassProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
-			MCPPluggableToolProperty named: 'selector' describedBy: 'Selector that is sent' valuedWith: [ :aSelector | aSelector asSymbol ].
-			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether a class that answers the selector nowhere is listed too, saying so, true or false' defaultingTo: 'false' }
+			MCPPluggableProperty named: 'selector' describedBy: 'Selector that is sent' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPPlainProperty named: 'includingPossible' describedBy: 'Whether a class that answers the selector nowhere is listed too, saying so, true or false' defaultingTo: 'false' }
 		executingWith: [ :aClass :aSelector :aPossibleAnswer |
 			| implementors |
 			implementors := smalltalk actualImplementorsOf: aSelector in: aClass.
@@ -291,7 +291,7 @@ actualImplementorsOfTool
 
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 4/Sep/2026, 11:53:34 am (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
@@ -299,7 +299,7 @@ actualSendersOfTool
 		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
 			MCPMethodProperty default.
-			MCPPlainToolProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
+			MCPPlainProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
 			sureAndPossibleSenders := smalltalk allActualSendersOn: aMethod.
@@ -347,7 +347,7 @@ typesOfInstanceVariableTool
 				typeInfoOf: aVariableName
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:15 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
@@ -356,7 +356,7 @@ typesOfMethodVariableTool
 			self class howTypesAreListedDescription
 		properties: {
 			MCPMethodProperty default.
-			MCPPlainToolProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
+			MCPPlainProperty named: 'variableName' describedBy: 'Name of the parameter or temporary' }
 		executingWith: [ :aMethod :aVariableName |
 			self renderTypeNames: (aMethod
 				typeInfoOfVariableNamed: aVariableName

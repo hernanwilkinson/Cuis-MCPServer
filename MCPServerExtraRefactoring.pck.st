@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:25 pm'!
-'Description Declare the instance variable a tool takes as one property'!
-!provides: 'MCPServerExtraRefactoring' 1 12!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:47 pm'!
+'Description Drop Tool from the name of every property of a tool'!
+!provides: 'MCPServerExtraRefactoring' 1 13!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -27,7 +27,7 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 extractClassTool
 
 	^MCPPluggableTool
@@ -35,10 +35,10 @@ extractClassTool
 		describedBy: 'Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.'
 		properties: {
 			MCPClassProperty named: 'className' describedBy: 'Name of the class to extract from'.
-			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class to create'.
-			MCPPlainToolProperty named: 'instanceVariableName' describedBy: 'Name of the instance variable that will hold the new class'.
-			MCPPlainToolProperty named: 'variableNames' describedBy: 'Names of the instance variables to extract, separated by commas' defaultingTo: ''.
-			MCPPlainToolProperty named: 'selectors' describedBy: 'Selectors of the methods to extract, separated by commas' defaultingTo: '' }
+			MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class to create'.
+			MCPPlainProperty named: 'instanceVariableName' describedBy: 'Name of the instance variable that will hold the new class'.
+			MCPPlainProperty named: 'variableNames' describedBy: 'Names of the instance variables to extract, separated by commas' defaultingTo: ''.
+			MCPPlainProperty named: 'selectors' describedBy: 'Selectors of the methods to extract, separated by commas' defaultingTo: '' }
 		executingWith: [ :aClass :aNewClassName :anInstanceVariableName :someVariableNames :someSelectors |
 			self applyReportingNewClass: (ExtractClass
 				from: aClass
@@ -49,7 +49,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 extractParameterObjectTool
 
 	^MCPPluggableTool
@@ -57,10 +57,10 @@ extractParameterObjectTool
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
 			MCPMethodProperty default.
-			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
-			MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
-			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
+			MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
+			MCPPlainProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
+			MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
+			MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
 			self scopeProperty }
 		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory :aScopeName |
 			| parameterNames |
@@ -82,7 +82,7 @@ extractParameterObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:48 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 extractToMethodObjectTool
 
 	^MCPPluggableTool
@@ -90,10 +90,10 @@ extractToMethodObjectTool
 		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to turn into an object'.
-			MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the method becomes'.
-			MCPPlainToolProperty named: 'evaluationSelector' describedBy: 'Selector the new object is sent to do what the method did' defaultingTo: 'value'.
-			MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-			MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
+			MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class the method becomes'.
+			MCPPlainProperty named: 'evaluationSelector' describedBy: 'Selector the new object is sent to do what the method did' defaultingTo: 'value'.
+			MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
+			MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
 		executingWith: [ :aMethod :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory |
 			self applyReportingNewClass: (ExtractToMethodObject
 				from: aMethod
@@ -104,7 +104,7 @@ extractToMethodObjectTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:20 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 moveInstanceVariableTool
 
 	^MCPPluggableTool
@@ -113,7 +113,7 @@ moveInstanceVariableTool
 		properties: {
 			MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to move'.
 			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
-			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }
+			MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }
 		executingWith: [ :aClass :aVariableName :aTargetClass :anAccessingVariableName |
 			self applyReportingChangedClasses: (MoveInstanceVariable
 				named: aVariableName
@@ -121,7 +121,7 @@ moveInstanceVariableTool
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 moveMethodTool
 
 	^MCPPluggableTool
@@ -130,8 +130,8 @@ moveMethodTool
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
 			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
-			MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to'.
-			MCPPlainToolProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }
+			MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to'.
+			MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }
 		executingWith: [ :aMethod :aTargetClass :anAccessingVariableName :anExtraParameterName |
 			self applyReportingChanges: (MoveMethod
 				methodNamed: aMethod selector

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8149] on 1 September 2026 at 10:45:45 am'!
-'Description Let a class method say the name of each tool'!
-!provides: 'MCPServerMethodFinder' 1 3!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:13:14 pm'!
+'Description Drop Tool from the name of every property of a tool'!
+!provides: 'MCPServerMethodFinder' 1 4!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinder!
@@ -20,16 +20,16 @@ MCPMethodFinderTools class
 !MCPMethodFinderTools commentStamp: '<historical>' prior: 0!
 I am the tool that finds a message by an example of what it answers, which is what MethodFinder does. I live in a package of my own so that the ones that search the image by name do not need it.!
 
-!MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
+!MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 findMessagesByExampleTool
 
 	^MCPPluggableTool
 		named: self class findMessagesByExampleToolName
 		describedBy: 'List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection that is not empty, the enumerating messages taking a block are looked for as well, the block being built from a message its elements understand, so a receiver of #(1 2 3 4) expecting #(1 3) answers select: along with the block it needs.'
 		properties: {
-			MCPPlainToolProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
-			MCPPlainToolProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.
-			MCPPlainToolProperty named: 'arguments' describedBy: 'Smalltalk expression answering an Array with the arguments to send, such as #(4). Defaults to sending none' defaultingTo: '' }
+			MCPPlainProperty named: 'receiver' describedBy: 'Smalltalk expression for the object the message is sent to, such as ''method'''.
+			MCPPlainProperty named: 'expected' describedBy: 'Smalltalk expression for the result the message has to answer, such as ''methods'''.
+			MCPPlainProperty named: 'arguments' describedBy: 'Smalltalk expression answering an Array with the arguments to send, such as #(4). Defaults to sending none' defaultingTo: '' }
 		executingWith: [ :aReceiverSource :anExpectedSource :anArgumentsSource |
 			self renderMessagesFound: (self
 				messagesFrom: aReceiverSource

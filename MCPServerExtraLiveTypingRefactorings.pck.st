@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:30 pm'!
-'Description Declare the instance variable a tool takes as one property'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 12!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:13:01 pm'!
+'Description Drop Tool from the name of every property of a tool'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 13!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -39,16 +39,16 @@ MCPMoveMethodInActualScopeDecorator class
 	instanceVariableNames: ''!
 
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty default.
-		MCPPlainToolProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
-		MCPPlainToolProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
-		MCPPlainToolProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-		MCPPlainToolProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
+		MCPPlainProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
+		MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
+		MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
 !MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -104,12 +104,12 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:19:22 pm (UTC)'!
+!MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to move'.
-		MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }! !
+		MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }! !
 
 !MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -176,13 +176,13 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:54:08 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
-		MCPPlainToolProperty named: 'accessingThrough' describedBy: 'Name of the variable that holds the class it is moved to'.
-		MCPPlainToolProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }! !
+		MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the variable that holds the class it is moved to'.
+		MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }! !
 
 !MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments

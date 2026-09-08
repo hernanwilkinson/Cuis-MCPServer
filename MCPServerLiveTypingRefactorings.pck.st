@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 8:35:19 pm'!
-'Description Declare the instance variable a tool takes as one property'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 16!
+'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:31 pm'!
+'Description Drop Tool from the name of every property of a tool'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 17!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -287,13 +287,13 @@ actualScopeOnlyDescription
 
 	^'Send actual to work over what LiveTyping saw instead of over what this tool is told. Send nothing to leave it working over what it is told'! !
 
-!MCPActualScopeRefactoringDecorator class methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:23:58 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator class methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 scopeProperty
 
 	"The scope a tool that works over none is given, so that a client has one place to say it
 	wants the sends LiveTyping saw and one place to read that it may."
 
-	^MCPPlainToolProperty
+	^MCPPlainProperty
 		named: MCPRefactoringToolGroup scopePropertyName
 		describedBy: self actualScopeOnlyDescription
 		defaultingTo: ''! !
@@ -311,18 +311,18 @@ classNameNeededForTheActualScopeErrorDescription
 
 	^'The ', self actualScopeName, ' scope needs className: it is the sends that really reached an object of that class'! !
 
-!MCPAddParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:22 pm (UTC)'!
+!MCPAddParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to add the parameter to'.
-		MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
-		MCPPlainToolProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
-		MCPPlainToolProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
-		MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
+		MCPPlainProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
+		MCPPlainProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
+		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
 !MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -368,15 +368,15 @@ decoratedToolName
 
 	^MCPRefactoringTools addParameterRefactoringToolName! !
 
-!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:07 pm (UTC)'!
+!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to reorder'.
-		MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
 !MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -408,16 +408,16 @@ decoratedToolName
 
 	^MCPRefactoringTools changeKeywordsOrderRefactoringToolName! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty default.
-		MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
-		MCPPlainToolProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
-		MCPPlainToolProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
-		MCPPlainToolProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
+		MCPPlainProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
+		MCPPlainProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
+		MCPPlainProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
 !MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -459,13 +459,13 @@ description
 	^self decoratee description ,
 		' It also takes actual as the scope, which inlines every send LiveTyping saw really reaching an object of the class that implements the selector, instead of the one send named here.'! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty default.
-		MCPPlainToolProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false'.
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is inlined too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false'.
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is inlined too, true or false' defaultingTo: 'false' }! !
 
 !MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -499,16 +499,16 @@ actualScopeOnlyDescription
 
 	^'Send actual to inline every send LiveTyping saw really reaching an object of the class that implements the selector, which needs neither senderClassName nor senderSelector nor the text of the send. Send nothing to inline the one send named by those'! !
 
-!MCPRemoveParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:53:07 pm (UTC)'!
+!MCPRemoveParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to remove the parameter from'.
-		MCPPlainToolProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
-		MCPPlainToolProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
+		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
 
 !MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
@@ -542,15 +542,15 @@ decoratedToolName
 
 	^MCPRefactoringTools removeParameterRefactoringToolName! !
 
-!MCPRenameSelectorInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:41 pm (UTC)'!
+!MCPRenameSelectorInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to rename'.
-		MCPPluggableToolProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
-		MCPPlainToolProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }! !
+		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
+		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }! !
 
 !MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
 applyInActualScopeWith: anArguments
