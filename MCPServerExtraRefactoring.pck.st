@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:54:00 am'!
-'Description Let a method object hold what its method uses under the names asked'!
-!provides: 'MCPServerExtraRefactoring' 1 16!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:15 pm'!
+'Description Answer a refactoring warning and go on through the accepted ones'!
+!provides: 'MCPServerExtraRefactoring' 1 17!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -37,10 +37,10 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractClassTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractClassToolName
 		describedBy: 'Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.'
 		properties: {
@@ -50,7 +50,7 @@ extractClassTool
 			MCPPlainProperty named: 'variableNames' describedBy: 'Names of the instance variables to extract, separated by commas' defaultingTo: ''.
 			MCPPlainProperty named: 'selectors' describedBy: 'Selectors of the methods to extract, separated by commas' defaultingTo: '' }
 		executingWith: [ :aClass :aNewClassName :anInstanceVariableName :someVariableNames :someSelectors |
-			self applyReportingNewClass: (ExtractClass
+			MCPRefactoringApplier applyReportingNewClass: (ExtractClass
 				from: aClass
 				to: aNewClassName asSymbol
 				instanceVariableNamed: anInstanceVariableName
@@ -59,10 +59,10 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:05:01 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractParameterObjectTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractParameterObjectToolName
 		describedBy: 'Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.'
 		properties: {
@@ -75,7 +75,7 @@ extractParameterObjectTool
 		executingWith: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory :aScopeName |
 			| parameterNames |
 			parameterNames := (self namesFrom: someParameterNames) asArray.
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
@@ -89,10 +89,10 @@ extractParameterObjectTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:42:35 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractToMethodObjectTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractToMethodObjectToolName
 		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with. Everything the method uses is held by the new object: each parameter of the method, each instance variable of its class it reads, each global it names that is not in the system yet, and its receiver when it sends to itself; and the object is created with a message that takes all of them.'
 		properties: {
@@ -115,7 +115,7 @@ extractToMethodObjectTool
 				of: aMethod
 				holdingIn: anInstanceVariableNamesText
 				createdWith: anInstanceCreationMessageText.
-			self applyReportingNewClass: (ExtractToMethodObject
+			MCPRefactoringApplier applyReportingNewClass: (ExtractToMethodObject
 				from: aMethod
 				toMethodObjectClassNamed: aNewClassName asSymbol
 				subclassing: (self classNamed: aSuperclassName)
@@ -124,10 +124,10 @@ extractToMethodObjectTool
 				withInstanceCreationMessageFrom: definition keywordsDefinitions
 				evaluatedWith: anEvaluationSelector asSymbol) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 moveInstanceVariableTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class moveInstanceVariableToolName
 		describedBy: 'Move an instance variable to another class, which the class it is moved from reaches through an instance variable of its own.'
 		properties: {
@@ -135,16 +135,16 @@ moveInstanceVariableTool
 			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the instance variable that holds the class it is moved to' }
 		executingWith: [ :aClass :aVariableName :aTargetClass :anAccessingVariableName |
-			self applyReportingChangedClasses: (MoveInstanceVariable
+			MCPRefactoringApplier applyReportingChangedClasses: (MoveInstanceVariable
 				named: aVariableName
 				from: aClass
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:14:27 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 moveMethodTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class moveMethodToolName
 		describedBy: 'Move a method to the class of the object it will be sent to, which the class it is moved from reaches through the receiver named: a variable of its own or of the method, or a global. A class is a global, so a method moved to a class becomes a class method of it. When the moved method still needs what it was moved from, it is given as a parameter named here.'
 		properties: {
@@ -159,7 +159,7 @@ moveMethodTool
 			MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: ''.
 			MCPPlainProperty named: 'extraParameterKeyword' describedBy: 'Keyword the moved method takes that parameter with, when it is a keyword selector that needs a new keyword for it. Left out otherwise' defaultingTo: '' }
 		executingWith: [ :aMethod :aReceiverName :aTargetClassName :anExtraParameterName :anExtraParameterKeyword |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				moveMethodRefactoringFor: aMethod
 				to: aTargetClassName
 				through: aReceiverName

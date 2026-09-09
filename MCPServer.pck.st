@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:10 am'!
-'Description Inline a method in every send the scope takes in'!
-!provides: 'MCPServer' 1 76!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:01 pm'!
+'Description Answer a refactoring warning and go on through the accepted ones'!
+!provides: 'MCPServer' 1 77!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -155,6 +155,16 @@ MCPToolDeclaration subclass: #MCPPluggableTool
 	category: 'MCPServer'!
 !classDefinition: 'MCPPluggableTool class' category: #MCPServer!
 MCPPluggableTool class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPRefactoringTool category: #MCPServer!
+MCPToolDeclaration subclass: #MCPRefactoringTool
+	instanceVariableNames: 'executeBlock'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPRefactoringTool class' category: #MCPServer!
+MCPRefactoringTool class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolDecorator category: #MCPServer!
@@ -420,6 +430,11 @@ I am a tool whose work is the block I was created with.
 
 I read my properties out of the arguments of a request and evaluate my block with their values, so the block takes one parameter per property, in the order they were given to me. I answer valueWithArguments: the way my block does, which is why the two read alike.!
 
+!MCPRefactoringTool commentStamp: '<historical>' prior: 0!
+I am a tool that applies a refactoring.
+
+A refactoring that may not preserve behaviour warns before changing anything, and a client has nobody to ask, so I take the warnings a client has already reviewed and answer the first one it has not, instead of applying. That is what I add to the block I was created with: the property the accepted warnings are sent under, and the answer when a warning is not among them.!
+
 !MCPToolDecorator commentStamp: '<historical>' prior: 0!
 I am a tool that adds something to what another tool answers, which is how a package that is not always loaded reaches the tools of one that always is.
 
@@ -447,7 +462,7 @@ A package is saved only when it knows the file it is written to. Asking the imag
 !MCPRefactoringToolGroup commentStamp: '<historical>' prior: 0!
 I am a group of tools that apply refactorings.
 
-I know how a refactoring is applied and what my subclasses need to build one: the scope a refactoring over a selector works on, the class a name stands for, and the names a client sent as one text.
+I know what my subclasses need to build one: the scope a refactoring over a selector works on, the class a name stands for, and the names a client sent as one text. Applying a refactoring and describing what it changed is what MCPRefactoringApplier does, and my tools ask it directly.
 
 A group of mine that has tools of its own is named after the refactorings it offers, as MCPRefactoringTools; a group of mine that only gathers others is named a tool group, as I am.!
 
@@ -1031,6 +1046,46 @@ applying: aRefactoring changing: aMethod
 
 	^self new initializeApplying: aRefactoring changing: aMethod! !
 
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:02:05 pm (UTC)'!
+apply: aRefactoring reportingNewSourceOf: aMethod
+
+	^(self applying: aRefactoring changing: aMethod) applyReportingNewSource! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:01:50 pm (UTC)'!
+applyReportingChangedClass: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingChangedClass! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:01:54 pm (UTC)'!
+applyReportingChangedClasses: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingChangedClasses! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:01:46 pm (UTC)'!
+applyReportingChanges: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingChanges! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:01:57 pm (UTC)'!
+applyReportingNewClass: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingNewClass! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:01:59 pm (UTC)'!
+applyReportingRemovedClasses: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingRemovedClasses! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:02:02 pm (UTC)'!
+applyReportingRemovedVariables: aRefactoring
+
+	^(self applying: aRefactoring) applyReportingRemovedVariables! !
+
+!MCPRefactoringApplier class methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 5:02:08 pm (UTC)'!
+applySourceChanging: aRefactoring to: aMethod
+
+	^(self applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
+
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 7/Sep/2026, 7:04:28 pm (UTC)'!
 initializeServingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
 
@@ -1130,7 +1185,7 @@ dispatch: aMethod with: aParams ifNone: aNoneBlock
 	
 	^aNoneBlock value! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:09:59 pm (UTC)'!
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 9/Sep/2026, 3:33:10 pm (UTC)'!
 handleMethod: aMethod with: aParams identifiedAs: anId 
 
 	^[ | methodResult |
@@ -1956,6 +2011,73 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties execu
 		properties: aCollectionOfProperties
 		executingWith: aBlock
 ! !
+
+!MCPRefactoringTool methodsFor: 'executing' stamp: 'HAW 9/Sep/2026, 6:21:24 pm (UTC)'!
+resultOf: aRefactoringBlock handlingWarningsIn: anArguments
+
+	| warningsToAccept |
+
+	warningsToAccept := self acceptedWarningsProperty valueFrom: anArguments.
+
+	^aRefactoringBlock
+		on: Refactoring refactoringWarningClass
+		do: [ :aWarning |
+			(warningsToAccept includesSubstring: aWarning messageText caseSensitive: true)
+				ifTrue: [ aWarning resume ]
+				ifFalse: [ self class notAppliedDescriptionFor: aWarning descriptionForClient ] ]! !
+
+!MCPRefactoringTool methodsFor: 'executing' stamp: 'HAW 9/Sep/2026, 5:11:43 pm (UTC)'!
+valueWithArguments: anArguments
+
+	^self
+		resultOf: [ executeBlock valueWithArguments: (self valuesForTheBlockFrom: anArguments) ]
+		handlingWarningsIn: anArguments! !
+
+!MCPRefactoringTool methodsFor: 'executing' stamp: 'HAW 9/Sep/2026, 5:11:43 pm (UTC)'!
+valuesForTheBlockFrom: anArguments
+
+	^(self valuesFrom: anArguments) allButLast! !
+
+!MCPRefactoringTool methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 6:05:30 pm (UTC)'!
+initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
+
+	name := aName.
+	description := aDescription.
+	properties := aCollectionOfProperties , { self acceptedWarningsProperty }.
+	executeBlock := aBlock! !
+
+!MCPRefactoringTool methodsFor: 'accepted warnings' stamp: 'HAW 9/Sep/2026, 6:21:05 pm (UTC)'!
+acceptedWarningsProperty
+
+	^MCPPlainProperty
+		named: self class acceptedWarningsPropertyName
+		describedBy: self class acceptedWarningsPropertyDescription
+		defaultingTo: ''! !
+
+!MCPRefactoringTool class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 4:43:56 pm (UTC)'!
+named: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		properties: aCollectionOfProperties
+		executingWith: aBlock! !
+
+!MCPRefactoringTool class methodsFor: 'accepted warnings' stamp: 'HAW 9/Sep/2026, 6:20:50 pm (UTC)'!
+acceptedWarningsPropertyDescription
+
+	^'Warnings of this refactoring already reviewed, as they were answered. The refactoring goes on through a warning whose description is included here and stops at the first one that is not, answering it instead of applying'! !
+
+!MCPRefactoringTool class methodsFor: 'accepted warnings' stamp: 'HAW 9/Sep/2026, 6:19:42 pm (UTC)'!
+acceptedWarningsPropertyName
+
+	^'acceptedWarnings'! !
+
+!MCPRefactoringTool class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 6:21:12 pm (UTC)'!
+notAppliedDescriptionFor: aWarningDescription
+
+	^'Refactoring not applied. Warning: ' , aWarningDescription ,
+		'. To apply it anyway, call the tool again with the same arguments and this warning added to ' , self acceptedWarningsPropertyName! !
 
 !MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 initializeDecorating: aTool in: aSmalltalk
@@ -2982,46 +3104,6 @@ notInAnyPackageDescription
 
 	^'It is not in any package'! !
 
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-apply: aRefactoring reportingNewSourceOf: aMethod
-
-	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyReportingNewSource! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingChangedClass: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChangedClass! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingChangedClasses: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChangedClasses! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingChanges: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingChanges! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingNewClass: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingNewClass! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingRemovedClasses: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingRemovedClasses! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applyReportingRemovedVariables: aRefactoring
-
-	^(MCPRefactoringApplier applying: aRefactoring) applyReportingRemovedVariables! !
-
-!MCPRefactoringToolGroup methodsFor: 'applying' stamp: 'HAW 3/Sep/2026, 7:13:06 pm (UTC)'!
-applySourceChanging: aRefactoring to: aMethod
-
-	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
-
 !MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 1:45:08 pm (UTC)'!
 implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName
 
@@ -3218,7 +3300,7 @@ assert: someParameters isNamedBy: someAskedNames
 	someParameters size = someAskedNames size
 		ifFalse: [ ExtractMethodNewMethod signalExtractMethodWithWrongNumberOfArgumentsError ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:02 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgumentNames: someArgumentNames replacing: aReplacing
 
 	"Extract the code the interval covers into a method of its own, the way the applier does
@@ -3246,7 +3328,7 @@ extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgum
 	replacements := self replacementsFoundBy: finder replacing: aReplacing.
 	replacements do: [ :eachReplacement | eachReplacement newMessage: newMessage ].
 
-	^self applyReportingChanges: (ExtractMethod
+	^MCPRefactoringApplier applyReportingChanges: (ExtractMethod
 		newDefinition: (ExtractMethodNewMethod
 			fromInterval: trimmedInterval
 			of: aMethodReference
@@ -3255,7 +3337,7 @@ extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgum
 			withArgumentNames: (self namesRenaming: parameters asAskedIn: someArgumentNames))
 		replacements: replacements)! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 26/Aug/2026, 4:31:09 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
 
 	"Extract the code the interval covers into a method of its own and send it wherever code
@@ -3279,7 +3361,7 @@ extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
 
 	finder acceptParamReplacementsWithNodesToParameterized: notParameterizable to: aMessage.
 
-	^self applyReportingChanges: (ExtractMethod
+	^MCPRefactoringApplier applyReportingChanges: (ExtractMethod
 		newDefinition: (self
 			newMethodFor: aMessage
 			using: finder extractedCodeOrAnyParameterizableReplacement
@@ -3287,8 +3369,8 @@ extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
 		replacements: finder replacements)
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 1:41:38 pm (UTC)'!
-extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval replacingAll: aBoolean
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:51:54 pm (UTC)'!
+extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval replacingAll: shouldReplaceAll
 
 	"Let the finder say which pieces are being replaced. It answers the ones that are the same
 	expression as the one selected, which is not the same as the ones written with the same
@@ -3297,16 +3379,16 @@ extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval repla
 	ExtractToTemporary answers the refactoring that fits, which is ExtractMultipleToTemporary
 	when there is more than one piece."
 
-	| finder |
+	| finder refactoring |
 
 	finder := ExtractToTemporaryReplacementsFinder named: aVariableName at: anInterval from: aMethodReference.
 	finder value.
 
-	^self
-		apply: (aBoolean
-			ifTrue: [ ExtractToTemporary named: aVariableName intervals: finder replacements from: aMethodReference ]
-			ifFalse: [ ExtractToTemporary named: aVariableName at: finder originalSelectionReplacement from: aMethodReference ])
-		reportingNewSourceOf: aMethodReference
+	refactoring := shouldReplaceAll
+		ifTrue: [ ExtractToTemporary named: aVariableName intervals: finder replacements from: aMethodReference ]
+		ifFalse: [ ExtractToTemporary named: aVariableName at: finder originalSelectionReplacement from: aMethodReference ].
+		
+	^MCPRefactoringApplier apply: (refactoring) reportingNewSourceOf: aMethodReference
 ! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
@@ -3535,121 +3617,121 @@ addToolsTo: anMCPServer
 		addTemporaryRefactoringToolsTo: anMCPServer;
 		addExtractionRefactoringToolsTo: anMCPServer! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:18:57 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 addInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class addInstanceVariableRefactoringToolName
 		describedBy: 'Add an instance variable to a class.'
 		properties: { MCPInstanceVariableProperty
 			classDescribedBy: 'Name of the class to add the instance variable to'
 			variableNameDescribedBy: 'Name of the instance variable to add' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClass: (AddInstanceVariable named: aVariableName to: aClass) ]! !
+			MCPRefactoringApplier applyReportingChangedClass: (AddInstanceVariable named: aVariableName to: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:19:00 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class pushDownInstanceVariableRefactoringToolName
 		describedBy: 'Move an instance variable of a class down to its subclasses.'
 		properties: { MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to push down' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClasses: (PushDownInstanceVariable named: aVariableName from: aClass) ]! !
+			MCPRefactoringApplier applyReportingChangedClasses: (PushDownInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:19:02 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushUpInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class pushUpInstanceVariableRefactoringToolName
 		describedBy: 'Move an instance variable of a class up to its superclass.'
 		properties: { MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to push up' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClasses: (PushUpInstanceVariable named: aVariableName from: aClass) ]! !
+			MCPRefactoringApplier applyReportingChangedClasses: (PushUpInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:19:04 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 removeInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class removeInstanceVariableRefactoringToolName
 		describedBy: 'Remove an instance variable from a class.'
 		properties: { MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to remove' }
 		executingWith: [ :aClass :aVariableName |
-			self applyReportingChangedClass: (RemoveInstanceVariable named: aVariableName from: aClass) ]! !
+			MCPRefactoringApplier applyReportingChangedClass: (RemoveInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 removeUnreferencedInstanceVariablesRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class removeUnreferencedInstanceVariablesRefactoringToolName
 		describedBy: 'Remove every instance variable of a class that no method reads or writes.'
 		properties: { MCPClassProperty default }
 		executingWith: [ :aClass |
-			self applyReportingRemovedVariables: (RemoveAllUnreferencedInstanceVariables from: aClass) ]
+			MCPRefactoringApplier applyReportingRemovedVariables: (RemoveAllUnreferencedInstanceVariables from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 renameInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class renameInstanceVariableRefactoringToolName
 		describedBy: 'Rename an instance variable of a class, in every method that uses it.'
 		properties: {
 			MCPInstanceVariableProperty variableNameDescribedBy: 'Name of the instance variable to rename'.
 			MCPPlainProperty named: 'newVariableName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aClass :aVariableName :aNewVariableName |
-			self applyReportingChanges: (RenameInstanceVariable from: aVariableName to: aNewVariableName in: aClass) ]! !
+			MCPRefactoringApplier applyReportingChanges: (RenameInstanceVariable from: aVariableName to: aNewVariableName in: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 insertSuperclassRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class insertSuperclassRefactoringToolName
 		describedBy: 'Insert a new class between a class and its superclass.'
 		properties: {
 			MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to insert the new one above'.
 			MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class to insert above it' }
 		executingWith: [ :aClass :aNewClassName |
-			self applyReportingNewClass: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]! !
+			MCPRefactoringApplier applyReportingNewClass: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 8/Sep/2026, 9:37:06 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameClassRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class renameClassRefactoringToolName
 		describedBy: 'Rename a class, in every method that names it.'
 		properties: {
 			MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to rename'.
 			MCPPlainProperty named: 'newClassName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aClass :aNewClassName |
-			self applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: smalltalk) ]! !
+			MCPRefactoringApplier applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: smalltalk) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameGlobalRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class renameGlobalRefactoringToolName
 		describedBy: 'Rename a global, in every method that names it.'
 		properties: {
 			MCPPlainProperty named: 'globalName' describedBy: 'Name of the global to rename'.
 			MCPPlainProperty named: 'newGlobalName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aGlobalName :aNewGlobalName |
-			self applyReportingChanges: (RenameGlobal from: aGlobalName asSymbol to: aNewGlobalName asSymbol in: smalltalk) ]
+			MCPRefactoringApplier applyReportingChanges: (RenameGlobal from: aGlobalName asSymbol to: aNewGlobalName asSymbol in: smalltalk) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 safelyRemoveClassRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class safelyRemoveClassRefactoringToolName
 		describedBy: 'Remove a class, refusing when something still refers to it.'
 		properties: { MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to remove' }
-		executingWith: [ :aClass | self applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]! !
+		executingWith: [ :aClass | MCPRefactoringApplier applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:52 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 addParameterRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class addParameterRefactoringToolName
 		describedBy: 'Add a parameter to a selector, giving every sender the scope takes in the value to pass. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
 		properties: {
@@ -3662,7 +3744,7 @@ addParameterRefactoringTool
 			MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one. Defaults to the first' defaultingTo: '1'.
 			self scopeProperty }
 		executingWith: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aScopeName |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
@@ -3682,10 +3764,10 @@ addParameterRefactoringTool
 							implementors: implementors
 							senders: senders ] ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:48 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 changeKeywordsOrderRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class changeKeywordsOrderRefactoringToolName
 		describedBy: 'Reorder the keywords of a selector, moving the arguments of every sender the scope takes in with them.'
 		properties: {
@@ -3698,16 +3780,16 @@ changeKeywordsOrderRefactoringTool
 				valuedWith: [ :aSelector | aSelector asSymbol ].
 			self scopeProperty }
 		executingWith: [ :aMethod :aNewSelector :aScopeName |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
 					ChangeKeywordsSelectorOrder from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:50 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 removeParameterRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class removeParameterRefactoringToolName
 		describedBy: 'Remove a parameter from a selector, in the implementors and the senders the scope takes in. It is refused when an implementor still uses the parameter.'
 		properties: {
@@ -3718,7 +3800,7 @@ removeParameterRefactoringTool
 			MCPPlainProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one. Defaults to the first' defaultingTo: '1'.
 			self scopeProperty }
 		executingWith: [ :aMethod :aParameterName :aParameterIndex :aScopeName |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
@@ -3729,10 +3811,10 @@ removeParameterRefactoringTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:46 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameSelectorRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class renameSelectorRefactoringToolName
 		describedBy: 'Rename a selector, in the implementors and the senders the scope takes in around the class of the method named.'
 		properties: {
@@ -3745,60 +3827,60 @@ renameSelectorRefactoringTool
 				valuedWith: [ :aSelector | aSelector asSymbol ].
 			self scopeProperty }
 		executingWith: [ :aMethod :aNewSelector :aScopeName |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
 					RenameSelector from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 addAsSubclassResponsibilityRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class addAsSubclassResponsibilityRefactoringToolName
 		describedBy: 'Declare a method of a class as the responsibility of its subclasses, adding it to the superclass as a subclassResponsibility.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method' }
-		executingWith: [ :aMethod | self applyReportingChanges: (AddAsSubclassResponsibility for: aMethod) ]
+		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (AddAsSubclassResponsibility for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 moveToInstanceOrClassMethodRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class moveToInstanceOrClassMethodRefactoringToolName
 		describedBy: 'Move a method from the instance side of a class to its class side, or back.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to move' }
-		executingWith: [ :aMethod | self applyReportingChanges: (MoveToInstanceOrClassMethod for: aMethod) ]
+		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (MoveToInstanceOrClassMethod for: aMethod) ]
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownMethodToOneSubclassRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class pushDownMethodToOneSubclassRefactoringToolName
 		describedBy: 'Move a method down into one subclass of the class that implements it.'
 		properties: {
 			MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push down'.
 			MCPClassProperty named: 'subclassName' describedBy: 'Name of the subclass to push it down to' }
 		executingWith: [ :aMethod :aSubclass |
-			self applyReportingChanges: (PushDownMethodToOneSubclass for: aMethod to: aSubclass) ]
+			MCPRefactoringApplier applyReportingChanges: (PushDownMethodToOneSubclass for: aMethod to: aSubclass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownMethodToSubclassesRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class pushDownMethodToSubclassesRefactoringToolName
 		describedBy: 'Copy a method down into every subclass of the class that implements it.'
 		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push down' }
-		executingWith: [ :aMethod | self applyReportingChanges: (PushDownMethodToSubclasses for: aMethod) ]
+		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (PushDownMethodToSubclasses for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 11:55:40 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushUpMethodRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class pushUpMethodRefactoringToolName
 		describedBy: 'Move a method up to the superclass of the class that implements it. The methods of that class it sends to itself, which the superclass does not implement, can go up with it, and a sibling class implementing the same method the same way can lose its copy.'
 		properties: {
@@ -3814,15 +3896,15 @@ pushUpMethodRefactoringTool
 				describedBy: 'Whether a sibling class that implements a pushed up method the same way loses its copy, true or false'
 				defaultingTo: 'false' }
 		executingWith: [ :aMethod :aDependantsAnswer :anEquivalentsAnswer |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				pushUpRefactoringFor: aMethod
 				pushingUpDependants: aDependantsAnswer isTrue
 				removingEquivalents: anEquivalentsAnswer isTrue) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 inlineTemporaryVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class inlineTemporaryVariableRefactoringToolName
 		describedBy: 'Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.'
 		properties: {
@@ -3832,18 +3914,16 @@ inlineTemporaryVariableRefactoringTool
 			MCPPlainProperty named: 'start' describedBy: 'First character of the use, counting from one. Sent instead of the text' defaultingTo: ''.
 			MCPPlainProperty named: 'stop' describedBy: 'Last character of the use' defaultingTo: '' }
 		executingWith: [ :aMethod :aVariableName :aText :aStart :aStop |
-			self
-				apply: (InlineTemporaryVariable
+			MCPRefactoringApplier apply: (InlineTemporaryVariable
 					named: aVariableName
 					atUsageInterval: (self intervalIn: aMethod matching: aText from: aStart to: aStop)
-					inMethod: aMethod)
-				reportingNewSourceOf: aMethod ]
+					inMethod: aMethod) reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameTemporaryRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class renameTemporaryRefactoringToolName
 		describedBy: 'Rename a temporary or an argument of a method, in every use it has inside it.'
 		properties: {
@@ -3851,34 +3931,30 @@ renameTemporaryRefactoringTool
 			MCPPlainProperty named: 'variableName' describedBy: 'Name of the temporary to rename'.
 			MCPPlainProperty named: 'newVariableName' describedBy: 'Name to rename it to' }
 		executingWith: [ :aMethod :aVariableName :aNewVariableName |
-			self
-				applySourceChanging: (RenameTemporary
+			MCPRefactoringApplier applySourceChanging: (RenameTemporary
 					from: aVariableName
 					to: aNewVariableName
-					in: aMethod methodNode)
-				to: aMethod ]
+					in: aMethod methodNode) to: aMethod ]
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 temporaryToInstanceVariableRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class temporaryToInstanceVariableRefactoringToolName
 		describedBy: 'Turn a temporary of a method into an instance variable of its class.'
 		properties: {
 			MCPMethodProperty default.
 			MCPPlainProperty named: 'variableName' describedBy: 'Name of the temporary to turn into an instance variable' }
 		executingWith: [ :aMethod :aVariableName |
-			self
-				apply: (TemporaryToInstanceVariable named: aVariableName fromMethod: aMethod methodNode)
-				reportingNewSourceOf: aMethod ]
+			MCPRefactoringApplier apply: (TemporaryToInstanceVariable named: aVariableName fromMethod: aMethod methodNode) reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 2:04:55 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractAsParameterRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractAsParameterRefactoringToolName
 		describedBy: 'Turn a piece of a method into a parameter of it, giving every sender the scope takes in the piece to pass. The piece is named by the text it is written with, or by the interval it occupies.'
 		properties: {
@@ -3889,7 +3965,7 @@ extractAsParameterRefactoringTool
 			MCPPlainProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
 			self scopeProperty }
 		executingWith: [ :aMethod :aParameterName :aText :aStart :aStop :aScopeName |
-			self applyReportingChanges: (self
+			MCPRefactoringApplier applyReportingChanges: (self
 				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
@@ -3900,10 +3976,10 @@ extractAsParameterRefactoringTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractMethodFromSimilarCodeRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractMethodFromSimilarCodeRefactoringToolName
 		describedBy: 'Extract a piece of a method into a method of its own and send it wherever code like it is written, whatever differs between them becoming a parameter of it. Unlike extracting a method, the code it replaces is not the same as the piece named, so the new selector takes one keyword for each part that varies.'
 		properties: {
@@ -3920,10 +3996,10 @@ extractMethodFromSimilarCodeRefactoringTool
 				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractToTemporaryRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractToTemporaryRefactoringToolName
 		describedBy: 'Extract a piece of a method into a temporary of it. The piece is named by the text it is written with, or by the interval it occupies. Replacing all of them replaces every piece that is the same expression, which is found in the parse tree and so does not include a comment or a string saying the same.'
 		properties: {
@@ -3946,10 +4022,10 @@ extractToTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 1:23:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 inlineMethodRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class inlineMethodRefactoringToolName
 		describedBy: 'Replace the sends of a method by what the method does: every send the scope takes in, or one send alone when it is named by the method it is written in and by the text of its selector there, or the interval that selector occupies. The text has to fall on the selector of the send and not on its receiver. A send inside the method being inlined is left alone.'
 		properties: {
@@ -3962,7 +4038,7 @@ inlineMethodRefactoringTool
 			MCPPlainProperty named: 'stop' describedBy: 'Last character of it' defaultingTo: ''.
 			MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aScopeName :aSenderClassName :aSenderSelector :aText :aStart :aStop :aRemoveAnswer |
-			self applyReportingChanges: (InlineMethod
+			MCPRefactoringApplier applyReportingChanges: (InlineMethod
 				from: aMethod
 				intoSendersAndUsages: (self
 					sendsToInlineOf: aMethod
@@ -3972,10 +4048,10 @@ inlineMethodRefactoringTool
 					at: [ :aSendingMethod | self intervalIn: aSendingMethod matching: aText from: aStart to: aStop ])
 				removeMethod: aRemoveAnswer isTrue) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractMethodRefactoringTool
 
-	^MCPPluggableTool
+	^MCPRefactoringTool
 		named: self class extractMethodRefactoringToolName
 		describedBy: 'Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced, and how far it is looked for is what replacing says.'
 		properties: {
@@ -5435,6 +5511,17 @@ isTrue
 	what stands for a boolean is read here once instead of at each place that takes one."
 
 	^self = 'true'! !
+
+!RefactoringWarning methodsFor: '*MCPServer' stamp: 'HAW 9/Sep/2026, 3:24:25 pm (UTC)'!
+descriptionForClient
+
+	^self messageText! !
+
+!ReferencesRefactoringWarning methodsFor: '*MCPServer' stamp: 'HAW 9/Sep/2026, 3:27:40 pm (UTC)'!
+descriptionForClient
+
+	^self messageText , ' in ' ,
+		(', ' join: (references collect: [ :eachReference | eachReference classAndSelector ]) asSortedCollection)! !
 
 !UISupervisor class methodsFor: '*MCPServer' stamp: 'HAW 28/Aug/2026, 6:40:03 pm (UTC)'!
 waitToDone: aBlock

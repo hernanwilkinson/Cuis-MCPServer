@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:28 am'!
-'Description Inline a method in every send the scope takes in'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 15!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:29 pm'!
+'Description Answer a refactoring warning and go on through the accepted ones'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 16!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -138,6 +138,35 @@ testARefactoringToolWorksOverTheActualScopeWhenNoneIsNamed
 
 	self assert: (self sourceOfTheCaller includesSubstring: 'self mcpRenamed' caseSensitive: true).
 	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
+
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 6:20:01 pm (UTC)'!
+testARefactoringWarningInTheActualScopeIsAnsweredInsteadOfApplying
+
+	| childClass |
+
+	childClass := probeClass subclass: #MCPLiveTypingRefactoringProbeChild
+		instanceVariableNames: ''
+		classVariableNames: ''
+		poolDictionaries: ''
+		category: self classCategoryOfTestData.
+	probeClass compile: 'mcpRenamed
+
+	^42' classified: 'probing'.
+	childClass compile: 'mcpProbe
+
+	^42' classified: 'probing'.
+
+	self
+		assert: (self apply: MCPRefactoringTools renameSelectorRefactoringToolName inActualScopeWith: (Dictionary new
+			at: 'className' put: childClass name;
+			at: 'selector' put: 'mcpProbe';
+			at: 'newSelector' put: 'mcpRenamed';
+			yourself))
+		equals: (MCPRefactoringTool notAppliedDescriptionFor: (ChangeSelectorKeepingParameters
+			warningMessageForImplementationOf: 'mcpRenamed' asSymbol
+			in: childClass
+			willOverrideImplementationIn: probeClass)).
+	self assert: (childClass includesSelector: 'mcpProbe' asSymbol)! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:02 pm (UTC)'!
 testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue

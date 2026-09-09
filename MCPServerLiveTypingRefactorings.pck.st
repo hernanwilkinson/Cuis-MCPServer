@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:16 am'!
-'Description Inline a method in every send the scope takes in'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 19!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:22 pm'!
+'Description Answer a refactoring warning and go on through the accepted ones'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 20!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -136,7 +136,7 @@ sayWhatTheActualScopeIsIn: aDefinition
 				put: MCPRefactoringToolGroup scopeValuesDescription , '. ' , self class actualScopeDescription ]
 		ifAbsent: [ self class scopeProperty addTo: properties ]! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:06:49 am (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 4:42:46 pm (UTC)'!
 valueWithArguments: anArguments
 
 	"A client that names the actual scope is asking for the refactoring only LiveTyping makes
@@ -144,7 +144,7 @@ valueWithArguments: anArguments
 	over, and it is the one that answers."
 
 	^(self isAskedForTheActualScopeIn: anArguments)
-		ifTrue: [ self applyInActualScopeWith: anArguments ]
+		ifTrue: [ self decoratee resultOf: [ self applyInActualScopeWith: anArguments ] handlingWarningsIn: anArguments ]
 		ifFalse: [ self decoratee valueWithArguments: anArguments ]! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:31:52 pm (UTC)'!

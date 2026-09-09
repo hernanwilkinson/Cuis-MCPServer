@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:23 am'!
-'Description Inline a method in every send the scope takes in'!
-!provides: 'MCPServerTests' 1 63!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:07 pm'!
+'Description Answer a refactoring warning and go on through the accepted ones'!
+!provides: 'MCPServerTests' 1 64!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1789,6 +1789,18 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey
 
 ! !
 
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:02 pm (UTC)'!
+defineTestSubjectChildReadingAnInstanceVariable
+
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubjectChild'
+		subclassOf: 'MCPTestSubject'
+		instanceVariableNames: 'held'
+		classVariableNames: '').
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^held'! !
+
 !MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
 defineTestSubjectSiblingImplementingProbe
 
@@ -1800,6 +1812,31 @@ defineTestSubjectSiblingImplementingProbe
 
 	^42'
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:27 pm (UTC)'!
+differentImplementationWarning
+
+	^PushUpMethod methodWithDifferentImplementationInSuperclass: { 'mcpProbe' }! !
+
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:24 pm (UTC)'!
+instanceVariableWarning
+
+	^PushUpMethod accessingInstanceVariableWarningMessage: { 'held' }! !
+
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:17 pm (UTC)'!
+pushUpTheProbeOfTheChild
+
+	^self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe')! !
+
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 6:19:46 pm (UTC)'!
+pushUpTheProbeOfTheChildAccepting: aWarningsText
+
+	^self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubjectChild'
+			and: 'selector' being: 'mcpProbe'
+			and: MCPRefactoringTool acceptedWarningsPropertyName being: aWarningsText)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testAddInstanceVariableRefactoringAddsItToTheClass
@@ -3063,6 +3100,83 @@ toolDecoratorClasses
 toolGroupClasses
 
 	^{ MCPModelStructureTools. MCPRefactoringTools }! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 3:29:33 pm (UTC)'!
+testARefactoringGoesOnThroughAnAcceptedWarning
+
+	self defineTestSubjectClass.
+	self defineTestSubjectChildReadingAnInstanceVariable.
+
+	self pushUpTheProbeOfTheChildAccepting: self instanceVariableWarning.
+
+	self assert: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
+	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 3:29:40 pm (UTC)'!
+testARefactoringGoesOnThroughEveryAcceptedWarning
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^1'.
+	self defineTestSubjectChildReadingAnInstanceVariable.
+
+	self pushUpTheProbeOfTheChildAccepting: self instanceVariableWarning , ' ' , self differentImplementationWarning.
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol) includesSubstring: '^held' caseSensitive: true).
+	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:54 pm (UTC)'!
+testARefactoringStopsAtTheFirstWarningNotAccepted
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^1'.
+	self defineTestSubjectChildReadingAnInstanceVariable.
+
+	self
+		assert: (self pushUpTheProbeOfTheChildAccepting: self instanceVariableWarning)
+		equals: (MCPRefactoringTool notAppliedDescriptionFor: self differentImplementationWarning).
+	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:52 pm (UTC)'!
+testARefactoringThatWarnsAnswersTheWarningInsteadOfApplying
+
+	self defineTestSubjectClass.
+	self defineTestSubjectChildReadingAnInstanceVariable.
+
+	self
+		assert: self pushUpTheProbeOfTheChild
+		equals: (MCPRefactoringTool notAppliedDescriptionFor: self instanceVariableWarning).
+	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol).
+	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:48 pm (UTC)'!
+testARefactoringToolDeclaresTheAcceptedWarnings
+
+	| properties |
+
+	properties := ((self toolNamed: MCPRefactoringTools pushUpMethodRefactoringToolName) definition
+		at: 'inputSchema') at: 'properties'.
+
+	self assert: (properties includesKey: MCPRefactoringTool acceptedWarningsPropertyName)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:57 pm (UTC)'!
+testAWarningAboutReferencesNamesTheMethodsThatHoldThem
+
+	self defineTestSubjectClass.
+	self defineClassWith: (self definitionOf: 'MCPTestSibling' subclassOf: 'Object').
+	self defineMethodIn: 'MCPTestSibling' source: 'mcpReferrer
+
+	^#MCPTestSubject'.
+
+	self
+		assert: (self applyRefactoring: MCPRefactoringTools safelyRemoveClassRefactoringToolName
+			with: (self arguments: 'className' being: 'MCPTestSubject'))
+		equals: (MCPRefactoringTool notAppliedDescriptionFor:
+			(SafelyRemoveClass warningMessageForReferencesToNames: { self createdClassInTest }) , ' in MCPTestSibling>>#mcpReferrer').
+	self assert: self createdClassInTest notNil! !
 
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 9:37:51 pm (UTC)'!
 answerToEverySearch: someMethods
