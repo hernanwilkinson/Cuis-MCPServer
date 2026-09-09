@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:30:05 am'!
-'Description Move a method to the class of what its receiver holds'!
-!provides: 'MCPServerExtraRefactoringTest' 1 13!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:54:06 am'!
+'Description Let a method object hold what its method uses under the names asked'!
+!provides: 'MCPServerExtraRefactoringTest' 1 14!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -147,6 +147,88 @@ testExtractingToAMethodObjectAnswersTheDefinitionOfTheClassItCreated
 			self targetClass definition
 
 ! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:42:45 pm (UTC)'!
+testExtractingToAMethodObjectCreatesItWithTheMessageGiven
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'held'.
+	source compile: 'mcpProbe: aNumber
+
+	^aNumber + held' classified: 'probing'.
+
+	(self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpProbe:';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'category' put: self classCategoryOfTestData;
+		at: 'instanceCreationMessage' put: 'of=held, adding=aNumber';
+		yourself).
+
+	self assert: (self targetClass class includesSelector: 'of:adding:' asSymbol).
+	self assert: ((self sourceClass sourceCodeAt: 'mcpProbe:' asSymbol)
+		includesSubstring: 'MCPExtraTestTarget of: held adding: aNumber' caseSensitive: true)! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:42:53 pm (UTC)'!
+testExtractingToAMethodObjectHoldsTheReceiverAsReceiverWhenItIsNotNamed
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	source compile: 'mcpProbe
+
+	^self printString' classified: 'probing'.
+
+	(self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpProbe';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'category' put: self classCategoryOfTestData;
+		yourself).
+
+	self assert: (self targetClass instVarNames includes: 'receiver').
+	self assert: (self targetClass class includesSelector: 'receiver:' asSymbol)! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:42:39 pm (UTC)'!
+testExtractingToAMethodObjectHoldsWhatTheMethodUsesUnderTheNamesGiven
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'held'.
+	source compile: 'mcpProbe: aNumber
+
+	^aNumber + held' classified: 'probing'.
+
+	(self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpProbe:';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'category' put: self classCategoryOfTestData;
+		at: 'instanceVariableNames' put: 'aNumber=number, held=amount';
+		yourself).
+
+	self assert: (self targetClass instVarNames includesAllOf: #('number' 'amount'))! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:42:49 pm (UTC)'!
+testExtractingToAMethodObjectHoldsWhatTheMethodUsesUnderTheirOwnNamesWhenNoneAreGiven
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: 'held'.
+	source compile: 'mcpProbe: aNumber
+
+	^aNumber + held' classified: 'probing'.
+
+	(self toolNamed: MCPExtraRefactoringTools extractToMethodObjectToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpProbe:';
+		at: 'newClassName' put: 'MCPExtraTestTarget';
+		at: 'category' put: self classCategoryOfTestData;
+		yourself).
+
+	self assert: (self targetClass instVarNames includesAllOf: #('aNumber' 'held')).
+	self assert: (self targetClass class includesSelector: 'aNumber:held:' asSymbol)! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid

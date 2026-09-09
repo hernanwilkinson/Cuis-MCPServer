@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:29:51 am'!
-'Description Move a method to the class of what its receiver holds'!
-!provides: 'MCPServerExtraRefactoring' 1 15!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:54:00 am'!
+'Description Let a method object hold what its method uses under the names asked'!
+!provides: 'MCPServerExtraRefactoring' 1 16!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -14,6 +14,16 @@ MCPRefactoringToolGroup subclass: #MCPExtraRefactoringTools
 	category: 'MCPServerExtraRefactoring'!
 !classDefinition: 'MCPExtraRefactoringTools class' category: #MCPServerExtraRefactoring!
 MCPExtraRefactoringTools class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPMethodObjectDefinition category: #MCPServerExtraRefactoring!
+Object subclass: #MCPMethodObjectDefinition
+	instanceVariableNames: 'method instanceVariableNamesText instanceCreationMessageText'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerExtraRefactoring'!
+!classDefinition: 'MCPMethodObjectDefinition class' category: #MCPServerExtraRefactoring!
+MCPMethodObjectDefinition class
 	instanceVariableNames: ''!
 
 
@@ -79,27 +89,40 @@ extractParameterObjectTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:42:35 pm (UTC)'!
 extractToMethodObjectTool
 
 	^MCPPluggableTool
 		named: self class extractToMethodObjectToolName
-		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with.'
+		describedBy: 'Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with. Everything the method uses is held by the new object: each parameter of the method, each instance variable of its class it reads, each global it names that is not in the system yet, and its receiver when it sends to itself; and the object is created with a message that takes all of them.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to turn into an object'.
 			MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class the method becomes'.
 			MCPPlainProperty named: 'evaluationSelector' describedBy: 'Selector the new object is sent to do what the method did' defaultingTo: 'value'.
 			MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-			MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }
-		executingWith: [ :aMethod :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory |
+			MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
+			MCPPlainProperty
+				named: 'instanceVariableNames'
+				describedBy: 'The instance variable the new object holds each thing the method uses in, as pairs of the form variable=instanceVariable separated by commas, self among the variables when the method sends to itself. One left out is held under its own name, and self as receiver'
+				defaultingTo: ''.
+			MCPPlainProperty
+				named: 'instanceCreationMessage'
+				describedBy: 'The message the new object is created with, as pairs of the form keyword=variable separated by commas, in the order the keywords are sent, one for each thing the method uses. A third part, keyword=variable=parameter, names the parameter of that keyword; without it the parameter is named after the instance variable with an article. Left out to take each in turn under the name of its instance variable: self first, then the parameters of the method, then the instance variables of its class'
+				defaultingTo: '' }
+		executingWith: [ :aMethod :aNewClassName :anEvaluationSelector :aSuperclassName :aCategory :anInstanceVariableNamesText :anInstanceCreationMessageText |
+			| definition |
+			definition := MCPMethodObjectDefinition
+				of: aMethod
+				holdingIn: anInstanceVariableNamesText
+				createdWith: anInstanceCreationMessageText.
 			self applyReportingNewClass: (ExtractToMethodObject
 				from: aMethod
 				toMethodObjectClassNamed: aNewClassName asSymbol
 				subclassing: (self classNamed: aSuperclassName)
 				onCategory: (self categoryFor: aCategory of: aMethod methodClass)
-				evaluatedWith: anEvaluationSelector asSymbol) ]
-
-! !
+				withExtractedVariablesToInstanceVariables: definition instanceVariableNames
+				withInstanceCreationMessageFrom: definition keywordsDefinitions
+				evaluatedWith: anEvaluationSelector asSymbol) ]! !
 
 !MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 moveInstanceVariableTool
@@ -199,3 +222,114 @@ extraParameterNamed: aParameterName keyword: aKeyword
 receiverPropertyName
 
 	^'receiver'! !
+
+!MCPMethodObjectDefinition methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 2:41:56 pm (UTC)'!
+initializeOf: aMethod holdingIn: anInstanceVariableNamesText createdWith: anInstanceCreationMessageText
+
+	method := aMethod.
+	instanceVariableNamesText := anInstanceVariableNamesText.
+	instanceCreationMessageText := anInstanceCreationMessageText! !
+
+!MCPMethodObjectDefinition methodsFor: 'variables' stamp: 'HAW 9/Sep/2026, 2:42:08 pm (UTC)'!
+defaultInstanceVariableNameOf: aVariableName
+
+	^aVariableName = self class receiverVariableName
+		ifTrue: [ self class receiverInstanceVariableName ]
+		ifFalse: [ aVariableName ]! !
+
+!MCPMethodObjectDefinition methodsFor: 'variables' stamp: 'HAW 9/Sep/2026, 2:42:04 pm (UTC)'!
+variablesInOrder
+
+	| variables knownFirst |
+
+	variables := self variablesToParametrize.
+	knownFirst := ((Array with: self class receiverVariableName) , method methodNode argumentNames asArray , method methodClass allInstVarNames)
+		select: [ :eachName | variables includes: eachName ].
+
+	^knownFirst , (variables reject: [ :eachName | knownFirst includes: eachName ]) asSortedCollection asArray! !
+
+!MCPMethodObjectDefinition methodsFor: 'variables' stamp: 'HAW 9/Sep/2026, 2:42:01 pm (UTC)'!
+variablesToParametrize
+
+	^VariablesToExtractFinder valueIn: method notOptimizedMethodNode! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition' stamp: 'HAW 9/Sep/2026, 2:42:13 pm (UTC)'!
+instanceVariableNames
+
+	| names |
+
+	names := Dictionary new.
+	self variablesInOrder do: [ :eachVariable |
+		names at: eachVariable put: (self defaultInstanceVariableNameOf: eachVariable) ].
+	(self pairsIn: instanceVariableNamesText) do: [ :eachPair | names at: eachPair first put: eachPair second ].
+
+	^names! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition' stamp: 'HAW 9/Sep/2026, 2:42:17 pm (UTC)'!
+keywordsDefinitions
+
+	| instanceVariableNames |
+
+	instanceVariableNames := self instanceVariableNames.
+
+	^instanceCreationMessageText
+		ifEmpty: [ self variablesInOrder collect: [ :eachVariable |
+			self keywordDefinitionFor: eachVariable heldIn: (instanceVariableNames at: eachVariable) ] ]
+		ifNotEmpty: [ (self pairsIn: instanceCreationMessageText) collect: [ :eachPair |
+			self keywordDefinitionFrom: eachPair holdingIn: instanceVariableNames ] ]! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:26 pm (UTC)'!
+keyword: aKeyword variable: aVariableName parameter: aParameterName
+
+	^{
+		#keyword -> aKeyword.
+		#variableName -> aVariableName.
+		#parameterName -> aParameterName } asDictionary! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:20 pm (UTC)'!
+keywordDefinitionFor: aVariableName heldIn: anInstanceVariableName
+
+	^self
+		keyword: anInstanceVariableName
+		variable: aVariableName
+		parameter: (self parameterNameFor: anInstanceVariableName)! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:23 pm (UTC)'!
+keywordDefinitionFrom: aPair holdingIn: someInstanceVariableNames
+
+	| variableName |
+
+	variableName := aPair second.
+
+	^self
+		keyword: aPair first
+		variable: variableName
+		parameter: (aPair size > 2
+			ifTrue: [ aPair third ]
+			ifFalse: [ self parameterNameFor: (someInstanceVariableNames at: variableName ifAbsent: [ variableName ]) ])! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:32 pm (UTC)'!
+pairsIn: aText
+
+	^(MCPToolGroup namesFrom: aText) collect: [ :eachPair |
+		(eachPair subStrings: '=') collect: [ :eachPart | eachPart withBlanksTrimmed ] ]! !
+
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:29 pm (UTC)'!
+parameterNameFor: anInstanceVariableName
+
+	^anInstanceVariableName article , anInstanceVariableName capitalized! !
+
+!MCPMethodObjectDefinition class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 2:41:45 pm (UTC)'!
+of: aMethod holdingIn: anInstanceVariableNamesText createdWith: anInstanceCreationMessageText
+
+	^self new initializeOf: aMethod holdingIn: anInstanceVariableNamesText createdWith: anInstanceCreationMessageText! !
+
+!MCPMethodObjectDefinition class methodsFor: 'defaults' stamp: 'HAW 9/Sep/2026, 2:41:49 pm (UTC)'!
+receiverInstanceVariableName
+
+	^'receiver'! !
+
+!MCPMethodObjectDefinition class methodsFor: 'defaults' stamp: 'HAW 9/Sep/2026, 2:41:52 pm (UTC)'!
+receiverVariableName
+
+	^'self'! !
