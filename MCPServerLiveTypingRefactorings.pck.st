@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:31 pm'!
-'Description Drop Tool from the name of every property of a tool'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 17!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:46 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 18!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -97,17 +97,16 @@ definition
 
 	^definition! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 3:37:13 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:06:56 am (UTC)'!
 description
 
 	^self decoratee description ,
-		' It also takes actual as the scope, which is the one LiveTyping saw: only the sends that really reached an object of the class that implements the selector are changed, and a send of the same name to anything else is left alone.'! !
+		' It also takes actual and actualAndPossible as the scope, and actual is the default: only the sends LiveTyping saw really reaching an object of the class of the method, or of one of its subclasses, are changed, and a send of the same name to anything else is left alone. actualAndPossible changes as well the sends LiveTyping could only guess at.'! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:06:47 am (UTC)'!
 isAskedForTheActualScopeIn: anArguments
 
-	^(anArguments at: MCPRefactoringToolGroup scopePropertyName ifAbsent: [ '' ])
-		= MCPActualScopeRefactoringDecorator actualScopeName! !
+	^self class actualScopeNames includes: (self scopeNamedIn: anArguments)! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:23:06 pm (UTC)'!
 namesDeclaredBy: someProperties
@@ -119,10 +118,10 @@ namesDeclaredBy: someProperties
 	^(someProperties inject: OrderedDictionary new into: [ :aProperties :eachProperty |
 		eachProperty addTo: aProperties ]) keys! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:23:52 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:06:54 am (UTC)'!
 sayWhatTheActualScopeIsIn: aDefinition
 
-	"A tool that already works over a scope gets one more value for it; one that works over none
+	"A tool that already works over a scope gets two more values for it; one that works over none
 	gets the scope itself. Either way the scope is where a client reads what it may send, so
 	that is where it has to be said."
 
@@ -134,10 +133,10 @@ sayWhatTheActualScopeIsIn: aDefinition
 		ifPresent: [ :aScopeDefinition |
 			aScopeDefinition
 				at: 'description'
-				put: (aScopeDefinition at: 'description') , '. ' , self class actualScopeDescription ]
+				put: MCPRefactoringToolGroup scopeValuesDescription , '. ' , self class actualScopeDescription ]
 		ifAbsent: [ self class scopeProperty addTo: properties ]! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 8:26:30 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:06:49 am (UTC)'!
 valueWithArguments: anArguments
 
 	"A client that names the actual scope is asking for the refactoring only LiveTyping makes
@@ -145,9 +144,7 @@ valueWithArguments: anArguments
 	over, and it is the one that answers."
 
 	^(self isAskedForTheActualScopeIn: anArguments)
-		ifTrue: [
-			self assertAClassIsNamedIn: anArguments.
-			self applyInActualScopeWith: anArguments ]
+		ifTrue: [ self applyInActualScopeWith: anArguments ]
 		ifFalse: [ self decoratee valueWithArguments: anArguments ]! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:31:52 pm (UTC)'!
@@ -196,16 +193,15 @@ applyInActualScopeWith: anArguments
 
 	^self subclassResponsibility! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'applying' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
-assertAClassIsNamedIn: anArguments
+!MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:42 am (UTC)'!
+defaultScopeName
 
-	"The scope LiveTyping saw is the sends that really reached an object of one class, so there
-	is no such scope without one. The tool I decorate works over scopes that need no class, so
-	its className is one a client may leave out, and leaving it out here is answered by saying
-	which scope asked for it rather than by saying that no class was found."
+	^self class actualScopeName! !
 
-	(anArguments includesKey: MCPClassProperty defaultName)
-		ifFalse: [ self error: self class classNameNeededForTheActualScopeErrorDescription ]! !
+!MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:44 am (UTC)'!
+keepsPossibleSendsIn: anArguments
+
+	^(self scopeNamedIn: anArguments) = self class actualAndPossibleScopeName! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
 messageSendsRefactoringOn: aMethodToInline using: aRefactoringClass keepingPossibleSends: aBoolean builtWith: aBlock
@@ -268,6 +264,11 @@ refactoringOn: aSelector in: aClass using: aRefactoringClass keepingPossibleSend
 
 ! !
 
+!MCPActualScopeRefactoringDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:40 am (UTC)'!
+scopeNamedIn: anArguments
+
+	^anArguments at: MCPRefactoringToolGroup scopePropertyName ifAbsent: [ self defaultScopeName ]! !
+
 !MCPActualScopeRefactoringDecorator methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:58 pm (UTC)'!
 classNamed: aClassName
 
@@ -277,15 +278,15 @@ classNamed: aClassName
 			(smalltalk classNamed: aName)
 				ifNil: [ self error: (MCPRefactoringToolGroup classNotFoundErrorDescriptionFor: aName) ] ]! !
 
-!MCPActualScopeRefactoringDecorator class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 3:37:29 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:06:33 am (UTC)'!
 actualScopeDescription
 
-	^'actual is the scope LiveTyping saw, which needs className too: only the sends that really reached an object of that class are changed'! !
+	^'actual is the scope LiveTyping saw, which only it can tell: the sends of the selector that really reached an object of the class of the method, or of one of its subclasses. actualAndPossible takes in as well the sends it could only guess at, whose receiver it never saw hold anything or saw incompletely. Defaults to actual'! !
 
-!MCPActualScopeRefactoringDecorator class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 4:24:03 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:06:35 am (UTC)'!
 actualScopeOnlyDescription
 
-	^'Send actual to work over what LiveTyping saw instead of over what this tool is told. Send nothing to leave it working over what it is told'! !
+	^'Send actual to work over what LiveTyping saw: the sends of the selector that really reached an object of the class of the method, or of one of its subclasses. Send actualAndPossible to take in as well the sends it could only guess at. Send nothing to leave the tool working over what it is told'! !
 
 !MCPActualScopeRefactoringDecorator class methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 scopeProperty
@@ -298,6 +299,11 @@ scopeProperty
 		describedBy: self actualScopeOnlyDescription
 		defaultingTo: ''! !
 
+!MCPActualScopeRefactoringDecorator class methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:16 am (UTC)'!
+actualAndPossibleScopeName
+
+	^'actualAndPossible'! !
+
 !MCPActualScopeRefactoringDecorator class methodsFor: 'scope' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 actualScopeName
 
@@ -306,12 +312,12 @@ actualScopeName
 
 	^'actual'! !
 
-!MCPActualScopeRefactoringDecorator class methodsFor: 'error descriptions' stamp: 'HAW 3/Sep/2026, 8:26:16 pm (UTC)'!
-classNameNeededForTheActualScopeErrorDescription
+!MCPActualScopeRefactoringDecorator class methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:31 am (UTC)'!
+actualScopeNames
 
-	^'The ', self actualScopeName, ' scope needs className: it is the sends that really reached an object of that class'! !
+	^{ self actualScopeName. self actualAndPossibleScopeName }! !
 
-!MCPAddParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPAddParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:36 am (UTC)'!
 properties
 
 	^{
@@ -321,29 +327,28 @@ properties
 		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
 		MCPPlainProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
 		MCPPlainProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
-		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1'.
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one' defaultingTo: '1' }! !
 
-!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:38 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex |
 		(MCPRefactoringApplier applying: (self
 			refactoringAddingTo: aMethod
 			named: aParameterName
 			initializedWith: aParameterValue
 			using: aKeyword
 			at: aParameterIndex
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringAddingTo: aMethod named: aParameterName initializedWith: aParameterValue using: aKeyword at: aParameterIndex keepingPossibleSends: aKeepingAnswer
+!MCPAddParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:40 am (UTC)'!
+refactoringAddingTo: aMethod named: aParameterName initializedWith: aParameterValue using: aKeyword at: aParameterIndex keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		refactoringOn: aMethod selector
 		in: aMethod methodClass
 		using: AddParameterWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :senders |
 			aMethod selector isUnary
 				ifTrue: [ AddParameterWithActualScope
@@ -352,7 +357,7 @@ refactoringAddingTo: aMethod named: aParameterName initializedWith: aParameterVa
 					toUnarySelector: aMethod selector
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer isTrue ]
+					withPossibleMessageSends: isKeepingPossibleSends ]
 				ifFalse: [ AddParameterWithActualScope
 					named: aParameterName
 					at: aParameterIndex asNumber
@@ -361,54 +366,53 @@ refactoringAddingTo: aMethod named: aParameterName initializedWith: aParameterVa
 					toKeywordSelector: aMethod selector
 					implementors: implementors
 					senders: senders
-					withPossibleMessageSends: aKeepingAnswer isTrue ] ]! !
+					withPossibleMessageSends: isKeepingPossibleSends ] ]! !
 
 !MCPAddParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:31 pm (UTC)'!
 decoratedToolName
 
 	^MCPRefactoringTools addParameterRefactoringToolName! !
 
-!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:23 am (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to reorder'.
-		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ] }! !
 
-!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:26 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector |
 		(MCPRefactoringApplier applying: (self
 			refactoringReordering: aMethod
 			to: aNewSelector
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringReordering: aMethod to: aNewSelector keepingPossibleSends: aKeepingAnswer
+!MCPChangeKeywordsOrderInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:28 am (UTC)'!
+refactoringReordering: aMethod to: aNewSelector keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		refactoringOn: aMethod selector
 		in: aMethod methodClass
 		using: ChangeKeywordsSelectorOrderWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :senders |
 			ChangeKeywordsSelectorOrderWithActualScope
 				from: aMethod selector
 				to: aNewSelector
 				implementors: implementors
 				senders: senders
-				withPossibleMessageSends: aKeepingAnswer isTrue ]! !
+				withPossibleMessageSends: isKeepingPossibleSends ]! !
 
 !MCPChangeKeywordsOrderInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:14 pm (UTC)'!
 decoratedToolName
 
 	^MCPRefactoringTools changeKeywordsOrderRefactoringToolName! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:43 am (UTC)'!
 properties
 
 	^{
@@ -416,29 +420,28 @@ properties
 		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to introduce'.
 		MCPPlainProperty named: 'text' describedBy: 'Text of the piece to extract, looked for in the source of the method' defaultingTo: ''.
 		MCPPlainProperty named: 'start' describedBy: 'First character of the piece, counting from one. Sent instead of the text' defaultingTo: ''.
-		MCPPlainProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: ''.
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'stop' describedBy: 'Last character of the piece' defaultingTo: '' }! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:44 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aText :aStart :aStop :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aText :aStart :aStop |
 		(MCPRefactoringApplier applying: (self
 			refactoringExtractingIn: aMethod
 			as: aParameterName
 			matching: aText
 			from: aStart
 			to: aStop
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringExtractingIn: aMethod as: aParameterName matching: aText from: aStart to: aStop keepingPossibleSends: aKeepingAnswer
+!MCPExtractAsParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:46 am (UTC)'!
+refactoringExtractingIn: aMethod as: aParameterName matching: aText from: aStart to: aStop keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		refactoringOn: aMethod selector
 		in: aMethod methodClass
 		using: ExtractAsParameterWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :senders |
 			ExtractAsParameterWithActualScope
 				named: aParameterName
@@ -446,48 +449,52 @@ refactoringExtractingIn: aMethod as: aParameterName matching: aText from: aStart
 				at: aMethod
 				implementors: implementors
 				senders: senders
-				withPossibleMessageSends: aKeepingAnswer isTrue ]! !
+				withPossibleMessageSends: isKeepingPossibleSends ]! !
 
 !MCPExtractAsParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:45:04 pm (UTC)'!
 decoratedToolName
 
 	^MCPRefactoringTools extractAsParameterRefactoringToolName! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:22:03 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:07:59 am (UTC)'!
 description
 
 	^self decoratee description ,
-		' It also takes actual as the scope, which inlines every send LiveTyping saw really reaching an object of the class that implements the selector, instead of the one send named here.'! !
+		' It also takes actual and actualAndPossible as the scope, which inline every send LiveTyping saw really reaching an object of the class that implements the method, instead of the one send named here; actualAndPossible inlines as well the sends it could only guess at. Without a scope the one send named is inlined.'! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:53 am (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty default.
-		MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false'.
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is inlined too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false' }! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:55 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aRemoveAnswer :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aRemoveAnswer |
 		(MCPRefactoringApplier applying: (self
 			refactoringInlining: aMethod
 			removingIt: aRemoveAnswer
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringInlining: aMethod removingIt: aRemoveAnswer keepingPossibleSends: aKeepingAnswer
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:57 am (UTC)'!
+refactoringInlining: aMethod removingIt: aRemoveAnswer keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		messageSendsRefactoringOn: aMethod
 		using: InlineMethodWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :messageSends |
 			InlineMethodWithActualScope
 				from: aMethod
 				intoSendersAndUsages: messageSends
 				removeMethod: aRemoveAnswer isTrue ]! !
+
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:58 am (UTC)'!
+defaultScopeName
+
+	^''! !
 
 !MCPInlineMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:21:58 pm (UTC)'!
 decoratedToolName
@@ -499,7 +506,7 @@ actualScopeOnlyDescription
 
 	^'Send actual to inline every send LiveTyping saw really reaching an object of the class that implements the selector, which needs neither senderClassName nor senderSelector nor the text of the send. Send nothing to inline the one send named by those'! !
 
-!MCPRemoveParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRemoveParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:30 am (UTC)'!
 properties
 
 	^{
@@ -507,27 +514,26 @@ properties
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to remove the parameter from'.
 		MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
-		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1'.
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one' defaultingTo: '1' }! !
 
-!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:32 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterIndex :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aParameterName :aParameterIndex |
 		(MCPRefactoringApplier applying: (self
 			refactoringRemoving: aParameterName
 			at: aParameterIndex
 			from: aMethod
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringRemoving: aParameterName at: aParameterIndex from: aMethod keepingPossibleSends: aKeepingAnswer
+!MCPRemoveParameterInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:34 am (UTC)'!
+refactoringRemoving: aParameterName at: aParameterIndex from: aMethod keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		refactoringOn: aMethod selector
 		in: aMethod methodClass
 		using: RemoveParameterWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :senders |
 			RemoveParameterWithActualScope
 				atIndex: aParameterIndex asNumber
@@ -535,47 +541,46 @@ refactoringRemoving: aParameterName at: aParameterIndex from: aMethod keepingPos
 				from: aMethod selector
 				implementors: implementors
 				senders: senders
-				withPossibleMessageSends: aKeepingAnswer isTrue ]! !
+				withPossibleMessageSends: isKeepingPossibleSends ]! !
 
 !MCPRemoveParameterInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:23 pm (UTC)'!
 decoratedToolName
 
 	^MCPRefactoringTools removeParameterRefactoringToolName! !
 
-!MCPRenameSelectorInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRenameSelectorInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:17 am (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements the selector'
 			selectorDescribedBy: 'Selector to rename'.
-		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ].
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is renamed too, true or false' defaultingTo: 'false' }! !
+		MCPPluggableProperty named: 'newSelector' describedBy: 'Selector to rename it to' valuedWith: [ :aSelector | aSelector asSymbol ] }! !
 
-!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:19 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aNewSelector |
 		(MCPRefactoringApplier applying: (self
 			refactoringRenaming: aMethod
 			to: aNewSelector
-			keepingPossibleSends: aKeepingAnswer)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringRenaming: aMethod to: aNewSelector keepingPossibleSends: aKeepingAnswer
+!MCPRenameSelectorInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:21 am (UTC)'!
+refactoringRenaming: aMethod to: aNewSelector keepingPossibleSends: isKeepingPossibleSends
 
 	^self
 		refactoringOn: aMethod selector
 		in: aMethod methodClass
 		using: RenameSelectorWithActualScope
-		keepingPossibleSends: aKeepingAnswer isTrue
+		keepingPossibleSends: isKeepingPossibleSends
 		builtWith: [ :implementors :senders |
 			RenameSelectorWithActualScope
 				from: aMethod selector
 				to: aNewSelector
 				implementors: implementors
 				senders: senders
-				withPossibleMessageSends: aKeepingAnswer isTrue ]! !
+				withPossibleMessageSends: isKeepingPossibleSends ]! !
 
 !MCPRenameSelectorInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:38:00 pm (UTC)'!
 decoratedToolName

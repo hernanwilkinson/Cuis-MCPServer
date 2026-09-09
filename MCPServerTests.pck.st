@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 8 September 2026 at 7:29:48 pm'!
-'Description Ask the image a tool was given instead of the running one'!
-!provides: 'MCPServerTests' 1 61!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:58 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerTests' 1 62!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -2087,7 +2087,7 @@ testSafelyRemoveClassRefactoringRemovesAClassNothingUses
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:08:50 am (UTC)'!
 testAddParameterRefactoringGivesTheSendersTheValueToPass
 
 	self defineTestSubjectClass.
@@ -2100,16 +2100,15 @@ testAddParameterRefactoringGivesTheSendersTheValueToPass
 
 	self applyRefactoring: MCPRefactoringTools addParameterRefactoringToolName
 		with: (self
-			arguments: 'selector' being: 'mcpProbe'
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
 			and: 'parameterName' being: 'anArgument'
 			and: 'parameterValue' being: '7').
 
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe:' asSymbol).
-	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'self mcpProbe: 7' caseSensitive: true)
+	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'self mcpProbe: 7' caseSensitive: true)! !
 
-! !
-
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:06 am (UTC)'!
 testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 
 	"Reordering keeps the keywords and only moves them, so the new selector is made of the
@@ -2125,14 +2124,14 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 
 	self applyRefactoring: MCPRefactoringTools changeKeywordsOrderRefactoringToolName
 		with: (self
-			arguments: 'selector' being: 'mcpProbeFirst:second:'
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbeFirst:second:'
 			and: 'newSelector' being: 'second:mcpProbeFirst:').
 
 	self assert: (self createdClassInTest includesSelector: 'second:mcpProbeFirst:' asSymbol).
-	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)
-! !
+	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:08 am (UTC)'!
 testRemoveParameterRefactoringRemovesItFromTheSelectorAndTheSenders
 
 	self defineTestSubjectClass.
@@ -2144,13 +2143,15 @@ testRemoveParameterRefactoringRemovesItFromTheSelectorAndTheSenders
 	^self mcpProbeWith: 7'.
 
 	self applyRefactoring: MCPRefactoringTools removeParameterRefactoringToolName
-		with: (self arguments: 'selector' being: 'mcpProbeWith:' and: 'parameterName' being: 'anArgument').
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbeWith:'
+			and: 'parameterName' being: 'anArgument').
 
 	self assert: (self createdClassInTest includesSelector: 'mcpProbeWith' asSymbol).
-	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol) includesSubstring: 'self mcpProbeWith' caseSensitive: true)
-! !
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol) includesSubstring: 'self mcpProbeWith' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:10 am (UTC)'!
 testRenameSelectorRefactoringAnswersTheMethodsItChanged
 
 	"The new implementor and the sender are the methods that are still there, and the one the
@@ -2166,71 +2167,59 @@ testRenameSelectorRefactoringAnswersTheMethodsItChanged
 
 	self
 		assert: (self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
-			with: (self arguments: 'selector' being: 'mcpProbe' and: 'newSelector' being: 'mcpProbeRenamed'))
+			with: (self
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
+				and: 'newSelector' being: 'mcpProbeRenamed'))
 		equals: 'Refactoring applied. 2 methods changed:
 MCPTestSubject>>#mcpProbeCaller
 MCPTestSubject>>#mcpProbeRenamed
 1 method removed:
-MCPTestSubject>>#mcpProbe'
+MCPTestSubject>>#mcpProbe'! !
 
-! !
-
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
-testRenameSelectorRefactoringInAScopeNarrowerThanTheSystemNeedsAClassName
-
-	self defineTestSubjectClass.
-	self defineTestSubjectMethod.
-
-	self
-		should: [ self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
-			with: (self
-				arguments: 'selector' being: 'mcpProbe'
-				and: 'newSelector' being: 'mcpProbeRenamed'
-				and: 'scope' being: 'hierarchy') ]
-		raise: Error
-		withMessageText: (self serverErrorTextFor: MCPRefactoringToolGroup classNameNeededErrorDescription)
-! !
-
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:45 am (UTC)'!
 testRenameSelectorRefactoringInAnUnknownScopeFails
 
 	self defineTestSubjectClass.
-	self defineTestSubjectMethod.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
 
 	self
 		should: [ self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
 			with: (self
-				arguments: 'selector' being: 'mcpProbe'
+				arguments: 'className' being: 'MCPTestSubject'
+				and: 'selector' being: 'mcpProbe'
 				and: 'newSelector' being: 'mcpProbeRenamed'
-				and: 'scope' being: 'package'
-				and: 'className' being: 'MCPTestSubject') ]
+				and: 'scope' being: 'package') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: (MCPRefactoringToolGroup unknownScopeErrorDescriptionFor: 'package'))
+		withMessageText: (self serverErrorTextFor: (MCPRefactoringToolGroup unknownScopeErrorDescriptionFor: 'package'))! !
 
-! !
-
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:48 am (UTC)'!
 testRenameSelectorRefactoringInTheClassScopeLeavesTheOtherClassesAlone
 
 	self defineTestSubjectClass.
-	self defineTestSubjectMethod.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
 	self defineTestSubjectSiblingImplementingProbe.
 
 	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
 		with: (self
-			arguments: 'selector' being: 'mcpProbe'
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
 			and: 'newSelector' being: 'mcpProbeRenamed'
-			and: 'scope' being: 'class'
-			and: 'className' being: 'MCPTestSubject').
+			and: 'scope' being: 'class').
 
-	self assert: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)
-! !
+	self assert: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:52 am (UTC)'!
 testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
 
 	self defineTestSubjectClass.
-	self defineTestSubjectMethod.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
 	self defineTestSubjectSubclass.
 	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
 
@@ -2238,15 +2227,14 @@ testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
 
 	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
 		with: (self
-			arguments: 'selector' being: 'mcpProbe'
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
 			and: 'newSelector' being: 'mcpProbeRenamed'
-			and: 'scope' being: 'hierarchy'
-			and: 'className' being: 'MCPTestSubject').
+			and: 'scope' being: 'hierarchy').
 
-	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbeRenamed' asSymbol)
-! !
+	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbeRenamed' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:12 am (UTC)'!
 testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 
 	"The selectors are named here as strings, never as symbols, because renaming a selector
@@ -2261,12 +2249,14 @@ testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 	^self mcpProbe'.
 
 	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
-		with: (self arguments: 'selector' being: 'mcpProbe' and: 'newSelector' being: 'mcpProbeRenamed').
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpProbeRenamed').
 
 	self assert: (self createdClassInTest includesSelector: #mcpProbeRenamed).
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
-	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'mcpProbeRenamed' caseSensitive: true)
-! !
+	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'mcpProbeRenamed' caseSensitive: true)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testAddAsSubclassResponsibilityRefactoringAnswersTheMethodItWrote
@@ -2440,6 +2430,49 @@ testPushUpMethodRefactoringMovesItToTheSuperclass
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
 	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 9/Sep/2026, 2:09:16 am (UTC)'!
+testPushUpMethodRefactoringPushesUpTheDependantMethodsWhenAsked
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpHelper
+
+	^42'.
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^self mcpHelper'.
+
+	self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubjectChild'
+			and: 'selector' being: 'mcpProbe'
+			and: 'pushingUpDependantMethods' being: 'true').
+
+	self assert: (self createdClassInTest includesSelector: 'mcpHelper' asSymbol).
+	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpHelper' asSymbol)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 9/Sep/2026, 2:09:19 am (UTC)'!
+testPushUpMethodRefactoringRemovesTheEquivalentMethodOfASiblingWhenAsked
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+	self defineClassWith: (self definitionOf: 'MCPTestSibling' subclassOf: 'MCPTestSubject').
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^42'.
+	self defineMethodIn: 'MCPTestSibling' source: 'mcpProbe
+
+	^42'.
+
+	self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubjectChild'
+			and: 'selector' being: 'mcpProbe'
+			and: 'removingEquivalentMethodsFromSiblings' being: 'true').
+
+	self assert: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
+	self deny: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testInlineTemporaryVariableRefactoringAnswersTheNewSourceOfTheMethod
@@ -2895,6 +2928,29 @@ testInlineMethodRefactoringAnswersTheMethodsItChanged
 		equals: 'Refactoring applied. 1 method changed:
 MCPTestSubject>>#mcpCallerOfIt'
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 2:09:21 am (UTC)'!
+testInlineMethodRefactoringRemovesTheMethodWhenAsked
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^10'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpCallerOfIt
+
+	^self mcpProbe'.
+
+	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'senderClassName' being: 'MCPTestSubject'
+			and: 'senderSelector' being: 'mcpCallerOfIt')
+				at: 'text' put: 'mcpProbe';
+				at: 'removeMethod' put: 'true';
+				yourself).
+
+	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes

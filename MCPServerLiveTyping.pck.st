@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:12:17 pm'!
-'Description Drop Tool from the name of every property of a tool'!
-!provides: 'MCPServerLiveTyping' 1 23!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:40 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerLiveTyping' 1 24!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -56,6 +56,16 @@ MCPToolGroup subclass: #MCPLiveTypingTools
 MCPLiveTypingTools class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPMessageSend category: #MCPServerLiveTyping!
+Object subclass: #MCPMessageSend
+	instanceVariableNames: 'node method smalltalk incompleteTypeInfoReasons'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTyping'!
+!classDefinition: 'MCPMessageSend class' category: #MCPServerLiveTyping!
+MCPMessageSend class
+	instanceVariableNames: ''!
+
 
 !MCPActualImplementorsDecorator commentStamp: '<historical>' prior: 0!
 I add to the methods that implement a selector the ones a send to an object of a named class could really reach.!
@@ -80,12 +90,11 @@ addedProperties
 		defaultingTo: '' }
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:08:18 am (UTC)'!
 description
 
 	^self decoratee description ,
-		' Naming a class adds, in actual, the ones a send to an object of that class could really reach, which are the ones implemented by it and by every subclass of the one highest up that implements it.'
-! !
+		' Naming a class adds, in actual, the implementors in the hierarchy of that class, which are the ones a send to an object of it could really reach: the ones implemented by it and by every subclass of the one highest up among its superclasses that implements it.'! !
 
 !MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 valueWithArguments: anArguments
@@ -122,12 +131,11 @@ addedProperties
 		defaultingTo: '' }
 ! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:31 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:08:16 am (UTC)'!
 description
 
 	^self decoratee description ,
-		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object that implements it, which are the ones a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'
-! !
+		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object of the class named, or of one of its subclasses; without a class, to an object of any class that implements it. They are the senders a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:15 pm (UTC)'!
 valueWithArguments: anArguments
@@ -252,7 +260,7 @@ decoratedToolName
 
 	^MCPModelStructureTools methodSourceToolName! !
 
-!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 8/Sep/2026, 11:14:48 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -261,7 +269,19 @@ addToolsTo: anMCPServer
 		addTool: self typesOfMethodVariableTool;
 		addTool: self returnTypesOfMethodTool;
 		addTool: self actualSendersOfTool;
-		addTool: self actualImplementorsOfTool! !
+		addTool: self actualImplementorsOfTool;
+		addTool: self messageSendsOfMethodTool! !
+
+!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 8/Sep/2026, 11:14:46 pm (UTC)'!
+messageSendsOf: aMethod named: aSentSelector
+
+	| sends |
+
+	sends := MCPMessageSend allIn: aMethod using: smalltalk.
+
+	^aSentSelector
+		ifEmpty: [ sends ]
+		ifNotEmpty: [ sends select: [ :eachSend | eachSend selector = aSentSelector asSymbol ] ]! !
 
 !MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
 renderMethodReferences: someMethodReferences
@@ -269,7 +289,7 @@ renderMethodReferences: someMethodReferences
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:12 am (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -277,7 +297,7 @@ actualImplementorsOfTool
 
 	^MCPPluggableTool
 		named: self class actualImplementorsOfToolName
-		describedBy: 'List the methods that really answer a selector sent to an object of a class, which are the ones implemented by that class and by every subclass of the one highest up that implements it. The class does not have to implement the selector itself.'
+		describedBy: 'List the implementors of a selector in the hierarchy of a class, which are the methods a send of it to an object of that class could really reach: the ones implemented by the class and by every subclass of the one highest up among its superclasses that implements it. The class does not have to implement the selector itself. What a send written in a method reaches is asked with the message sends of the method instead, because its receiver may have held classes of different hierarchies.'
 		properties: {
 			MCPClassProperty named: 'className' describedBy: 'Name of the class the selector is sent to'.
 			MCPPluggableProperty named: 'selector' describedBy: 'Selector that is sent' valuedWith: [ :aSelector | aSelector asSymbol ].
@@ -287,26 +307,39 @@ actualImplementorsOfTool
 			implementors := smalltalk actualImplementorsOf: aSelector in: aClass.
 			self renderMethodReferences: (aPossibleAnswer isTrue
 				ifTrue: [ implementors ]
-				ifFalse: [ implementors reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]) ]
+				ifFalse: [ implementors reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]) ]! !
 
-! !
-
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:09 am (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
 		named: self class actualSendersOfToolName
-		describedBy: 'List the methods that really send a method, which are the ones LiveTyping saw sending it to an object of the class that implements it. A method that merely writes the same selector, sent to something else, is not one of them, which is what tells this apart from listing the senders of a selector.'
+		describedBy: 'List the methods that really send a method: the ones LiveTyping saw sending its selector to an object of the class that implements it, or of one of its subclasses, which are the senders a refactoring of the method has to change. A method that writes the same selector but was seen sending it to anything else is not one of them, which is what tells this apart from listing the senders of a selector.'
 		properties: {
 			MCPMethodProperty default.
-			MCPPlainProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at are listed too, true or false' defaultingTo: 'false' }
+			MCPPlainProperty named: 'includingPossible' describedBy: 'Whether the sends LiveTyping could only guess at, whose receiver it never saw hold anything or saw incompletely, are listed too, true or false' defaultingTo: 'false' }
 		executingWith: [ :aMethod :aPossibleAnswer |
 			| sureAndPossibleSenders |
 			sureAndPossibleSenders := smalltalk allActualSendersOn: aMethod.
 			self renderMethodReferences: (aPossibleAnswer isTrue
 				ifTrue: [ sureAndPossibleSenders first , sureAndPossibleSenders second ]
-				ifFalse: [ sureAndPossibleSenders first ]) ]
-! !
+				ifFalse: [ sureAndPossibleSenders first ]) ]! !
+
+!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:14 am (UTC)'!
+messageSendsOfMethodTool
+
+	^MCPPluggableTool
+		named: self class messageSendsOfMethodToolName
+		describedBy: 'List every message send written in a method, in the order they are written, each with the classes LiveTyping saw its receiver hold, the methods the send really reaches, and the classes the send answered. The methods reached are the implementors of the selector in the hierarchy of each class the receiver was seen holding, classes that need not share a hierarchy, because a send in source code reaches whatever its receiver turned out to be. A send to something LiveTyping never saw hold anything reaches no method here, and a send the compiler inlines, such as ifTrue:, is not listed.',
+			self class howTypesAreListedDescription
+		properties: {
+			MCPMethodProperty default.
+			MCPPlainProperty
+				named: 'sentSelector'
+				describedBy: 'Selector of the sends to list. Without it every send of the method is listed'
+				defaultingTo: '' }
+		executingWith: [ :aMethod :aSentSelector |
+			Json render: ((self messageSendsOf: aMethod named: aSentSelector) collect: [ :eachSend | eachSend description ]) ]! !
 
 !MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:19 pm (UTC)'!
 renderTypeNames: aTypeInfo
@@ -379,6 +412,11 @@ actualSendersOfToolName
 
 	^'smalltalk_actual_senders_of'! !
 
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 8/Sep/2026, 11:14:42 pm (UTC)'!
+messageSendsOfMethodToolName
+
+	^'smalltalk_message_sends_of_method'! !
+
 !MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:18 pm (UTC)'!
 returnTypesOfMethodToolName
 
@@ -408,6 +446,105 @@ howTypesAreListedDescription
 	^' A list of types is led by the class they all inherit from, or by ', VariableTypeInfo anyTypeMark,
 		' when the only one they share is Object, and ends with ', VariableTypeInfo canBeNilMark,
 		' when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.'! !
+
+!MCPMessageSend methodsFor: 'initialization' stamp: 'HAW 8/Sep/2026, 11:14:22 pm (UTC)'!
+initializeOf: aMessageNode in: aCompiledMethod using: aSmalltalk
+
+	node := aMessageNode.
+	method := aCompiledMethod.
+	smalltalk := aSmalltalk.
+	incompleteTypeInfoReasons := Set new! !
+
+!MCPMessageSend methodsFor: 'accessing' stamp: 'HAW 8/Sep/2026, 11:14:26 pm (UTC)'!
+receiverSource
+
+	^String streamContents: [ :aStream | node receiverOrCascadeReceiver printOn: aStream indent: 0 ]! !
+
+!MCPMessageSend methodsFor: 'accessing' stamp: 'HAW 8/Sep/2026, 11:14:24 pm (UTC)'!
+selector
+
+	^node selector key! !
+
+!MCPMessageSend methodsFor: 'types' stamp: 'HAW 8/Sep/2026, 11:14:32 pm (UTC)'!
+implementorsFor: someReceiverTypes
+
+	^(someReceiverTypes inject: Set new into: [ :someImplementors :eachType |
+		someImplementors
+			addAll: (smalltalk actualImplementorsOf: self selector in: eachType);
+			yourself ])
+		reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ]! !
+
+!MCPMessageSend methodsFor: 'types' stamp: 'HAW 8/Sep/2026, 11:14:28 pm (UTC)'!
+receiverTypes
+
+	^node receiverTypesIn: method addingIncompleteTypeInfoTo: incompleteTypeInfoReasons! !
+
+!MCPMessageSend methodsFor: 'types' stamp: 'HAW 8/Sep/2026, 11:14:30 pm (UTC)'!
+returnTypes
+
+	^node typesIn: method addingIncompleteTypeInfoTo: incompleteTypeInfoReasons! !
+
+!MCPMessageSend methodsFor: 'describing' stamp: 'HAW 8/Sep/2026, 11:14:34 pm (UTC)'!
+description
+
+	| receiverTypes |
+
+	receiverTypes := self receiverTypes.
+
+	^OrderedDictionary new
+		at: 'selector' put: self selector asString;
+		at: 'receiver' put: self receiverSource;
+		at: 'receiverTypes' put: (VariableTypeInfo describedTypesNamesOf: receiverTypes);
+		at: 'implementors' put: (self namesOf: (self implementorsFor: receiverTypes));
+		at: 'returnTypes' put: (VariableTypeInfo describedTypesNamesOf: self returnTypes);
+		at: 'incompleteTypeInfo' put: self incompleteTypeInfoDescriptions;
+		yourself! !
+
+!MCPMessageSend methodsFor: 'describing' stamp: 'HAW 8/Sep/2026, 11:14:39 pm (UTC)'!
+incompleteTypeInfoDescriptions
+
+	^(incompleteTypeInfoReasons collect: [ :eachReason | eachReason reasonDescription ]) asArray sort! !
+
+!MCPMessageSend methodsFor: 'describing' stamp: 'HAW 8/Sep/2026, 11:14:36 pm (UTC)'!
+namesOf: someMethodReferences
+
+	^(someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort! !
+
+!MCPMessageSend class methodsFor: 'instance creation' stamp: 'HAW 8/Sep/2026, 11:14:13 pm (UTC)'!
+allIn: aCompiledMethod using: aSmalltalk
+
+	| methodNode |
+
+	methodNode := aCompiledMethod methodNode.
+
+	^(self sendNodesOf: methodNode inSourceOrder: methodNode)
+		collect: [ :eachNode | self of: eachNode in: aCompiledMethod using: aSmalltalk ]! !
+
+!MCPMessageSend class methodsFor: 'instance creation' stamp: 'HAW 8/Sep/2026, 11:14:11 pm (UTC)'!
+of: aMessageNode in: aCompiledMethod using: aSmalltalk
+
+	^self new initializeOf: aMessageNode in: aCompiledMethod using: aSmalltalk! !
+
+!MCPMessageSend class methodsFor: 'instance creation - private' stamp: 'HAW 8/Sep/2026, 11:14:18 pm (UTC)'!
+isASend: aParseNode
+
+	^aParseNode isMessageNode and: [ aParseNode isOptimized not ]! !
+
+!MCPMessageSend class methodsFor: 'instance creation - private' stamp: 'HAW 8/Sep/2026, 11:14:15 pm (UTC)'!
+sendNodesOf: aMethodNode inSourceOrder: aMethodNodeWithRanges
+
+	| sendNodes |
+
+	sendNodes := OrderedCollection new.
+	aMethodNode nodesDo: [ :eachNode | (self isASend: eachNode) ifTrue: [ sendNodes add: eachNode ] ].
+
+	^sendNodes asArray sort: [ :aSendNode :anotherSendNode |
+		(self startOf: aSendNode in: aMethodNodeWithRanges) <= (self startOf: anotherSendNode in: aMethodNodeWithRanges) ]! !
+
+!MCPMessageSend class methodsFor: 'instance creation - private' stamp: 'HAW 8/Sep/2026, 11:14:20 pm (UTC)'!
+startOf: aSendNode in: aMethodNode
+
+	^(aMethodNode rangeForNode: aSendNode ifAbsent: [ 0 to: 0 ]) first! !
 
 !VariableTypeInfo methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:58:50 pm (UTC)'!
 commonSupertypeName
@@ -455,6 +592,11 @@ canBeNilMark
 	"Answer what closes a list of types when nil was assigned too."
 
 	^'can be nil'! !
+
+!VariableTypeInfo class methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 8/Sep/2026, 11:14:40 pm (UTC)'!
+describedTypesNamesOf: someTypes
+
+	^(self new initializeRawTypes: someTypes asArray) describedTypesNames! !
 
 !VariablesTypes methodsFor: '*MCPServerLiveTyping' stamp: 'HAW 1/Sep/2026, 6:59:05 pm (UTC)'!
 addDescribedTypesNamesByVariableTo: aDictionaryOfTypesNamesByVariable

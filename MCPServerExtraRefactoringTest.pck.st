@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:39 pm'!
-'Description Let every tools test run in the same fixture'!
-!provides: 'MCPServerExtraRefactoringTest' 1 11!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:20 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerExtraRefactoringTest' 1 12!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -223,6 +223,25 @@ testMovingAMethodTakesItToTheOtherClass
 
 	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol)
 ! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:09:23 am (UTC)'!
+testMovingAMethodWithoutAVariableToReachThroughTakesItToTheClassSide
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	self defineClassNamed: 'MCPExtraTestTarget' instanceVariableNames: ''.
+	source compile: 'mcpMoving
+
+	^42' classified: 'probing'.
+
+	(self toolNamed: MCPExtraRefactoringTools moveMethodToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpMoving';
+		at: 'targetClassName' put: 'MCPExtraTestTarget';
+		yourself).
+
+	self assert: (self targetClass class includesSelector: 'mcpMoving' asSymbol)! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged

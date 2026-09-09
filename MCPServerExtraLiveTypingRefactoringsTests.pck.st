@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:32 pm'!
-'Description Let every tools test run in the same fixture'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 10!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:15 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 11!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!

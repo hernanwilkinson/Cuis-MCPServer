@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:13:01 pm'!
-'Description Drop Tool from the name of every property of a tool'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 13!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:51 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 14!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -39,7 +39,7 @@ MCPMoveMethodInActualScopeDecorator class
 	instanceVariableNames: ''!
 
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:49 am (UTC)'!
 properties
 
 	^{
@@ -47,20 +47,19 @@ properties
 		MCPPlainProperty named: 'newClassName' describedBy: 'Name of the class the parameters are gathered into'.
 		MCPPlainProperty named: 'parameterNames' describedBy: 'Names of the parameters to gather, separated by commas'.
 		MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
-		MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: ''.
-		MCPPlainProperty named: 'keepingPossibleSends' describedBy: 'Whether a send LiveTyping could only guess at is changed too, true or false' defaultingTo: 'false' }! !
+		MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }! !
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:51 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory :aKeepingAnswer |
+	^self withValuesFrom: anArguments do: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
 		(MCPRefactoringApplier applying: (self
 			refactoringGatheringIn: aMethod
 			the: (MCPToolGroup namesFrom: someParameterNames) asArray
 			into: aNewClassName
 			subclassing: aSuperclassName
 			onCategory: aCategory
-			keepingPossibleSends: aKeepingAnswer isTrue)) applyReportingChanges ]! !
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
 !MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
 refactoringGatheringIn: aMethod the: parameterNames into: aNewClassName subclassing: aSuperclassName onCategory: aCategory keepingPossibleSends: isKeepingPossibleSends
@@ -129,6 +128,11 @@ refactoringMoving: aVariableName from: aClass accessingThrough: anAccessingVaria
 		to: (self classHeldBy: anAccessingVariableName of: aClass)
 		accessingThrough: anAccessingVariableName! !
 
+!MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:07:00 am (UTC)'!
+defaultScopeName
+
+	^''! !
+
 !MCPMoveInstanceVariableInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:26:08 pm (UTC)'!
 decoratedToolName
 
@@ -176,34 +180,39 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:08:01 am (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
 		MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the variable that holds the class it is moved to'.
-		MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: '' }! !
+		MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: ''.
+		MCPPlainProperty named: 'extraParameterKeyword' describedBy: 'Keyword the moved method takes that parameter with, when it is a keyword selector that needs a new keyword for it. Left out otherwise' defaultingTo: '' }! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:18:04 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:08:03 am (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :anAccessingVariableName :anExtraParameterName |
+	^self withValuesFrom: anArguments do: [ :aMethod :anAccessingVariableName :anExtraParameterName :anExtraParameterKeyword |
 		(MCPRefactoringApplier applying: (self
 			refactoringMoving: aMethod
 			accessingThrough: anAccessingVariableName
-			parameterNeeded: anExtraParameterName)) applyReportingChanges ]! !
+			parameterNamed: anExtraParameterName
+			keyword: anExtraParameterKeyword)) applyReportingChanges ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
-refactoringMoving: aMethod accessingThrough: anAccessingVariableName parameterNeeded: anExtraParameterName
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:08:05 am (UTC)'!
+refactoringMoving: aMethod accessingThrough: anAccessingVariableName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
 
 	^MoveMethod
 		methodNamed: aMethod selector
 		from: aMethod methodClass
 		to: (self classHeldBy: anAccessingVariableName in: aMethod)
 		accessingThrough: anAccessingVariableName
-		parameterNeeded: (anExtraParameterName isEmpty
-			ifTrue: [ NonExtraParameterNameNeeded new ]
-			ifFalse: [ ExtraParameterNameNeeded parameterName: anExtraParameterName ])! !
+		parameterNeeded: (MCPExtraRefactoringTools extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
+
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:07:15 am (UTC)'!
+defaultScopeName
+
+	^''! !
 
 !MCPMoveMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:26:28 pm (UTC)'!
 decoratedToolName

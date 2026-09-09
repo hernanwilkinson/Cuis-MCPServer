@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 8 September 2026 at 7:29:41 pm'!
-'Description Ask the image a tool was given instead of the running one'!
-!provides: 'MCPServer' 1 74!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:30 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServer' 1 75!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3022,50 +3022,41 @@ applySourceChanging: aRefactoring to: aMethod
 
 	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 27/Aug/2026, 1:36:28 pm (UTC)'!
-implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector in: aClassName when: aScopeName
-
-	"Gather the implementors and the senders the scope a client named takes in. The whole
-	system takes every send in, so it is the only one that needs no class to look around."
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:04:42 am (UTC)'!
+implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName
 
 	aScopeName caseOf: {
 		[ 'class' ] -> [ ScopedRefactoring
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
-			forClassAndMetaOf: (self classNamed: aClassName) ].
+			forClassAndMetaOf: aClass ].
 		[ 'hierarchy' ] -> [ ScopedRefactoring
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
-			inHierarchyOf: (self classNamed: aClassName) ].
+			inHierarchyOf: aClass ].
 		[ 'category' ] -> [ ScopedRefactoring
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
-			inCategory: (self classNamed: aClassName) category
+			inCategory: aClass category
 			organizedBy: smalltalk organization ].
 		[ 'hierarchyAndCategories' ] -> [ ScopedRefactoring
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
-			inCategoriesAndHierarchyOf: (self classNamed: aClassName)
+			inCategoriesAndHierarchyOf: aClass
 			organizedBy: smalltalk organization ].
 		[ 'system' ] -> [ ScopedRefactoring
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			inSystem: smalltalk ] }
-		otherwise: [ self error: (self class unknownScopeErrorDescriptionFor: aScopeName) ]
-! !
+		otherwise: [ self error: (self class unknownScopeErrorDescriptionFor: aScopeName) ]! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 27/Aug/2026, 1:36:28 pm (UTC)'!
-refactoringOn: aSelector around: aClassName within: aScopeName builtWith: aBlock
-
-	"Answer the refactoring the block builds over the implementors and the senders the scope
-	takes in. The senders are gathered as method references, and are handed over as the
-	compiled methods they name, because a refactoring asks each of them hasLiteral:, which a
-	reference answers about itself rather than about its method."
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:04:44 am (UTC)'!
+refactoringOn: aMethod within: aScopeName builtWith: aBlock
 
 	| implementors senders |
 
@@ -3074,13 +3065,11 @@ refactoringOn: aSelector around: aClassName within: aScopeName builtWith: aBlock
 	self
 		implementors: implementors
 		andSenders: senders
-		of: aSelector
-		in: aClassName
+		of: aMethod selector
+		around: aMethod methodClass
 		when: aScopeName.
 
-	^aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ])
-
-! !
+	^aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ])! !
 
 !MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 categoryFor: aCategory of: aClass
@@ -3102,23 +3091,13 @@ positionsIn: aCompiledMethod of: someParameterNames
 
 	^self class positionsIn: aCompiledMethod of: someParameterNames! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
-scopeClassProperty
-
-	^MCPPlainProperty
-		named: 'className'
-		describedBy: 'Name of the class the sends are looked for around, needed by every scope but system'
-		defaultingTo: ''
-
-! !
-
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:04:39 am (UTC)'!
 scopeProperty
 
 	^MCPPlainProperty
 		named: self class scopePropertyName
-		describedBy: 'Where the sends to change are looked for: class, hierarchy, category, hierarchyAndCategories or system. Every one but system needs className too. category is the whole tree of the root class category, which is what a package usually is, but a class category tree does not always have a package of its own. Defaults to system'
-		defaultingTo: 'system'! !
+		describedBy: self class scopeValuesDescription , '. Defaults to ' , self class defaultScopeName
+		defaultingTo: self class defaultScopeName! !
 
 !MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:50:46 pm (UTC)'!
 firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
@@ -3219,6 +3198,16 @@ positionsIn: aCompiledMethod of: someParameterNames
 	^someParameterNames collect: [ :eachName |
 		aCompiledMethod methodNode argumentNames indexOf: eachName ]
 ! !
+
+!MCPRefactoringToolGroup class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:37 am (UTC)'!
+defaultScopeName
+
+	^'system'! !
+
+!MCPRefactoringToolGroup class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:22 am (UTC)'!
+scopeValuesDescription
+
+	^'Where the sends to change are looked for, around the class of the method: class, hierarchy, category, hierarchyAndCategories or system. category is the whole tree of the root class category, which is what a package usually is, but a class category tree does not always have a package of its own'! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
 assert: someParameters isNamedBy: someAskedNames
@@ -3409,6 +3398,24 @@ newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: som
 		withArgumentNames: Dictionary new
 		withParameterizableNodes: parameterizableNodes
 ! !
+
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 11:55:19 am (UTC)'!
+pushUpRefactoringFor: aMethod pushingUpDependants: shouldPushUpDependants removingEquivalents: shouldRemoveEquivalents
+
+	| dependantMethods removingMethods |
+
+	dependantMethods := shouldPushUpDependants
+		ifTrue: [ PushUpMethod dependantMethodsOf: aMethod. ]
+		ifFalse: [ Set new ].
+
+	removingMethods := shouldRemoveEquivalents
+			ifTrue: [ PushUpMethod equivalentMethodsOfSiblingsOfAll: (dependantMethods copyWith: aMethod) ]
+			ifFalse: [ Dictionary new ].
+			
+	^PushUpMethod
+		for: aMethod
+		additionallyRemovingFrom: removingMethods
+		pushingUp: dependantMethods! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
 replacementsFoundBy: aFinder replacing: aReplacing
@@ -3604,31 +3611,31 @@ safelyRemoveClassRefactoringTool
 		properties: { MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to remove' }
 		executingWith: [ :aClass | self applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:52 am (UTC)'!
 addParameterRefactoringTool
 
 	^MCPPluggableTool
 		named: self class addParameterRefactoringToolName
 		describedBy: 'Add a parameter to a selector, giving every sender the scope takes in the value to pass. A unary selector needs no keyword; a keyword one is told which keyword to add and where.'
 		properties: {
-			MCPPluggableProperty named: 'selector' describedBy: 'Selector to add the parameter to' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to add the parameter to'.
 			MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
 			MCPPlainProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
 			MCPPlainProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
 			MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one. Defaults to the first' defaultingTo: '1'.
-			self scopeProperty.
-			self scopeClassProperty }
-		executingWith: [ :aSelector :aParameterName :aParameterValue :aKeyword :aParameterIndex :aScopeName :aClassName |
+			self scopeProperty }
+		executingWith: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aScopeName |
 			self applyReportingChanges: (self
-				refactoringOn: aSelector
-				around: aClassName
+				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
-					aSelector isUnary
+					aMethod selector isUnary
 						ifTrue: [ AddParameter
 							named: aParameterName
 							initializedWith: aParameterValue
-							toUnarySelector: aSelector
+							toUnarySelector: aMethod selector
 							implementors: implementors
 							senders: senders ]
 						ifFalse: [ AddParameter
@@ -3636,82 +3643,78 @@ addParameterRefactoringTool
 							at: aParameterIndex asNumber
 							initializedWith: aParameterValue
 							using: aKeyword
-							toKeywordSelector: aSelector
+							toKeywordSelector: aMethod selector
 							implementors: implementors
-							senders: senders ] ]) ]
-! !
+							senders: senders ] ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:48 am (UTC)'!
 changeKeywordsOrderRefactoringTool
 
 	^MCPPluggableTool
 		named: self class changeKeywordsOrderRefactoringToolName
 		describedBy: 'Reorder the keywords of a selector, moving the arguments of every sender the scope takes in with them.'
 		properties: {
-			MCPPluggableProperty named: 'selector' describedBy: 'Selector to reorder' valuedWith: [ :aSelector | aSelector asSymbol ].
-			MCPPluggableProperty named: 'newSelector' describedBy: 'Selector with the same keywords in the order wanted' valuedWith: [ :aSelector | aSelector asSymbol ].
-			self scopeProperty.
-			self scopeClassProperty }
-		executingWith: [ :aSelector :aNewSelector :aScopeName :aClassName |
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to reorder'.
+			MCPPluggableProperty
+				named: 'newSelector'
+				describedBy: 'Selector with the same keywords in the order wanted'
+				valuedWith: [ :aSelector | aSelector asSymbol ].
+			self scopeProperty }
+		executingWith: [ :aMethod :aNewSelector :aScopeName |
 			self applyReportingChanges: (self
-				refactoringOn: aSelector
-				around: aClassName
+				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
-					ChangeKeywordsSelectorOrder from: aSelector to: aNewSelector implementors: implementors senders: senders ]) ]
-! !
+					ChangeKeywordsSelectorOrder from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:50 am (UTC)'!
 removeParameterRefactoringTool
 
 	^MCPPluggableTool
 		named: self class removeParameterRefactoringToolName
 		describedBy: 'Remove a parameter from a selector, in the implementors and the senders the scope takes in. It is refused when an implementor still uses the parameter.'
 		properties: {
-			MCPPluggableProperty named: 'selector' describedBy: 'Selector to remove the parameter from' valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to remove the parameter from'.
 			MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to remove'.
 			MCPPlainProperty named: 'parameterIndex' describedBy: 'Position of the parameter, counting from one. Defaults to the first' defaultingTo: '1'.
-			self scopeProperty.
-			self scopeClassProperty }
-		executingWith: [ :aSelector :aParameterName :aParameterIndex :aScopeName :aClassName |
+			self scopeProperty }
+		executingWith: [ :aMethod :aParameterName :aParameterIndex :aScopeName |
 			self applyReportingChanges: (self
-				refactoringOn: aSelector
-				around: aClassName
+				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
 					RemoveParameter
 						atIndex: aParameterIndex asNumber
 						named: aParameterName
-						from: aSelector
+						from: aMethod selector
 						implementors: implementors
-						senders: senders ]) ]
-! !
+						senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 2:04:46 am (UTC)'!
 renameSelectorRefactoringTool
 
 	^MCPPluggableTool
 		named: self class renameSelectorRefactoringToolName
-		describedBy: 'Rename a selector, in the implementors and the senders the scope takes in.'
+		describedBy: 'Rename a selector, in the implementors and the senders the scope takes in around the class of the method named.'
 		properties: {
-			MCPPluggableProperty
-				named: 'selector'
-				describedBy: 'Selector to rename'
-				valuedWith: [ :aSelector | aSelector asSymbol ].
+			MCPMethodProperty
+				classDescribedBy: 'Name of the class that implements the selector'
+				selectorDescribedBy: 'Selector to rename'.
 			MCPPluggableProperty
 				named: 'newSelector'
 				describedBy: 'Selector to rename it to'
 				valuedWith: [ :aSelector | aSelector asSymbol ].
-			self scopeProperty.
-			self scopeClassProperty }
-		executingWith: [ :aSelector :aNewSelector :aScopeName :aClassName |
+			self scopeProperty }
+		executingWith: [ :aMethod :aNewSelector :aScopeName |
 			self applyReportingChanges: (self
-				refactoringOn: aSelector
-				around: aClassName
+				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
-					RenameSelector from: aSelector to: aNewSelector implementors: implementors senders: senders ]) ]
-! !
+					RenameSelector from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 addAsSubclassResponsibilityRefactoringTool
@@ -3757,19 +3760,29 @@ pushDownMethodToSubclassesRefactoringTool
 		executingWith: [ :aMethod | self applyReportingChanges: (PushDownMethodToSubclasses for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 11:55:40 am (UTC)'!
 pushUpMethodRefactoringTool
 
 	^MCPPluggableTool
 		named: self class pushUpMethodRefactoringToolName
-		describedBy: 'Move a method up to the superclass of the class that implements it.'
-		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to push up' }
-		executingWith: [ :aMethod |
-			self applyReportingChanges: (PushUpMethod
-				for: aMethod
-				additionallyRemovingFrom: OrderedCollection new
-				pushingUp: OrderedCollection new) ]
-! !
+		describedBy: 'Move a method up to the superclass of the class that implements it. The methods of that class it sends to itself, which the superclass does not implement, can go up with it, and a sibling class implementing the same method the same way can lose its copy.'
+		properties: {
+			MCPMethodProperty 
+				classDescribedBy: 'Name of the class that implements it' 
+				selectorDescribedBy: 'Selector of the method to push up'.
+			MCPPlainProperty
+				named: 'pushingUpDependantMethods'
+				describedBy: 'Whether the methods of the class this one sends to itself, directly or through them, and the superclass does not implement, are pushed up with it, true or false'
+				defaultingTo: 'false'.
+			MCPPlainProperty
+				named: 'removingEquivalentMethodsFromSiblings'
+				describedBy: 'Whether a sibling class that implements a pushed up method the same way loses its copy, true or false'
+				defaultingTo: 'false' }
+		executingWith: [ :aMethod :aDependantsAnswer :anEquivalentsAnswer |
+			self applyReportingChanges: (self
+				pushUpRefactoringFor: aMethod
+				pushingUpDependants: aDependantsAnswer isTrue
+				removingEquivalents: anEquivalentsAnswer isTrue) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 inlineTemporaryVariableRefactoringTool
@@ -3827,7 +3840,7 @@ temporaryToInstanceVariableRefactoringTool
 				reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 2:04:55 am (UTC)'!
 extractAsParameterRefactoringTool
 
 	^MCPPluggableTool
@@ -3842,8 +3855,7 @@ extractAsParameterRefactoringTool
 			self scopeProperty }
 		executingWith: [ :aMethod :aParameterName :aText :aStart :aStop :aScopeName |
 			self applyReportingChanges: (self
-				refactoringOn: aMethod selector
-				around: aMethod methodClass name
+				refactoringOn: aMethod
 				within: aScopeName
 				builtWith: [ :implementors :senders |
 					ExtractAsParameter
@@ -3851,9 +3863,7 @@ extractAsParameterRefactoringTool
 						extractedFrom: (self intervalIn: aMethod matching: aText from: aStart to: aStop)
 						at: aMethod
 						implementors: implementors
-						senders: senders ]) ]
-
-! !
+						senders: senders ]) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 extractMethodFromSimilarCodeRefactoringTool
@@ -3901,7 +3911,7 @@ extractToTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 2:05:24 am (UTC)'!
 inlineMethodRefactoringTool
 
 	^MCPPluggableTool
@@ -3917,15 +3927,15 @@ inlineMethodRefactoringTool
 					valuedWith: [ :aSelector | aSelector asSymbol ]).
 			MCPPlainProperty named: 'text' describedBy: 'Text of the selector of the send, looked for in the source of the sending method' defaultingTo: ''.
 			MCPPlainProperty named: 'start' describedBy: 'First character of the selector of the send, counting from one. Sent instead of the text' defaultingTo: ''.
-			MCPPlainProperty named: 'stop' describedBy: 'Last character of it' defaultingTo: '' }
-		executingWith: [ :aMethod :aSendingMethod :aText :aStart :aStop |
+			MCPPlainProperty named: 'stop' describedBy: 'Last character of it' defaultingTo: ''.
+			MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once the send is inlined, true or false' defaultingTo: 'false' }
+		executingWith: [ :aMethod :aSendingMethod :aText :aStart :aStop :aRemoveAnswer |
 			self applyReportingChanges: (InlineMethod
 				from: aMethod
 				intoSendersAndUsages: (Array with: (self
 					messageSendIn: aSendingMethod
 					at: (self intervalIn: aSendingMethod matching: aText from: aStart to: aStop)))
-				removeMethod: false) ]
-! !
+				removeMethod: aRemoveAnswer isTrue) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 extractMethodRefactoringTool

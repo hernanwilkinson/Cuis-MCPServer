@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:19 pm'!
-'Description Let every tools test run in the same fixture'!
-!provides: 'MCPServerLiveTypingTests' 1 15!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:05 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerLiveTypingTests' 1 16!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -74,6 +74,14 @@ definitionAnswerOfTheProbe
 		at: 'className' put: 'MCPLiveTypingProbe';
 		yourself)! !
 
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 11:17:12 pm (UTC)'!
+sendsOfTheProbeCaller
+
+	^self jsonAnswerOf: MCPLiveTypingTools messageSendsOfMethodToolName with: (Dictionary new
+		at: 'className' put: 'MCPLiveTypingProbe';
+		at: 'selector' put: 'mcpCaller';
+		yourself)! !
+
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
 sourceAnswerOfTheProbe
 
@@ -116,6 +124,44 @@ testAMethodThatAnswersItsReceiverSaysSo
 			yourself))
 		equals: #('self')
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:31 pm (UTC)'!
+testASendReachesTheMethodsItsReceiverClassesReallyImplement
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self sendsOfTheProbeCaller first at: 'implementors')
+		equals: #('MCPLiveTypingProbe mcpAnswered' 'MCPLiveTypingProbeChild mcpAnswered')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:33 pm (UTC)'!
+testASendSaysTheClassesItAnswered
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self sendsOfTheProbeCaller first at: 'returnTypes')
+		equals: #('SmallInteger')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:29 pm (UTC)'!
+testASendSaysTheClassesItsReceiverHeld
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self sendsOfTheProbeCaller first at: 'receiverTypes')
+		equals: #('MCPLiveTypingProbe')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:36 pm (UTC)'!
+testASendToSomethingLiveTypingNeverSawReachesNoMethod
+
+	| sendToAnythingElse |
+
+	self defineProbeHierarchy.
+	sendToAnythingElse := self sendsOfTheProbeCaller last.
+
+	self assert: (sendToAnythingElse at: 'receiverTypes') isEmpty.
+	self assert: (sendToAnythingElse at: 'implementors') isEmpty! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:41 pm (UTC)'!
 testAServerAnswersTheToolUnwrappedWhenItIsGivenNoDecorator
@@ -317,6 +363,32 @@ testTheSendersOfASelectorCarryTheOnesReallySendingIt
 		equals: #('MCPLiveTypingProbe mcpCaller')
 ! !
 
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:27 pm (UTC)'!
+testTheSendsOfAMethodAreListedWithTheirReceiverInTheOrderTheyAreWritten
+
+	self defineProbeHierarchy.
+
+	self
+		assert: (self sendsOfTheProbeCaller collect: [ :eachSend | eachSend at: 'receiver' ])
+		equals: #('self' 'anythingElse')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:17:16 pm (UTC)'!
+testTheSendsOfAMethodCanBeNarrowedToOneSelector
+
+	| narrowedSends |
+
+	probeClass compile: 'mcpTwoSends
+
+	^self mcpAnswerSelf printString' classified: 'probing'.
+
+	narrowedSends := self jsonAnswerOf: MCPLiveTypingTools messageSendsOfMethodToolName with: (Dictionary new
+		at: 'className' put: 'MCPLiveTypingProbe';
+		at: 'selector' put: 'mcpTwoSends';
+		at: 'sentSelector' put: 'printString';
+		yourself).
+
+	self assert: (narrowedSends collect: [ :eachSend | eachSend at: 'selector' ]) equals: #('printString')! !
+
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 7:07:59 pm (UTC)'!
 testTheSourceOfAMethodCarriesTheClassesItAnswered
 
@@ -356,7 +428,7 @@ testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
 		equals: (probeClass sourceCodeAt: #mcpHold:) asString
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 9:48:46 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:40 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
 	| serverWithEveryTool |
@@ -368,7 +440,8 @@ testTheToolsAreOfferedByEveryServer
 			MCPLiveTypingTools typesOfInstanceVariableToolName.
 			MCPLiveTypingTools typesOfEveryInstanceVariableToolName.
 			MCPLiveTypingTools typesOfMethodVariableToolName.
-			MCPLiveTypingTools returnTypesOfMethodToolName })! !
+			MCPLiveTypingTools returnTypesOfMethodToolName.
+			MCPLiveTypingTools messageSendsOfMethodToolName })! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
 testTheTypesOfAParameterAreTheClassesItWasSent

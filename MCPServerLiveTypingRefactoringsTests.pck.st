@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 7:42:26 pm'!
-'Description Let every tools test run in the same fixture'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 13!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:10 am'!
+'Description Give the refactoring tools the options their appliers ask for'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 14!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -82,20 +82,21 @@ sourceOfTheCaller
 
 	^probeClass sourceCodeAt: #mcpCaller! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:09:38 am (UTC)'!
 testARefactoringToolSaysTheActualScopeIsOneOfTheValuesItTakes
 
-	"A client reads the scopes it may send from what the scope says about itself, so the one
-	LiveTyping makes possible has to be said there and not only in these tests."
+	"A client reads the scopes it may send from what the scope says about itself, so the ones
+	LiveTyping makes possible have to be said there and not only in these tests."
 
-	| properties |
+	| properties scopeDescription |
 
 	properties := ((self toolNamed: MCPRefactoringTools renameSelectorRefactoringToolName) definition
 		at: 'inputSchema') at: 'properties'.
+	scopeDescription := (properties at: MCPRefactoringToolGroup scopePropertyName) at: 'description'.
 
-	self assert: (((properties at: MCPRefactoringToolGroup scopePropertyName) at: 'description')
-		includesSubstring: MCPActualScopeRefactoringDecorator actualScopeName caseSensitive: true).
-	self assert: (properties includesKey: 'keepingPossibleSends')! !
+	self assert: (scopeDescription includesSubstring: MCPActualScopeRefactoringDecorator actualScopeName caseSensitive: true).
+	self assert: (scopeDescription includesSubstring: MCPActualScopeRefactoringDecorator actualAndPossibleScopeName caseSensitive: true).
+	self deny: (properties includesKey: 'keepingPossibleSends')! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
 testARefactoringToolTakesTheActualScope
@@ -123,6 +124,21 @@ testARefactoringToolWithAnyOtherScopeIsStillTheOneItDecorates
 	self assert: (self sourceOfTheCaller includesSubstring: 'self mcpRenamed' caseSensitive: true).
 	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpRenamed' caseSensitive: true)! !
 
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:09:55 am (UTC)'!
+testARefactoringToolWorksOverTheActualScopeWhenNoneIsNamed
+
+	self compileTheProbeAndItsCaller.
+
+	(self toolNamed: MCPRefactoringTools renameSelectorRefactoringToolName)
+		valueWithArguments: (Dictionary new
+			at: 'className' put: probeClass name;
+			at: 'selector' put: 'mcpProbe';
+			at: 'newSelector' put: 'mcpRenamed';
+			yourself).
+
+	self assert: (self sourceOfTheCaller includesSubstring: 'self mcpRenamed' caseSensitive: true).
+	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
+
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:02 pm (UTC)'!
 testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue
 
@@ -145,26 +161,6 @@ testAddingAParameterInTheActualScopeGivesTheSendsItSawTheValue
 	self assert: (self probeClass includesSelector: 'mcpProbe:' asSymbol).
 	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
 		includesSubstring: 'self mcpProbe: 7' caseSensitive: true)! !
-
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 3/Sep/2026, 8:26:38 pm (UTC)'!
-testAskingForTheActualScopeWithoutNamingAClassSaysWhichScopeNeedsIt
-
-	"The tool works over scopes that need no class, so the one a client leaves out is not a
-	class that was not found: it is the one the actual scope asked for."
-
-	| renameTool arguments |
-
-	renameTool := self toolNamed: MCPRefactoringTools renameSelectorRefactoringToolName.
-	arguments := Dictionary new
-		at: 'selector' put: 'mcpProbe';
-		at: 'newSelector' put: 'mcpRenamed';
-		at: MCPRefactoringToolGroup scopePropertyName put: MCPActualScopeRefactoringDecorator actualScopeName;
-		yourself.
-
-	self
-		should: [ renameTool valueWithArguments: arguments ]
-		raise: Error
-		withMessageText: MCPActualScopeRefactoringDecorator classNameNeededForTheActualScopeErrorDescription! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:27 pm (UTC)'!
 testExtractingAsAParameterInTheActualScopeLeavesASendToAnythingElseAlone
