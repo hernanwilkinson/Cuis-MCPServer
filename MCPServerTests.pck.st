@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:58 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerTests' 1 62!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:23 am'!
+'Description Inline a method in every send the scope takes in'!
+!provides: 'MCPServerTests' 1 63!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -2928,6 +2928,51 @@ testInlineMethodRefactoringAnswersTheMethodsItChanged
 		equals: 'Refactoring applied. 1 method changed:
 MCPTestSubject>>#mcpCallerOfIt'
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 1:23:36 pm (UTC)'!
+testInlineMethodRefactoringInTheClassScopeLeavesTheSendsOfOtherClassesAlone
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^10'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpCallerOfIt
+
+	^self mcpProbe'.
+	self defineClassWith: (self definitionOf: 'MCPTestSibling' subclassOf: 'Object').
+	self defineMethodIn: 'MCPTestSibling' source: 'mcpCallerOfIt
+
+	^MCPTestSubject new mcpProbe'.
+
+	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'scope' being: 'class').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpCallerOfIt' asSymbol) includesSubstring: '^10' caseSensitive: true).
+	self assert: (((Smalltalk classNamed: 'MCPTestSibling') sourceCodeAt: 'mcpCallerOfIt' asSymbol)
+		includesSubstring: 'new mcpProbe' caseSensitive: true)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 1:23:32 pm (UTC)'!
+testInlineMethodRefactoringInlinesEverySendTheScopeTakesIn
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^10'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpCallerOfIt
+
+	^self mcpProbe'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpOtherCallerOfIt
+
+	^self mcpProbe + 1'.
+
+	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe').
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpCallerOfIt' asSymbol) includesSubstring: '^10' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOtherCallerOfIt' asSymbol) includesSubstring: '10 + 1' caseSensitive: true)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 2:09:21 am (UTC)'!
 testInlineMethodRefactoringRemovesTheMethodWhenAsked

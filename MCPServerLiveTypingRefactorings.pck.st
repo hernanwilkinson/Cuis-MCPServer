@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:46 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 18!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:16 am'!
+'Description Inline a method in every send the scope takes in'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 19!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -456,11 +456,17 @@ decoratedToolName
 
 	^MCPRefactoringTools extractAsParameterRefactoringToolName! !
 
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:07:59 am (UTC)'!
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 1:23:28 pm (UTC)'!
 description
 
 	^self decoratee description ,
-		' It also takes actual and actualAndPossible as the scope, which inline every send LiveTyping saw really reaching an object of the class that implements the method, instead of the one send named here; actualAndPossible inlines as well the sends it could only guess at. Without a scope the one send named is inlined.'! !
+		' It also takes actual and actualAndPossible as the scope, and actual is the default: every send LiveTyping saw really reaching an object of the class that implements the method is inlined, and with actualAndPossible the sends it could only guess at as well. A send named by its sending method is inlined alone whatever the scope.'! !
+
+!MCPInlineMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 1:23:23 pm (UTC)'!
+isAskedForTheActualScopeIn: anArguments
+
+	^(super isAskedForTheActualScopeIn: anArguments)
+		and: [ (anArguments at: MCPRefactoringTools senderClassPropertyName ifAbsent: [ '' ]) isEmpty ]! !
 
 !MCPInlineMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:53 am (UTC)'!
 properties
@@ -490,11 +496,6 @@ refactoringInlining: aMethod removingIt: aRemoveAnswer keepingPossibleSends: isK
 				from: aMethod
 				intoSendersAndUsages: messageSends
 				removeMethod: aRemoveAnswer isTrue ]! !
-
-!MCPInlineMethodInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:06:58 am (UTC)'!
-defaultScopeName
-
-	^''! !
 
 !MCPInlineMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:21:58 pm (UTC)'!
 decoratedToolName

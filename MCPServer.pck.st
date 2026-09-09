@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:30 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServer' 1 75!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:10 am'!
+'Description Inline a method in every send the scope takes in'!
+!provides: 'MCPServer' 1 76!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3022,7 +3022,7 @@ applySourceChanging: aRefactoring to: aMethod
 
 	^(MCPRefactoringApplier applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:04:42 am (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 1:45:08 pm (UTC)'!
 implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName
 
 	aScopeName caseOf: {
@@ -3055,7 +3055,7 @@ implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelec
 			inSystem: smalltalk ] }
 		otherwise: [ self error: (self class unknownScopeErrorDescriptionFor: aScopeName) ]! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:04:44 am (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 1:45:11 pm (UTC)'!
 refactoringOn: aMethod within: aScopeName builtWith: aBlock
 
 	| implementors senders |
@@ -3351,6 +3351,17 @@ messageSendIn: aCompiledMethod at: anInterval
 		completeSourceRange: nodeAndRange value
 ! !
 
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:09 pm (UTC)'!
+methodNamed: aSelector inClassNamed: aClassName
+
+	| aClass |
+
+	aClass := self classNamed: aClassName.
+
+	^aClass
+		compiledMethodAt: aSelector asSymbol
+		ifAbsent: [ self error: (MCPMethodProperty methodNotFoundErrorDescriptionFor: aSelector asSymbol in: aClass) ]! !
+
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
 namesRenaming: someParameters asAskedIn: someArgumentNames
 
@@ -3431,6 +3442,30 @@ replacementsFoundBy: aFinder replacing: aReplacing
 		otherwise: [ self error: (self class unknownReplacingErrorDescriptionFor: aReplacing) ]
 
 ! !
+
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:45:18 pm (UTC)'!
+sendsOf: aMethod within: aScopeName
+
+	^self
+		refactoringOn: aMethod
+		within: aScopeName
+		builtWith: [ :implementors :senders |
+			(senders asIdentitySet reject: [ :eachSender | eachSender equivalentTo: aMethod ])
+				inject: OrderedCollection new
+				into: [ :someSends :eachSender |
+					someSends
+						addAll: (InlineMethod findReferencesToSelector: aMethod selector in: eachSender methodReference);
+						yourself ] ]! !
+
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:13 pm (UTC)'!
+sendsToInlineOf: aMethod within: aScopeName orTheOneIn: aSenderClassName named: aSenderSelector at: anIntervalBlock
+
+	^aSenderClassName
+		ifEmpty: [ self sendsOf: aMethod within: aScopeName ]
+		ifNotEmpty: [ :aClassName |
+			| senderMethod |
+			senderMethod := self methodNamed: aSenderSelector inClassNamed: aClassName.
+			Array with: (self messageSendIn: senderMethod at: (anIntervalBlock value: senderMethod)) ]! !
 
 !MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addClassRefactoringToolsTo: anMCPServer
@@ -3911,30 +3946,30 @@ extractToTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 2:05:24 am (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 1:23:16 pm (UTC)'!
 inlineMethodRefactoringTool
 
 	^MCPPluggableTool
 		named: self class inlineMethodRefactoringToolName
-		describedBy: 'Replace a send of a method by what the method does. The send is named by the method it is written in and by the text of its selector there, or by the interval that selector occupies. The text has to fall on the selector of the send and not on its receiver.'
+		describedBy: 'Replace the sends of a method by what the method does: every send the scope takes in, or one send alone when it is named by the method it is written in and by the text of its selector there, or the interval that selector occupies. The text has to fall on the selector of the send and not on its receiver. A send inside the method being inlined is left alone.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to inline'.
-			MCPMethodProperty
-				ofClass: (MCPClassProperty named: 'senderClassName' describedBy: 'Name of the class whose method sends it')
-				andSelector: (MCPPluggableProperty
-					named: 'senderSelector'
-					describedBy: 'Selector of the method that sends it'
-					valuedWith: [ :aSelector | aSelector asSymbol ]).
-			MCPPlainProperty named: 'text' describedBy: 'Text of the selector of the send, looked for in the source of the sending method' defaultingTo: ''.
-			MCPPlainProperty named: 'start' describedBy: 'First character of the selector of the send, counting from one. Sent instead of the text' defaultingTo: ''.
+			self scopeProperty.
+			MCPPlainProperty named: self class senderClassPropertyName describedBy: 'Name of the class whose method has the one send to inline. Left out to inline every send the scope takes in' defaultingTo: ''.
+			MCPPlainProperty named: self class senderSelectorPropertyName describedBy: 'Selector of the method that has the one send to inline' defaultingTo: ''.
+			MCPPlainProperty named: 'text' describedBy: 'Text of the selector of the one send, looked for in the source of the sending method' defaultingTo: ''.
+			MCPPlainProperty named: 'start' describedBy: 'First character of the selector of the one send, counting from one. Sent instead of the text' defaultingTo: ''.
 			MCPPlainProperty named: 'stop' describedBy: 'Last character of it' defaultingTo: ''.
-			MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once the send is inlined, true or false' defaultingTo: 'false' }
-		executingWith: [ :aMethod :aSendingMethod :aText :aStart :aStop :aRemoveAnswer |
+			MCPPlainProperty named: 'removeMethod' describedBy: 'Whether the method is taken away once its sends are inlined, true or false' defaultingTo: 'false' }
+		executingWith: [ :aMethod :aScopeName :aSenderClassName :aSenderSelector :aText :aStart :aStop :aRemoveAnswer |
 			self applyReportingChanges: (InlineMethod
 				from: aMethod
-				intoSendersAndUsages: (Array with: (self
-					messageSendIn: aSendingMethod
-					at: (self intervalIn: aSendingMethod matching: aText from: aStart to: aStop)))
+				intoSendersAndUsages: (self
+					sendsToInlineOf: aMethod
+					within: aScopeName
+					orTheOneIn: aSenderClassName
+					named: aSenderSelector
+					at: [ :aSendingMethod | self intervalIn: aSendingMethod matching: aText from: aStart to: aStop ])
 				removeMethod: aRemoveAnswer isTrue) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
@@ -4106,6 +4141,16 @@ safelyRemoveClassRefactoringToolName
 temporaryToInstanceVariableRefactoringToolName
 
 	^'smalltalk_refactor_temporary_to_instance_variable'! !
+
+!MCPRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:00 pm (UTC)'!
+senderClassPropertyName
+
+	^'senderClassName'! !
+
+!MCPRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:04 pm (UTC)'!
+senderSelectorPropertyName
+
+	^'senderSelector'! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:43 pm (UTC)'!
 implementorsOfTool

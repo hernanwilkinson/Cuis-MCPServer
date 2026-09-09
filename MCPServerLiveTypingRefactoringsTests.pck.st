@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:10 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 14!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:49:28 am'!
+'Description Inline a method in every send the scope takes in'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 15!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -181,6 +181,26 @@ testExtractingAsAParameterInTheActualScopeLeavesASendToAnythingElseAlone
 	self assert: (self sourceOfTheCaller includesSubstring: 'self mcpProbe: 42' caseSensitive: true).
 	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
 
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 1:23:46 pm (UTC)'!
+testInliningANamedSendInlinesThatSendAloneWhenNoScopeIsNamed
+
+	self compileTheProbeAndItsCaller.
+	probeClass compile: 'mcpOtherCaller
+
+	^self mcpProbe' classified: 'probing'.
+
+	(self toolNamed: MCPRefactoringTools inlineMethodRefactoringToolName)
+		valueWithArguments: (Dictionary new
+			at: 'className' put: probeClass name;
+			at: 'selector' put: 'mcpProbe';
+			at: MCPRefactoringTools senderClassPropertyName put: probeClass name;
+			at: MCPRefactoringTools senderSelectorPropertyName put: 'mcpOtherCaller';
+			at: 'text' put: 'mcpProbe';
+			yourself).
+
+	self assert: ((probeClass sourceCodeAt: #mcpOtherCaller) includesSubstring: '^42' caseSensitive: true).
+	self assert: (self sourceOfTheCaller includesSubstring: 'self mcpProbe' caseSensitive: true)! !
+
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:34 pm (UTC)'!
 testInliningInTheActualScopeReplacesEverySendItSawAndNoOther
 
@@ -200,11 +220,8 @@ testInliningInTheActualScopeReplacesEverySendItSawAndNoOther
 	self deny: (self sourceOfTheCaller includesSubstring: 'self mcpProbe' caseSensitive: true).
 	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
-testInliningTakesTheActualScopeThroughTheToolThatWorksOverOneSend
-
-	"The tool that inlines is told which send to replace and knows no scope of its own, so the
-	actual scope is what the decorator adds to it, and it needs none of the sender arguments."
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 1:23:43 pm (UTC)'!
+testInliningTakesTheActualScopeThroughTheToolThatWorksOverAScope
 
 	self compileTheProbeAndItsCaller.
 
