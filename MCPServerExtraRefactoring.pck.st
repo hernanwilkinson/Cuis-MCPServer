@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:36 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerExtraRefactoring' 1 14!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:29:51 am'!
+'Description Move a method to the class of what its receiver holds'!
+!provides: 'MCPServerExtraRefactoring' 1 15!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -118,48 +118,47 @@ moveInstanceVariableTool
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:05:30 am (UTC)'!
+!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:14:27 pm (UTC)'!
 moveMethodTool
 
 	^MCPPluggableTool
 		named: self class moveMethodToolName
-		describedBy: 'Move a method to another class, which the class it is moved from reaches through a variable of its own, or to the class side of that class when it is reached as a global. When the moved method still needs what it was moved from, it is given as a parameter named here.'
+		describedBy: 'Move a method to the class of the object it will be sent to, which the class it is moved from reaches through the receiver named: a variable of its own or of the method, or a global. A class is a global, so a method moved to a class becomes a class method of it. When the moved method still needs what it was moved from, it is given as a parameter named here.'
 		properties: {
 			MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
-			MCPClassProperty named: 'targetClassName' describedBy: 'Name of the class to move it to'.
 			MCPPlainProperty
-				named: 'accessingThrough'
-				describedBy: 'Name of the instance variable, class variable or parameter that holds the class it is moved to. Left out to move it to the class side of that class, reached as a global'
+				named: self class receiverPropertyName
+				describedBy: 'What the moved method is sent to from the class it is moved from: an instance variable, a class variable or a parameter of the method, holding an object of the class named in targetClassName, or a global, to the class of whose object the method goes. A class is a global, and a method moved to one becomes a class method of it'.
+			MCPPlainProperty
+				named: 'targetClassName'
+				describedBy: 'Name of the class the method is moved to, which is the class of the object the receiver holds. Needed when the receiver is a variable; left out when it is a global, whose class is where the method goes'
 				defaultingTo: ''.
 			MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: ''.
 			MCPPlainProperty named: 'extraParameterKeyword' describedBy: 'Keyword the moved method takes that parameter with, when it is a keyword selector that needs a new keyword for it. Left out otherwise' defaultingTo: '' }
-		executingWith: [ :aMethod :aTargetClass :anAccessingVariableName :anExtraParameterName :anExtraParameterKeyword |
+		executingWith: [ :aMethod :aReceiverName :aTargetClassName :anExtraParameterName :anExtraParameterKeyword |
 			self applyReportingChanges: (self
 				moveMethodRefactoringFor: aMethod
-				to: aTargetClass
-				accessingThrough: anAccessingVariableName
+				to: aTargetClassName
+				through: aReceiverName
 				parameterNamed: anExtraParameterName
 				keyword: anExtraParameterKeyword) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:05:28 am (UTC)'!
-moveMethodRefactoringFor: aMethod to: aTargetClass accessingThrough: anAccessingVariableName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
+!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:18 pm (UTC)'!
+isAGlobalNamed: aName
 
-	| parameterNeeded |
+	^smalltalk includesKey: aName asSymbol! !
 
-	parameterNeeded := self class extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword.
+!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:22 pm (UTC)'!
+moveMethodRefactoringFor: aMethod to: aTargetClassName through: aReceiverName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
 
-	^anAccessingVariableName
-		ifEmpty: [ MoveMethod
-			methodNamed: aMethod selector
-			from: aMethod methodClass
-			toClass: aTargetClass
-			parameterNeeded: parameterNeeded ]
-		ifNotEmpty: [ :aVariableName | MoveMethod
-			methodNamed: aMethod selector
-			from: aMethod methodClass
-			to: aTargetClass
-			accessingThrough: aVariableName
-			parameterNeeded: parameterNeeded ]! !
+	^MoveMethod
+		methodNamed: aMethod selector
+		from: aMethod methodClass
+		to: ((self isAGlobalNamed: aReceiverName)
+			ifTrue: [ (smalltalk at: aReceiverName asSymbol) class ]
+			ifFalse: [ self classNamed: aTargetClassName ])
+		accessingThrough: aReceiverName
+		parameterNeeded: (self class extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
 
 !MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
 extractClassToolName
@@ -195,3 +194,8 @@ extraParameterNamed: aParameterName keyword: aKeyword
 		ifEmpty: [ ExtraParameterNameNeeded parameterName: aParameterName ]
 		ifNotEmpty: [ :anExtraKeyword |
 			ExtraParameterNameNeededAndExtraKeyword parameterName: aParameterName extraKeyword: anExtraKeyword ]! !
+
+!MCPExtraRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 2:14:14 pm (UTC)'!
+receiverPropertyName
+
+	^'receiver'! !

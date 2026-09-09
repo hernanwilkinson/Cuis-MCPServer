@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:51 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 14!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:29:57 am'!
+'Description Move a method to the class of what its receiver holds'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 15!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -148,11 +148,17 @@ noClassSeenErrorDescriptionFor: aVariableName
 
 	^'LiveTyping saw no class held by ', aVariableName, ', so there is none to move to'! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:26:38 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:14:47 pm (UTC)'!
 description
 
 	^self decoratee description ,
-		' It also takes actual as the scope, which moves it to the class LiveTyping saw the variable it is reached through hold, so the class it is moved to is found instead of named.'! !
+		' It also takes actual as the scope, which moves the method to the class LiveTyping saw the variable it is sent to hold, so that class is found instead of named. A global is moved to the way the tool it decorates does, because its class is already known.'! !
+
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:14:44 pm (UTC)'!
+isAskedForTheActualScopeIn: anArguments
+
+	^(super isAskedForTheActualScopeIn: anArguments)
+		and: [ (smalltalk includesKey: (anArguments at: MCPExtraRefactoringTools receiverPropertyName ifAbsent: [ '' ]) asSymbol) not ]! !
 
 !MCPMoveMethodInActualScopeDecorator methodsFor: 'actual types' stamp: 'HAW 2/Sep/2026, 8:54:08 pm (UTC)'!
 classHeldBy: aVariableName in: aMethod
@@ -180,33 +186,33 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:08:01 am (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:14:30 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
-		MCPPlainProperty named: 'accessingThrough' describedBy: 'Name of the variable that holds the class it is moved to'.
+		MCPPlainProperty named: MCPExtraRefactoringTools receiverPropertyName describedBy: 'Name of the instance variable, class variable or parameter the moved method is sent to. The class it is moved to is the one LiveTyping saw it hold'.
 		MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: ''.
 		MCPPlainProperty named: 'extraParameterKeyword' describedBy: 'Keyword the moved method takes that parameter with, when it is a keyword selector that needs a new keyword for it. Left out otherwise' defaultingTo: '' }! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:08:03 am (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:14:35 pm (UTC)'!
 applyInActualScopeWith: anArguments
 
-	^self withValuesFrom: anArguments do: [ :aMethod :anAccessingVariableName :anExtraParameterName :anExtraParameterKeyword |
+	^self withValuesFrom: anArguments do: [ :aMethod :aReceiverName :anExtraParameterName :anExtraParameterKeyword |
 		(MCPRefactoringApplier applying: (self
 			refactoringMoving: aMethod
-			accessingThrough: anAccessingVariableName
+			through: aReceiverName
 			parameterNamed: anExtraParameterName
 			keyword: anExtraParameterKeyword)) applyReportingChanges ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:08:05 am (UTC)'!
-refactoringMoving: aMethod accessingThrough: anAccessingVariableName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:14:38 pm (UTC)'!
+refactoringMoving: aMethod through: aReceiverName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
 
 	^MoveMethod
 		methodNamed: aMethod selector
 		from: aMethod methodClass
-		to: (self classHeldBy: anAccessingVariableName in: aMethod)
-		accessingThrough: anAccessingVariableName
+		to: (self classHeldBy: aReceiverName in: aMethod)
+		accessingThrough: aReceiverName
 		parameterNeeded: (MCPExtraRefactoringTools extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
 
 !MCPMoveMethodInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:07:15 am (UTC)'!
@@ -219,10 +225,10 @@ decoratedToolName
 
 	^MCPExtraRefactoringTools moveMethodToolName! !
 
-!MCPMoveMethodInActualScopeDecorator class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 4:26:33 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:17:26 pm (UTC)'!
 actualScopeOnlyDescription
 
-	^'Send actual to move the method to the class LiveTyping saw accessingThrough hold, which needs no targetClassName. Send nothing to move it to the class named there'! !
+	^'Send actual to move the method to the class LiveTyping saw the variable named as receiver hold, which needs no targetClassName. Send nothing to move it to the class named there, or to the class of the global named as receiver'! !
 
 !MCPMoveMethodInActualScopeDecorator class methodsFor: 'error descriptions' stamp: 'HAW 2/Sep/2026, 8:54:08 pm (UTC)'!
 noClassSeenErrorDescriptionFor: aVariableName

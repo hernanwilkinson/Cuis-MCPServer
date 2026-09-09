@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:20 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerExtraRefactoringTest' 1 12!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:30:05 am'!
+'Description Move a method to the class of what its receiver holds'!
+!provides: 'MCPServerExtraRefactoringTest' 1 13!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
@@ -171,7 +171,7 @@ testExtractingToAMethodObjectMakesTheClassThatDoesWhatTheMethodDid
 
 ! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:14:50 pm (UTC)'!
 testMovingAMethodAnswersTheMethodsItChanged
 
 	"The method is in the other class and the one it came from is left delegating to it, so
@@ -193,14 +193,13 @@ testMovingAMethodAnswersTheMethodsItChanged
 			at: 'className' put: 'MCPExtraTestSource';
 			at: 'selector' put: 'mcpMoving';
 			at: 'targetClassName' put: 'MCPExtraTestTarget';
-			at: 'accessingThrough' put: 'reachingVariable';
+			at: 'receiver' put: 'reachingVariable';
 			yourself))
 		equals: 'Refactoring applied. 2 methods changed:
 MCPExtraTestSource>>#mcpMoving
-MCPExtraTestTarget>>#mcpMoving'
-! !
+MCPExtraTestTarget>>#mcpMoving'! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:14:54 pm (UTC)'!
 testMovingAMethodTakesItToTheOtherClass
 
 	| source |
@@ -218,14 +217,13 @@ testMovingAMethodTakesItToTheOtherClass
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'selector' put: 'mcpMoving';
 		at: 'targetClassName' put: 'MCPExtraTestTarget';
-		at: 'accessingThrough' put: 'reachingVariable';
+		at: 'receiver' put: 'reachingVariable';
 		yourself).
 
-	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol)
-! !
+	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol)! !
 
-!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:09:23 am (UTC)'!
-testMovingAMethodWithoutAVariableToReachThroughTakesItToTheClassSide
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:15:00 pm (UTC)'!
+testMovingAMethodToAClassMakesItAClassMethodOfIt
 
 	| source |
 
@@ -238,10 +236,34 @@ testMovingAMethodWithoutAVariableToReachThroughTakesItToTheClassSide
 	(self toolNamed: MCPExtraRefactoringTools moveMethodToolName) valueWithArguments: (Dictionary new
 		at: 'className' put: 'MCPExtraTestSource';
 		at: 'selector' put: 'mcpMoving';
-		at: 'targetClassName' put: 'MCPExtraTestTarget';
+		at: 'receiver' put: 'MCPExtraTestTarget';
 		yourself).
 
-	self assert: (self targetClass class includesSelector: 'mcpMoving' asSymbol)! !
+	self assert: (self targetClass class includesSelector: 'mcpMoving' asSymbol).
+	self assert: ((self sourceClass sourceCodeAt: 'mcpMoving' asSymbol) includesSubstring: '^MCPExtraTestTarget mcpMoving' caseSensitive: true)! !
+
+!MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:15:04 pm (UTC)'!
+testMovingAMethodToAGlobalTakesItToTheClassOfWhatItHolds
+
+	| source |
+
+	source := self defineClassNamed: 'MCPExtraTestSource' instanceVariableNames: ''.
+	self defineClassNamed: 'MCPExtraTestTarget' instanceVariableNames: ''.
+	source compile: 'mcpMoving
+
+	^42' classified: 'probing'.
+
+	[ Smalltalk at: 'MCPExtraTestGlobal' asSymbol put: self targetClass new.
+
+	(self toolNamed: MCPExtraRefactoringTools moveMethodToolName) valueWithArguments: (Dictionary new
+		at: 'className' put: 'MCPExtraTestSource';
+		at: 'selector' put: 'mcpMoving';
+		at: 'receiver' put: 'MCPExtraTestGlobal';
+		yourself).
+
+	self assert: (self targetClass includesSelector: 'mcpMoving' asSymbol).
+	self assert: ((self sourceClass sourceCodeAt: 'mcpMoving' asSymbol) includesSubstring: '^MCPExtraTestGlobal mcpMoving' caseSensitive: true) ]
+		ensure: [ Smalltalk removeKey: 'MCPExtraTestGlobal' asSymbol ifAbsent: [ nil ] ]! !
 
 !MCPExtraRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testMovingAnInstanceVariableAnswersTheDefinitionsOfTheClassesItChanged

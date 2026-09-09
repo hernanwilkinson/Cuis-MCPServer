@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:15 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 11!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:30:11 am'!
+'Description Move a method to the class of what its receiver holds'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 12!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -194,7 +194,7 @@ testGatheringParametersTakesTheActualScopeThroughTheToolThatWorksOverAScope
 		includesSubstring: 'anythingElse mcpFirst: 3 second: 4' caseSensitive: true).
 	self assert: (self parameterObjectClass instVarNames includes: 'first')! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:46:23 pm (UTC)'!
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 2:15:07 pm (UTC)'!
 testMovingAMethodInTheActualScopeTakesItToTheClassLiveTypingSaw
 
 	| targetClass |
@@ -204,7 +204,7 @@ testMovingAMethodInTheActualScopeTakesItToTheClassLiveTypingSaw
 	self apply: MCPExtraRefactoringTools moveMethodToolName inActualScopeWith: (Dictionary new
 		at: 'className' put: probeClass name;
 		at: 'selector' put: 'mcpAskTheHolder';
-		at: 'accessingThrough' put: 'holder';
+		at: 'receiver' put: 'holder';
 		yourself).
 
 	self assert: (targetClass includesSelector: #mcpAskTheHolder)! !
