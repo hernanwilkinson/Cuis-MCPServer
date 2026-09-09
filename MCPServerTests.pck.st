@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:07 pm'!
-'Description Answer a refactoring warning and go on through the accepted ones'!
-!provides: 'MCPServerTests' 1 64!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 6:25:48 pm'!
+'Description Record every tool call as a line of JSON for benchmarks'!
+!provides: 'MCPServerTests' 1 65!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -54,6 +54,16 @@ DynamicallyCodeCreatingTest subclass: #MCPToolsTest
 	category: 'MCPServerTests'!
 !classDefinition: 'MCPToolsTest class' category: #MCPServerTests!
 MCPToolsTest class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPCallLogTest category: #MCPServerTests!
+MCPToolsTest subclass: #MCPCallLogTest
+	instanceVariableNames: 'records'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerTests'!
+!classDefinition: 'MCPCallLogTest class' category: #MCPServerTests!
+MCPCallLogTest class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPDebuggingToolsTest category: #MCPServerTests!
@@ -727,6 +737,120 @@ classNamePrefixOfTestData
 isAbstract
 
 	^self hasSubclasses ! !
+
+!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 9/Sep/2026, 9:05:45 pm (UTC)'!
+toolDecoratorClasses
+
+	^#()! !
+
+!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 9/Sep/2026, 9:05:43 pm (UTC)'!
+toolGroupClasses
+
+	^{ MCPImageTools }! !
+
+!MCPCallLogTest methodsFor: 'running' stamp: 'HAW 9/Sep/2026, 9:05:47 pm (UTC)'!
+setUp
+
+	super setUp.
+	records := WriteStream on: String new.
+	server logCallsIn: (MCPJsonLinesCallLog
+		writingWith: [ :aWritingBlock | aWritingBlock value: records ]
+		ofImageNamed: 'probe.image')! !
+
+!MCPCallLogTest methodsFor: 'running' stamp: 'HAW 9/Sep/2026, 9:05:50 pm (UTC)'!
+tearDown
+
+	self probeLogFileName asFileEntry exists ifTrue: [ self probeLogFileName asFileEntry delete ].
+	super tearDown! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:52 pm (UTC)'!
+evaluate: aCode
+
+	^client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: aCode)! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:59 pm (UTC)'!
+probeLogFileName
+
+	^(DirectoryEntry currentDirectory // 'mcp-calls-probe.jsonl') pathName! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:56 pm (UTC)'!
+recordedCalls
+
+	^self recordsIn: records contents! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:07:27 pm (UTC)'!
+recordsIn: aText
+
+	^(aText lines reject: [ :eachLine | eachLine isEmpty ])
+		collect: [ :eachLine | Json readFrom: eachLine readStream ]! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:01 pm (UTC)'!
+testACallIsRecordedWithWhatItWasAskedAndWhatItAnswered
+
+	| record |
+
+	self evaluate: '3 + 4'.
+
+	self assert: self recordedCalls size equals: 1.
+	record := self recordedCalls first.
+	self assert: (record at: 'tool') equals: MCPImageTools evaluateToolName.
+	self assert: ((record at: 'arguments') at: 'code') equals: '3 + 4'.
+	self assert: (record at: 'answer') equals: '7'.
+	self deny: (record at: 'isError')! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:05 pm (UTC)'!
+testAFailingCallIsRecordedAsAnErrorAndStillFails
+
+	| record |
+
+	self
+		should: [ self evaluate: 'self error: ''probe''' ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: 'probe').
+
+	record := self recordedCalls first.
+	self assert: (record at: 'isError').
+	self assert: (record at: 'error') equals: (self serverErrorTextFor: 'probe').
+	self deny: (record includesKey: 'answer')! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:10 pm (UTC)'!
+testALogToAFileAppendsALineACall
+
+	| calls |
+
+	server logCallsIn: (MCPJsonLinesCallLog toFile: self probeLogFileName ofImageNamed: 'probe.image').
+
+	self evaluate: '1'.
+	self evaluate: '2'.
+
+	calls := self recordsIn: (self probeLogFileName asFileEntry readStreamDo: [ :aStream | aStream contents ]).
+	self assert: calls size equals: 2.
+	self assert: (calls last at: 'answer') equals: '2'! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:03 pm (UTC)'!
+testARecordSaysWhenWhereAndHowLongTheCallTook
+
+	| record |
+
+	self evaluate: '3 + 4'.
+
+	record := self recordedCalls first.
+	self assert: (record at: 'image') equals: 'probe.image'.
+	self assert: (record at: 'milliseconds') >= 0.
+	self deny: (record at: 'at') isEmpty.
+	self deny: (record at: 'session') isEmpty! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:08 pm (UTC)'!
+testCallsAreNumberedInTheOrderTheyWereMadeWithinTheSession
+
+	| calls |
+
+	self evaluate: '1'.
+	self evaluate: '2'.
+
+	calls := self recordedCalls.
+	self assert: (calls collect: [ :eachCall | eachCall at: 'sequence' ]) asArray equals: #(1 2).
+	self assert: (calls first at: 'session') equals: (calls last at: 'session')! !
 
 !MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:49:13 am (UTC)'!
 tearDown

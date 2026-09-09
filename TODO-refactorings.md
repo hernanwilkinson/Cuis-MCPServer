@@ -27,6 +27,17 @@ Errors and shortcomings found in the refactorings while driving them through the
   Fix: when the replaced send is the last statement of its block or method, do not add the
   period (or take the one the original statement had, and only that one).
 
+- [ ] **Refuses a method with an early return.** `MCPServer>>handleRequest:` answered `^nil` from an
+  `ifAbsent:` block and its value at the end; inlining it fails with *Method to inline has more
+  than one possible return value*. It had to be rewritten as a single `at:ifPresent:ifAbsent:`
+  expression by hand before the refactoring would take it. An early return that is the last
+  statement of a block could be inlined as an `ifTrue:ifFalse:` / `ifPresent:ifAbsent:` around the
+  rest, at least when there are two.
+- [ ] **Loses the layout of the inlined body.** Inlining `handleRequest:` (with temporaries) into
+  `responseTo:` produced `| id params |` followed by the statements with no empty line, and the
+  return statement flush left (`^aRequest` at column 0). Fix: format the inlined statements as a
+  method body — empty line after the temporaries, one tab of indentation.
+
 ## MoveMethod (ExtraRefactorings)
 
 - [ ] **Moving through a global keeps the global in the moved body.** Moving

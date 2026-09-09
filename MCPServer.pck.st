@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:01 pm'!
-'Description Answer a refactoring warning and go on through the accepted ones'!
-!provides: 'MCPServer' 1 77!
+'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 6:25:42 pm'!
+'Description Record every tool call as a line of JSON for benchmarks'!
+!provides: 'MCPServer' 1 78!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -35,6 +35,36 @@ MCPAuthentication subclass: #MCPNoAuthentication
 	category: 'MCPServer'!
 !classDefinition: 'MCPNoAuthentication class' category: #MCPServer!
 MCPNoAuthentication class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPCallLog category: #MCPServer!
+Object subclass: #MCPCallLog
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPCallLog class' category: #MCPServer!
+MCPCallLog class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPJsonLinesCallLog category: #MCPServer!
+MCPCallLog subclass: #MCPJsonLinesCallLog
+	instanceVariableNames: 'writer imageName session sequence'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPJsonLinesCallLog class' category: #MCPServer!
+MCPJsonLinesCallLog class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPNullCallLog category: #MCPServer!
+MCPCallLog subclass: #MCPNullCallLog
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPNullCallLog class' category: #MCPServer!
+MCPNullCallLog class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPDebuggingSession category: #MCPServer!
@@ -89,7 +119,7 @@ MCPRefactoringApplier class
 
 !classDefinition: #MCPServer category: #MCPServer!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running shouldLogMessages tools smalltalk calledTools toolGroupClasses toolDecoratorClasses'
+	instanceVariableNames: 'transport running tools smalltalk toolGroupClasses toolDecoratorClasses callLog'
 	classVariableNames: 'OnStartupInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -385,6 +415,21 @@ I serve every request: the endpoint I guard asks for no credentials.
 
 I am the right choice while the endpoint listens on the loopback interface only, where the operating system already keeps other machines out. Guard an endpoint reachable from the network with MCPBearerTokenAuthenticationCopy instead.!
 
+!MCPCallLog commentStamp: '<historical>' prior: 0!
+I am where a server records the tool calls it answers, so that how a client uses it can be measured afterwards.
+
+A server records every call through me: it hands me the block that answers the call, the name of the tool and the arguments, and I answer what the block does. What I keep of it is up to my subclasses.!
+
+!MCPJsonLinesCallLog commentStamp: '<historical>' prior: 0!
+I record each call as one line of JSON, appended to a file or written wherever the block I was created with writes.
+
+A record says the session and the number of the call in it, when it was received, the image, the tool, its arguments, what it answered or the error it failed with, and how many milliseconds it took. Each line stands alone, so a file can be read with any JSON reader a line at a time, and a run cut short loses one record at most.!
+
+!MCPNullCallLog commentStamp: '<historical>' prior: 0!
+I am the log of a server that records nothing, which is what a server has unless it is told where to log.
+
+I evaluate the block I am handed and keep nothing of it.!
+
 !MCPDebuggingSession commentStamp: '<historical>' prior: 0!
 I am the debugger an MCP client is driving.
 
@@ -588,6 +633,88 @@ authorizes: aWebRequest
 	"Every request is served: the endpoint asks for no credentials."
 
 	^true! !
+
+!MCPCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:03:58 pm (UTC)'!
+record: aBlock of: aToolName with: anArguments
+
+	^self subclassResponsibility! !
+
+!MCPJsonLinesCallLog methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 9:04:08 pm (UTC)'!
+initializeWritingWith: aWriterBlock ofImageNamed: anImageName
+
+	writer := aWriterBlock.
+	imageName := anImageName.
+	session := UUID new printString.
+	sequence := 0! !
+
+!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:12 pm (UTC)'!
+nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue
+
+	sequence := sequence + 1.
+
+	^OrderedDictionary new
+		at: 'session' put: session;
+		at: 'sequence' put: sequence;
+		at: 'at' put: aDateAndTime printString;
+		at: 'image' put: imageName;
+		at: 'tool' put: aToolName;
+		at: 'arguments' put: anArguments;
+		at: 'milliseconds' put: Time millisecondClockValue - aMillisecondClockValue;
+		yourself! !
+
+!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:15 pm (UTC)'!
+nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue answering: anAnswer
+
+	^(self nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue)
+		at: 'isError' put: false;
+		at: 'answer' put: anAnswer;
+		yourself! !
+
+!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:17 pm (UTC)'!
+nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue failingWith: anError
+
+	^(self nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue)
+		at: 'isError' put: true;
+		at: 'error' put: anError printString;
+		yourself! !
+
+!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:10 pm (UTC)'!
+record: aBlock of: aToolName with: anArguments
+
+	| receivedAt startedAt answer |
+
+	receivedAt := DateAndTime now.
+	startedAt := Time millisecondClockValue.
+	answer := [ aBlock value ]
+		on: Error
+		do: [ :anError |
+			self write: (self nextRecordOf: aToolName with: anArguments receivedAt: receivedAt startedAt: startedAt failingWith: anError).
+			anError pass ].
+	self write: (self nextRecordOf: aToolName with: anArguments receivedAt: receivedAt startedAt: startedAt answering: answer).
+
+	^answer! !
+
+!MCPJsonLinesCallLog methodsFor: 'writing' stamp: 'HAW 9/Sep/2026, 9:04:19 pm (UTC)'!
+write: aRecord
+
+	writer value: [ :aStream | aStream nextPutAll: (Json render: aRecord); newLine ]! !
+
+!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 9:04:05 pm (UTC)'!
+toFile: aFileName ofImageNamed: anImageName
+
+	^self
+		writingWith: [ :aWritingBlock | aFileName asFileEntry appendStreamDo: aWritingBlock ]
+		ofImageNamed: anImageName! !
+
+!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 9:04:03 pm (UTC)'!
+writingWith: aWriterBlock ofImageNamed: anImageName
+
+	^self new initializeWritingWith: aWriterBlock ofImageNamed: anImageName! !
+
+!MCPNullCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:01 pm (UTC)'!
+record: aBlock of: aToolName with: anArguments
+
+	^aBlock value! !
 
 !MCPDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 finish
@@ -1086,7 +1213,7 @@ applySourceChanging: aRefactoring to: aMethod
 
 	^(self applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 7/Sep/2026, 7:04:28 pm (UTC)'!
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 9:04:36 pm (UTC)'!
 initializeServingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
 
 	transport := aTransport.
@@ -1094,11 +1221,9 @@ initializeServingOver: aTransport smalltalk: aSmalltalk providing: someToolGroup
 	toolGroupClasses := someToolGroupClasses.
 	toolDecoratorClasses := someDecoratorClasses.
 	running := false.
-	calledTools := Bag new.
-	
-	self 
-		initializeTools;
-		doNotLogMessages! !
+	callLog := MCPNullCallLog new.
+
+	self initializeTools! !
 
 !MCPServer methodsFor: 'initialization' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
 initializeTools
@@ -1110,48 +1235,30 @@ initializeTools
 
 ! !
 
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:32:05 pm (UTC)'!
-doNotLogMessages
+!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:50 pm (UTC)'!
+defaultCallLogFileName
 
-	shouldLogMessages := false! !
+	^(smalltalk imageName withoutSuffix: '.image') , '-mcp-calls.jsonl'! !
 
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-logAnswered: response receivedAt: receivedTime
+!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:47 pm (UTC)'!
+logCalls
 
-	shouldLogMessages ifTrue: [
-		| answeredTime |
-	
-		answeredTime := DateAndTime now.
-		Transcript 
-			show: answeredTime printString; 
-			show: ' Answered after: '; 
-			show: (answeredTime - receivedTime) printString;
-			newLine;
-			flush ]
+	self logCallsTo: self defaultCallLogFileName! !
 
-	! !
+!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:43 pm (UTC)'!
+logCallsIn: aCallLog
 
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-logMessages
+	callLog := aCallLog! !
 
-	shouldLogMessages := true! !
+!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:45 pm (UTC)'!
+logCallsTo: aFileName
 
-!MCPServer methodsFor: 'logging' stamp: 'HAW 19/Aug/2026, 8:31:54 pm (UTC)'!
-logReceived: request
-	
-	| receivedTime |
-	
-	receivedTime := DateAndTime now.
-	shouldLogMessages ifTrue: [
-		Transcript 
-			show: receivedTime printString; 
-			show: ' Received: ';
-			show: (request ifNil: [ 'nil request'] ifNotNil: [request at: 'method' ifAbsent: ['no method found...']]);
-			newLine;
-			flush ].
-			
-	^receivedTime
-	! !
+	self logCallsIn: (MCPJsonLinesCallLog toFile: aFileName ofImageNamed: smalltalk imageName)! !
+
+!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:53 pm (UTC)'!
+stopLoggingCalls
+
+	self logCallsIn: MCPNullCallLog new! !
 
 !MCPServer methodsFor: 'running' stamp: ''!
 isRunning
@@ -1208,19 +1315,6 @@ handleNotification: aMethod with: aParams
 	
 	^nil! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 8:57:28 pm (UTC)'!
-handleRequest: aRequest
-	
-	| method id params |
-
-	method := aRequest at: 'method' ifAbsent: [ ^ nil ].
-	id := aRequest at: 'id' ifAbsent: [ nil ].
-	params := aRequest at: 'params' ifAbsent: [ Dictionary new ].
-	
-	^id 
-		ifNil: [ self handleNotification: method with: params ]
-		ifNotNil: [ self handleMethod: method with: params identifiedAs: id ]! !
-
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:12:43 pm (UTC)'!
 jsonResponseTo: aJsonString
 
@@ -1232,17 +1326,21 @@ jsonResponseTo: aJsonString
 
 	^(self responseTo: request) ifNotNil: [ :response | Json render: response ]! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 10:13:30 pm (UTC)'!
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 9/Sep/2026, 9:22:16 pm (UTC)'!
 responseTo: aRequest
 
-	| receivedTime response |
+	| id params |
 
-	receivedTime := self logReceived: aRequest.
-	response := self handleRequest: aRequest.
-	response ifNotNil: [ :anAnswer |
-		self logAnswered: anAnswer receivedAt: receivedTime ].
+	id := aRequest at: 'id' ifAbsent: [ nil ].
+	params := aRequest at: 'params' ifAbsent: [ Dictionary new ].
 
-	^response! !
+	^aRequest
+		at: 'method'
+		ifPresent: [ :aMethod |
+			id
+				ifNil: [ self handleNotification: aMethod with: params ]
+				ifNotNil: [ self handleMethod: aMethod with: params identifiedAs: id ] ]
+		ifAbsent: [ nil ]! !
 
 !MCPServer methodsFor: 'responses - error' stamp: 'HAW 19/Aug/2026, 9:08:53 pm (UTC)'!
 errorFor: aCode with: aMessage
@@ -1354,14 +1452,13 @@ toolDefinitions
 	^tools values collect: [ :eachTool | eachTool definition ]
 ! !
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 27/Aug/2026, 9:45:29 pm (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 9/Sep/2026, 9:04:38 pm (UTC)'!
 executeTool: aToolName arguments: anArguments
 
-	calledTools add: aToolName.
-	
-	^(self toolNamed: aToolName) valueWithArguments: anArguments
-
-! !
+	^callLog
+		record: [ (self toolNamed: aToolName) valueWithArguments: anArguments ]
+		of: aToolName
+		with: anArguments! !
 
 !MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
 signalUnknownTool: aToolName
