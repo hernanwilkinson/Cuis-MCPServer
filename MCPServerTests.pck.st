@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 10 September 2026 at 2:21:35 pm'!
-'Description Drop the image name from the call log'!
-!provides: 'MCPServerTests' 1 66!
+'From Cuis7.9 [latest update: #8163] on 10 September 2026 at 3:45:23 pm'!
+'Description Turn the call log on from the command line'!
+!provides: 'MCPServerTests' 1 67!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -766,10 +766,10 @@ evaluate: aCode
 
 	^client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: aCode)! !
 
-!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:59 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 10/Sep/2026, 6:38:51 pm (UTC)'!
 probeLogFileName
 
-	^(DirectoryEntry currentDirectory // 'mcp-calls-probe.jsonl') pathName! !
+	^(DirectoryEntry currentDirectory // 'mcp-calls-probe-mcp-calls.jsonl') pathName! !
 
 !MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:56 pm (UTC)'!
 recordedCalls
@@ -781,6 +781,16 @@ recordsIn: aText
 
 	^(aText lines reject: [ :eachLine | eachLine isEmpty ])
 		collect: [ :eachLine | Json readFrom: eachLine readStream ]! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 10/Sep/2026, 6:38:53 pm (UTC)'!
+recordsInTheProbeFile
+
+	^self recordsIn: (self probeLogFileName asFileEntry readStreamDo: [ :aStream | aStream contents ])! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 10/Sep/2026, 6:38:46 pm (UTC)'!
+smalltalkForTheServer
+
+	^self! !
 
 !MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:01 pm (UTC)'!
 testACallIsRecordedWithWhatItWasAskedAndWhatItAnswered
@@ -811,19 +821,16 @@ testAFailingCallIsRecordedAsAnErrorAndStillFails
 	self assert: (record at: 'error') equals: (self serverErrorTextFor: 'probe').
 	self deny: (record includesKey: 'answer')! !
 
-!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 10/Sep/2026, 5:16:45 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 10/Sep/2026, 6:38:55 pm (UTC)'!
 testALogToAFileAppendsALineACall
-
-	| calls |
 
 	server logCallsIn: (MCPJsonLinesCallLog toFile: self probeLogFileName).
 
 	self evaluate: '1'.
 	self evaluate: '2'.
 
-	calls := self recordsIn: (self probeLogFileName asFileEntry readStreamDo: [ :aStream | aStream contents ]).
-	self assert: calls size equals: 2.
-	self assert: (calls last at: 'answer') equals: '2'! !
+	self assert: self recordsInTheProbeFile size equals: 2.
+	self assert: (self recordsInTheProbeFile last at: 'answer') equals: '2'! !
 
 !MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 10/Sep/2026, 5:16:13 pm (UTC)'!
 testARecordSaysWhenAndHowLongTheCallTook
@@ -848,6 +855,39 @@ testCallsAreNumberedInTheOrderTheyWereMadeWithinTheSession
 	calls := self recordedCalls.
 	self assert: (calls collect: [ :eachCall | eachCall at: 'sequence' ]) asArray equals: #(1 2).
 	self assert: (calls first at: 'session') equals: (calls last at: 'session')! !
+
+!MCPCallLogTest methodsFor: 'smalltalk protocol' stamp: 'HAW 10/Sep/2026, 6:38:48 pm (UTC)'!
+imageName
+
+	^(DirectoryEntry currentDirectory // 'mcp-calls-probe.image') pathName! !
+
+!MCPCallLogTest methodsFor: 'tests - command line' stamp: 'HAW 10/Sep/2026, 6:38:57 pm (UTC)'!
+testTheCommandLineCanAskToLogTheCallsNextToTheImage
+
+	MCPServer logCallsOf: server asAskedIn: { MCPServer httpArgument. MCPServer logCallsArgument }.
+
+	self evaluate: '1'.
+
+	self assert: self recordsInTheProbeFile size equals: 1! !
+
+!MCPCallLogTest methodsFor: 'tests - command line' stamp: 'HAW 10/Sep/2026, 6:39:00 pm (UTC)'!
+testTheCommandLineCanNameTheFileToLogTheCallsTo
+
+	MCPServer logCallsOf: server asAskedIn: { MCPServer logCallsFileArgumentPrefix , self probeLogFileName }.
+
+	self evaluate: '1'.
+
+	self assert: self recordsInTheProbeFile size equals: 1! !
+
+!MCPCallLogTest methodsFor: 'tests - command line' stamp: 'HAW 10/Sep/2026, 6:39:02 pm (UTC)'!
+testWithoutTheArgumentTheLogIsLeftAsItIs
+
+	MCPServer logCallsOf: server asAskedIn: { MCPServer httpArgument }.
+
+	self evaluate: '1'.
+
+	self assert: self recordedCalls size equals: 1.
+	self deny: self probeLogFileName asFileEntry exists! !
 
 !MCPDebuggingToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:49:13 am (UTC)'!
 tearDown

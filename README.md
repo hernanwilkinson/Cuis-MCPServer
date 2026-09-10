@@ -88,6 +88,8 @@ the options below.
 | `--mcpHttpPort=<port>` | Serve MCP over HTTP on `<port>` |
 | `--mcpStdIO` | Serve MCP over standard input/output |
 | `--noAuthentication` | Serve every client, whatever `SMALLTALK_MCP_TOKEN` says |
+| `--mcpLogCalls` | Log every tool call to a file next to the image, named after it |
+| `--mcpLogCalls=<file>` | Log every tool call to `<file>` |
 
 `--mcpStdIO` and `--mcpHttp` are mutually exclusive: the image serves one transport.
 
@@ -188,7 +190,14 @@ again: MCP clients read the list of tools once.
 ## Logging the calls
 
 A server records nothing unless told where to. Told, it appends one line of JSON per tool call
-to a file, which is what to measure how a client uses the server from:
+to a file, which is what to measure how a client uses the server from. From the command line:
+
+```bash
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --mcpLogCalls
+/path/to/Squeak /path/to/Cuis-MCP.image --mcpHttp --mcpLogCalls=/path/to/mcp-calls.jsonl
+```
+
+or on a running server:
 
 ```smalltalk
 server logCalls.                            "next to the image, named after it"

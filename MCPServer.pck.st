@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 10 September 2026 at 2:21:29 pm'!
-'Description Drop the image name from the call log'!
-!provides: 'MCPServer' 1 79!
+'From Cuis7.9 [latest update: #8163] on 10 September 2026 at 3:45:17 pm'!
+'Description Turn the call log on from the command line'!
+!provides: 'MCPServer' 1 80!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1658,10 +1658,40 @@ isHttpRequested
 
 	^Smalltalk startUpArguments anySatisfy: [ :anArgument | self isHttpArgument: anArgument ]! !
 
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 10/Sep/2026, 6:38:18 pm (UTC)'!
+isLogCallsArgument: anArgument
+
+	^anArgument = self logCallsArgument or: [ anArgument beginsWith: self logCallsFileArgumentPrefix ]! !
+
 !MCPServer class methodsFor: 'command line' stamp: ''!
 isStandardInputOutputRequested
 
 	^Smalltalk startUpArguments includes: self standardInputOutputArgument! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 10/Sep/2026, 6:38:13 pm (UTC)'!
+logCallsArgument
+
+	^'--mcpLogCalls'! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 10/Sep/2026, 6:38:15 pm (UTC)'!
+logCallsFileArgumentPrefix
+
+	^'--mcpLogCalls='! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 10/Sep/2026, 6:38:23 pm (UTC)'!
+logCallsOf: aServer asAskedBy: aLogArgument
+
+	aLogArgument = self logCallsArgument
+		ifTrue: [ aServer logCalls ]
+		ifFalse: [ aServer logCallsTo: (aLogArgument allButFirst: self logCallsFileArgumentPrefix size) ]! !
+
+!MCPServer class methodsFor: 'command line' stamp: 'HAW 10/Sep/2026, 6:38:21 pm (UTC)'!
+logCallsOf: aServer asAskedIn: someArguments
+
+	someArguments
+		detect: [ :anArgument | self isLogCallsArgument: anArgument ]
+		ifFound: [ :aLogArgument | self logCallsOf: aServer asAskedBy: aLogArgument ]
+		ifNone: [ aServer ]! !
 
 !MCPServer class methodsFor: 'command line' stamp: 'HAW 24/Aug/2026, 10:35:30 pm (UTC)'!
 noAuthenticationArgument
@@ -1702,7 +1732,7 @@ shutDown: isQuitting
 	OnStartupInstance ifNotNil: [ :aServer | aServer stop ].
 	OnStartupInstance := nil! !
 
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:34 pm (UTC)'!
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 10/Sep/2026, 6:38:25 pm (UTC)'!
 startHttpServer
 
 	"Serve MCP over HTTP. The web server listens in processes of its own, so running the
@@ -1711,13 +1741,14 @@ startHttpServer
 	| server |
 
 	server := self servingOverHttpAtPort: self httpPortNumberFromArguments.
+	self logCallsOf: server asAskedIn: Smalltalk startUpArguments.
 	[ (Delay forMilliseconds: 500) wait.
 	server run ]
 		forkAt: Processor userBackgroundPriority named: 'MCP HTTP Server'.
 
 	^server! !
 
-!MCPServer class methodsFor: 'startup' stamp: 'HAW 28/Aug/2026, 6:05:39 pm (UTC)'!
+!MCPServer class methodsFor: 'startup' stamp: 'HAW 10/Sep/2026, 6:38:28 pm (UTC)'!
 startStdIOServer
 
 	"Serve MCP over the standard streams in a background process, so the graphical interface
@@ -1726,6 +1757,7 @@ startStdIOServer
 	| server |
 
 	server := self servingOverStandardInputOutput.
+	self logCallsOf: server asAskedIn: Smalltalk startUpArguments.
 	[ (Delay forMilliseconds: 500) wait.
 	server run ]
 		forkAt: Processor userBackgroundPriority named: 'MCP StdIO Server'.
