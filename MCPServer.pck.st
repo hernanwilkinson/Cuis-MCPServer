@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 6:25:42 pm'!
-'Description Record every tool call as a line of JSON for benchmarks'!
-!provides: 'MCPServer' 1 78!
+'From Cuis7.9 [latest update: #8160] on 10 September 2026 at 2:21:29 pm'!
+'Description Drop the image name from the call log'!
+!provides: 'MCPServer' 1 79!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -49,7 +49,7 @@ MCPCallLog class
 
 !classDefinition: #MCPJsonLinesCallLog category: #MCPServer!
 MCPCallLog subclass: #MCPJsonLinesCallLog
-	instanceVariableNames: 'writer imageName session sequence'
+	instanceVariableNames: 'writer session sequence'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -639,15 +639,14 @@ record: aBlock of: aToolName with: anArguments
 
 	^self subclassResponsibility! !
 
-!MCPJsonLinesCallLog methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 9:04:08 pm (UTC)'!
-initializeWritingWith: aWriterBlock ofImageNamed: anImageName
+!MCPJsonLinesCallLog methodsFor: 'initialization' stamp: 'HAW 10/Sep/2026, 5:16:39 pm (UTC)'!
+initializeWritingWith: aWriterBlock
 
 	writer := aWriterBlock.
-	imageName := anImageName.
 	session := UUID new printString.
 	sequence := 0! !
 
-!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:12 pm (UTC)'!
+!MCPJsonLinesCallLog methodsFor: 'recording' stamp: 'HAW 10/Sep/2026, 5:15:53 pm (UTC)'!
 nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aMillisecondClockValue
 
 	sequence := sequence + 1.
@@ -656,7 +655,6 @@ nextRecordOf: aToolName with: anArguments receivedAt: aDateAndTime startedAt: aM
 		at: 'session' put: session;
 		at: 'sequence' put: sequence;
 		at: 'at' put: aDateAndTime printString;
-		at: 'image' put: imageName;
 		at: 'tool' put: aToolName;
 		at: 'arguments' put: anArguments;
 		at: 'milliseconds' put: Time millisecondClockValue - aMillisecondClockValue;
@@ -699,17 +697,15 @@ write: aRecord
 
 	writer value: [ :aStream | aStream nextPutAll: (Json render: aRecord); newLine ]! !
 
-!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 9:04:05 pm (UTC)'!
-toFile: aFileName ofImageNamed: anImageName
+!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 10/Sep/2026, 5:16:35 pm (UTC)'!
+toFile: aFileName
 
-	^self
-		writingWith: [ :aWritingBlock | aFileName asFileEntry appendStreamDo: aWritingBlock ]
-		ofImageNamed: anImageName! !
+	^self writingWith: [ :aWritingBlock | aFileName asFileEntry appendStreamDo: aWritingBlock ]! !
 
-!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 9:04:03 pm (UTC)'!
-writingWith: aWriterBlock ofImageNamed: anImageName
+!MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 10/Sep/2026, 5:16:37 pm (UTC)'!
+writingWith: aWriterBlock
 
-	^self new initializeWritingWith: aWriterBlock ofImageNamed: anImageName! !
+	^self new initializeWritingWith: aWriterBlock! !
 
 !MCPNullCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:04:01 pm (UTC)'!
 record: aBlock of: aToolName with: anArguments
@@ -1250,10 +1246,10 @@ logCallsIn: aCallLog
 
 	callLog := aCallLog! !
 
-!MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:45 pm (UTC)'!
+!MCPServer methodsFor: 'logging' stamp: 'HAW 10/Sep/2026, 5:16:15 pm (UTC)'!
 logCallsTo: aFileName
 
-	self logCallsIn: (MCPJsonLinesCallLog toFile: aFileName ofImageNamed: smalltalk imageName)! !
+	self logCallsIn: (MCPJsonLinesCallLog toFile: aFileName)! !
 
 !MCPServer methodsFor: 'logging' stamp: 'HAW 9/Sep/2026, 9:04:53 pm (UTC)'!
 stopLoggingCalls

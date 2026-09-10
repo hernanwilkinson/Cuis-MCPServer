@@ -202,7 +202,7 @@ server is reached with `MCPServer allInstances`, or kept from `run` as above.
 Each line stands alone:
 
 ```json
-{"session":"da6f7c2e-…","sequence":12,"at":"2026-09-09T16:02:11-03:00","image":"/…/Cuis-MCP.image","tool":"smalltalk_method_source","arguments":{"className":"MCPServer","selector":"responseTo:"},"milliseconds":3,"isError":false,"answer":"{\"source\": …}"}
+{"session":"da6f7c2e-…","sequence":12,"at":"2026-09-09T16:02:11-03:00","tool":"smalltalk_method_source","arguments":{"className":"MCPServer","selector":"responseTo:"},"milliseconds":3,"isError":false,"answer":"{\"source\": …}"}
 ```
 
 | Field | |
@@ -210,7 +210,6 @@ Each line stands alone:
 | `session` | A UUID made when logging starts, so runs of different client sessions can be told apart |
 | `sequence` | The number of the call within the session, so the order is explicit even when times collide |
 | `at` | When the call was received |
-| `image` | The image that served it |
 | `tool` | The tool called |
 | `arguments` | Everything the client sent, as it sent it |
 | `milliseconds` | How long the call took |

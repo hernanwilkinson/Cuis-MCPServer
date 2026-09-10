@@ -38,6 +38,15 @@ Errors and shortcomings found in the refactorings while driving them through the
   return statement flush left (`^aRequest` at column 0). Fix: format the inlined statements as a
   method body — empty line after the temporaries, one tab of indentation.
 
+## RemoveParameter
+
+- [ ] **Leaves the whitespace of the removed keyword behind.** Removing `ofImageNamed:` from
+  `MCPJsonLinesCallLog class>>toFile:ofImageNamed:`, `writingWith:ofImageNamed:` and the
+  `initialize…` left a trailing space after every rewritten selector (`toFile: aFileName `), a
+  dangling indented empty line where the keyword stood in a multi-line send, and a space before
+  the closing parenthesis of a sender (`toFile: aFileName )`). Five methods cleaned by hand.
+  Fix: take the keyword out together with the separators around it.
+
 ## MoveMethod (ExtraRefactorings)
 
 - [ ] **Moving through a global keeps the global in the moved body.** Moving

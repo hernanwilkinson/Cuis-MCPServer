@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 6:25:48 pm'!
-'Description Record every tool call as a line of JSON for benchmarks'!
-!provides: 'MCPServerTests' 1 65!
+'From Cuis7.9 [latest update: #8160] on 10 September 2026 at 2:21:35 pm'!
+'Description Drop the image name from the call log'!
+!provides: 'MCPServerTests' 1 66!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -748,14 +748,12 @@ toolGroupClasses
 
 	^{ MCPImageTools }! !
 
-!MCPCallLogTest methodsFor: 'running' stamp: 'HAW 9/Sep/2026, 9:05:47 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'running' stamp: 'HAW 10/Sep/2026, 5:16:42 pm (UTC)'!
 setUp
 
 	super setUp.
 	records := WriteStream on: String new.
-	server logCallsIn: (MCPJsonLinesCallLog
-		writingWith: [ :aWritingBlock | aWritingBlock value: records ]
-		ofImageNamed: 'probe.image')! !
+	server logCallsIn: (MCPJsonLinesCallLog writingWith: [ :aWritingBlock | aWritingBlock value: records ])! !
 
 !MCPCallLogTest methodsFor: 'running' stamp: 'HAW 9/Sep/2026, 9:05:50 pm (UTC)'!
 tearDown
@@ -813,12 +811,12 @@ testAFailingCallIsRecordedAsAnErrorAndStillFails
 	self assert: (record at: 'error') equals: (self serverErrorTextFor: 'probe').
 	self deny: (record includesKey: 'answer')! !
 
-!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:10 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 10/Sep/2026, 5:16:45 pm (UTC)'!
 testALogToAFileAppendsALineACall
 
 	| calls |
 
-	server logCallsIn: (MCPJsonLinesCallLog toFile: self probeLogFileName ofImageNamed: 'probe.image').
+	server logCallsIn: (MCPJsonLinesCallLog toFile: self probeLogFileName).
 
 	self evaluate: '1'.
 	self evaluate: '2'.
@@ -827,15 +825,14 @@ testALogToAFileAppendsALineACall
 	self assert: calls size equals: 2.
 	self assert: (calls last at: 'answer') equals: '2'! !
 
-!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:03 pm (UTC)'!
-testARecordSaysWhenWhereAndHowLongTheCallTook
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 10/Sep/2026, 5:16:13 pm (UTC)'!
+testARecordSaysWhenAndHowLongTheCallTook
 
 	| record |
 
 	self evaluate: '3 + 4'.
 
 	record := self recordedCalls first.
-	self assert: (record at: 'image') equals: 'probe.image'.
 	self assert: (record at: 'milliseconds') >= 0.
 	self deny: (record at: 'at') isEmpty.
 	self deny: (record at: 'session') isEmpty! !
