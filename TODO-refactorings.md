@@ -62,7 +62,7 @@ Errors and shortcomings found in the refactorings while driving them through the
   `applyReportingChanges: aRefactoring\n\t^MCPRefactoringApplier applyReportingChanges: aRefactoring.`
   — no empty line after the selector and a trailing period.
   Fix: `selector\n\n\t^receiver selector` like every other generated method.
-- [ ] **Publish the base-image change that lets a global be the receiver.**
+- [x] **Publish the base-image change that lets a global be the receiver.** Done: commit `9f658f6` of Cuis-Smalltalk-Refactoring.
   `MoveMethod class>>methodNamed:from:to:accessingThrough:parameterNeeded:` now accepts a
   global (`is:aVariableOf:reachedIn:`, `isGlobalNamed:`; the no-assignment warning only for
   variables) and `MoveMethodTest>>test701CanMoveInstanceMethodToTheClassOfWhatAGlobalHolds`
