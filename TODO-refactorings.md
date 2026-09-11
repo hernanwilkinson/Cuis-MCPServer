@@ -26,6 +26,15 @@ Errors and shortcomings found in the refactorings while driving them through the
   stayed behind and had to be pushed up in a second call. Either the dependants are looked for
   among unary sends only, or a send that is the receiver of a cascade is not seen.
 
+## MCP tool findings (fixed on the way)
+
+- [x] **`smalltalk_refactor_extract_method` refused a piece using a variable unless `argumentNames`
+  was sent**, although the property is optional: the asked names were counted against the
+  parameters even when none were asked. Fixed in `MCPRefactoringTools>>namesRenaming:asAskedIn:`.
+- [x] **`smalltalk_refactor_add_parameter` failed with `String>>isKeyword` on a keyword selector**:
+  the keyword reached `AddParameter` as a string, and the only test added to a unary selector.
+  Fixed: the keyword property answers a symbol; test added for a keyword selector.
+
 ## InlineMethod
 
 - [x] **Leaves a period after the inlined statement.** Done in the image (`InlineMethod>>replaceRange:withNewSourceCode:inMethod:` drops the copied period when a `]`, a period or the end of the source follows and the sender had none; `InlineMethodTest` 34 and 35, seven expectations corrected). Inside a block the result is

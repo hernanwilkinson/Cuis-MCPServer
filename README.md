@@ -260,25 +260,25 @@ Requires `WebClient`, `JSON` and `OSProcess`. The server, the transports and the
 
 #### Reading and writing code
 
-`smalltalk_class_source` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` one side or one category, all much cheaper than a call per method.
+`smalltalk_class_source` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` one side or one category, all much cheaper than a call per method. Every tool that reads or removes takes several classes (`classNames`), methods (`methods`, as `Class>>selector`) or selectors (`selectors`), separated by commas, and answers under each one's name; a class or method that is not there fails the whole call before anything is done.
 `smalltalk_define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
 
 <!-- tools MCPServer MCPModelStructureTools -->
 ##### `smalltalk_class_definition`
 
-Read the definition of a class: its superclass, its instance and class variables, its selectors and its comment.
+Read the definition of several classes in one call: for each, its superclass, its instance and class variables, its selectors and its comment.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class, or of its class side as in MCPServer class |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 ##### `smalltalk_class_organization`
 
-List the method categories of a class, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.
+List, for each class named, its method categories, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class, or of its class side as in MCPServer class |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 ##### `smalltalk_class_source`
 
@@ -327,28 +327,28 @@ Define or modify several methods in one call, each on its class and under its ca
 
 ##### `smalltalk_delete_class`
 
-Remove a class from the system.
+Remove several classes from the system in one call, in the order named, and answer the ones removed.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class to remove |
+| `classNames` | required | Names of the classes to remove, separated by commas |
 
 ##### `smalltalk_delete_method`
 
-Remove a method from a class.
-
-| Parameter | | |
-| --- | --- | --- |
-| `className` | required | Name of the class that implements the method |
-| `selector` | required | Selector of the method to remove |
-
-##### `smalltalk_hierarchy`
-
-Get the inheritance hierarchy for a class (from Object down to the class).
+Remove several methods of a class in one call, and answer the ones removed. A selector the class does not implement fails the whole call before anything is removed.
 
 | Parameter | | |
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
+| `selectors` | required | Selectors of the methods to remove, separated by commas |
+
+##### `smalltalk_hierarchy`
+
+Answer, for each class named, the class and all its superclasses, from the class up to ProtoObject.
+
+| Parameter | | |
+| --- | --- | --- |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 ##### `smalltalk_list_categories`
 
@@ -364,12 +364,11 @@ List all classes in the system, optionally filtered by prefix.
 
 ##### `smalltalk_method_source`
 
-Get the source code of a specific method, as the source field of the answer.
+Read the source code of several methods in one call, each under its name as Class>>#selector, in the source field.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class that implements the method |
-| `selector` | required | Selector of the method |
+| `methods` | required | The methods, written as Class>>selector and separated by commas. A class side is named the way it prints, as in MCPServer class>>startUp: |
 
 ##### `smalltalk_method_sources_in_category`
 
@@ -399,11 +398,11 @@ List the selectors a class files under one of its method categories. Name the cl
 
 ##### `smalltalk_subclasses`
 
-Get the direct subclasses of a class.
+Answer, for each class named, its direct subclasses.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class, or of its class side as in MCPServer class |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 <!-- /tools -->
 
@@ -414,19 +413,19 @@ Get the direct subclasses of a class.
 <!-- tools MCPServer MCPSearchTools -->
 ##### `smalltalk_implementors_of`
 
-List the methods that implement a selector, in the methods field of the answer.
+List the methods that implement each of several selectors, under the selector, in its methods field.
 
 | Parameter | | |
 | --- | --- | --- |
-| `selector` | required | Selector the methods implement |
+| `selectors` | required | Selectors the methods implement, separated by commas |
 
 ##### `smalltalk_references_to_class`
 
-List the methods that refer to a class.
+List the methods that refer to each of several classes, under the class name, in its methods field.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class, or of its class side as in MCPServer class |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 ##### `smalltalk_references_to_class_variable`
 
@@ -464,11 +463,11 @@ List the methods whose source code contains a text, case sensitively. Class comm
 
 ##### `smalltalk_senders_of`
 
-List the methods that send a selector, in the methods field of the answer. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.
+List the methods that send each of several selectors, under the selector, in its methods field. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.
 
 | Parameter | | |
 | --- | --- | --- |
-| `selector` | required | Selector the methods send |
+| `selectors` | required | Selectors the methods send, separated by commas |
 
 <!-- /tools -->
 
@@ -615,11 +614,11 @@ Run the tests of several classes as one suite and answer how many tests passed, 
 
 ##### `smalltalk_run_tests_in_category`
 
-Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.
+Run every test of the test case classes of several class categories as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.
 
 | Parameter | | |
 | --- | --- | --- |
-| `categoryName` | required | Name of the class category |
+| `categoryNames` | required | Names of the class categories, separated by commas |
 
 <!-- /tools -->
 
@@ -1107,10 +1106,10 @@ List the classes a parameter or a temporary of a method has held while the image
 
 | Tool | With LiveTyping |
 | --- | --- |
-| `smalltalk_method_source` | Answers `returns` and `variables` next to `source`: the classes the method answered, and the ones each parameter, temporary and instance variable of its class held |
-| `smalltalk_class_definition` | Answers `instanceVariableTypes`: the classes each instance variable held |
-| `smalltalk_senders_of` | Answers `actual` next to `methods`: the ones LiveTyping saw really sending the selector to an object of the class named in the new optional `className`, or of one of its subclasses; without a class, to an object of any class that implements it. A method in `methods` and not in `actual` writes the selector for something else |
-| `smalltalk_implementors_of` | Takes an optional `className` and answers, in `actual`, the implementors in the hierarchy of that class — the ones a send to an object of it could really reach |
+| `smalltalk_method_source` | Answers, under each method, `returns` and `variables` next to `source`: the classes the method answered, and the ones each parameter, temporary and instance variable of its class held |
+| `smalltalk_class_definition` | Answers, under each class, `instanceVariableTypes`: the classes each instance variable held |
+| `smalltalk_senders_of` | Answers, under each selector, `actual` next to `methods`: the ones LiveTyping saw really sending the selector to an object of the class named in the new optional `className`, or of one of its subclasses; without a class, to an object of any class that implements it. A method in `methods` and not in `actual` writes the selector for something else |
+| `smalltalk_implementors_of` | Takes an optional `className` and answers, under each selector in `actual`, the implementors in the hierarchy of that class — the ones a send to an object of it could really reach |
 
 ### MCPServerLiveTypingRefactorings
 
@@ -1226,9 +1225,9 @@ Each package has a test package next to it, listed in [Loading the server](#load
 They run a server over a mock transport and a mock client that speaks real JSON-RPC to it, so
 every tool is exercised the way a real client would, and each test class builds its server with
 only the tool groups and decorators it tests. Run them from the image, or through the server:
-`smalltalk_run_tests_in_category` with `MCPServerTests`, `MCPServerLiveTypingTests`,
-`MCPServerLiveTypingRefactoringsTests`, `MCPServerExtraRefactoringTest`,
-`MCPServerExtraLiveTypingRefactoringsTests` or `MCPServerMethodFinderTests`.
+`smalltalk_run_tests_in_category` with `MCPServerTests, MCPServerLiveTypingTests,
+MCPServerLiveTypingRefactoringsTests, MCPServerExtraRefactoringTest,
+MCPServerExtraLiveTypingRefactoringsTests, MCPServerMethodFinderTests` runs all six as one suite.
 
 ## Known shortcomings of the refactorings
 

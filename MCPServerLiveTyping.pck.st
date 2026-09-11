@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:04:40 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerLiveTyping' 1 24!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:12:22 pm'!
+'Description Take several items in every reading and removing tool'!
+!provides: 'MCPServerLiveTyping' 1 25!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -96,15 +96,14 @@ description
 	^self decoratee description ,
 		' Naming a class adds, in actual, the implementors in the hierarchy of that class, which are the ones a send to an object of it could really reach: the ones implemented by it and by every subclass of the one highest up among its superclasses that implements it.'! !
 
-!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 valueWithArguments: anArguments
 
-	| answer className |
+	| answer |
 
 	answer := self decorateeAnswerFor: anArguments.
-	className := anArguments at: MCPClassProperty defaultName ifAbsent: [ '' ].
-	className ifNotEmpty: [ :aName |
-		answer at: 'actual' put: (self actualImplementorNamesOf: (anArguments at: 'selector') asSymbol in: aName) ].
+	(anArguments at: MCPClassProperty defaultName ifAbsent: [ '' ])
+		ifNotEmpty: [ :aClassName | self add: aClassName actualImplementorsTo: answer from: anArguments ].
 
 	^Json render: answer! !
 
@@ -116,6 +115,14 @@ actualImplementorNamesOf: aSelector in: aClassName
 		collect: [ :eachImplementor | eachImplementor stringVersion ]) asArray sort
 
 ! !
+
+!MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+add: aClassName actualImplementorsTo: anAnswer from: anArguments
+
+	(MCPToolGroup namesFrom: (anArguments at: MCPSearchTools selectorsPropertyName)) do: [ :eachSelector |
+		(anAnswer at: eachSelector)
+			at: 'actual'
+			put: (self actualImplementorNamesOf: eachSelector asSymbol in: aClassName) ]! !
 
 !MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:01 pm (UTC)'!
 decoratedToolName
@@ -137,35 +144,32 @@ description
 	^self decoratee description ,
 		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object of the class named, or of one of its subclasses; without a class, to an object of any class that implements it. They are the senders a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 9:27:15 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| answer |
 
 	answer := self decorateeAnswerFor: anArguments.
-	answer at: 'actual' put: (self actualSenderNamesFrom: anArguments).
+	(MCPToolGroup namesFrom: (anArguments at: MCPSearchTools selectorsPropertyName)) do: [ :eachSelector |
+		(answer at: eachSelector)
+			at: 'actual'
+			put: (self actualSenderNamesOf: eachSelector asSymbol from: anArguments) ].
 
-	^Json render: answer
-! !
+	^Json render: answer! !
 
-!MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
-actualSenderNamesFrom: anArguments
+!MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 11/Sep/2026, 2:37:18 pm (UTC)'!
+actualSenderNamesOf: aSelector from: anArguments
 
 	"Every implementor of the selector is asked who LiveTyping saw sending to it, unless a
 	client named the class it cares about."
 
-	| selector |
-
-	selector := (anArguments at: 'selector') asSymbol.
-
-	^((self implementorsOf: selector in: (anArguments at: 'className' ifAbsent: [ '' ]))
+	^((self implementorsOf: aSelector in: (anArguments at: 'className' ifAbsent: [ '' ]))
 		inject: Set new
 		into: [ :someNames :eachImplementor |
 			someNames
 				addAll: ((smalltalk allActualSendersOn: eachImplementor) first
 					collect: [ :eachSender | eachSender stringVersion ]);
-				yourself ]) asArray sort
-! !
+				yourself ]) asArray sort! !
 
 !MCPActualSendersDecorator methodsFor: 'senders' stamp: 'HAW 27/Aug/2026, 7:45:00 pm (UTC)'!
 implementorsOf: aSelector in: aClassName
@@ -197,14 +201,16 @@ description
 		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.',
 		MCPLiveTypingTools howTypesAreListedDescription! !
 
-!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 5:49:36 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 valueWithArguments: anArguments
 
-	| definedClass answer |
+	| answer |
 
-	definedClass := decoratee requestedClassFrom: anArguments.
 	answer := self decorateeAnswerFor: anArguments.
-	answer at: 'instanceVariableTypes' put: (self instanceVariableTypeNamesOf: definedClass).
+	(decoratee requestedClassesFrom: anArguments) do: [ :eachClass |
+		(answer at: eachClass name)
+			at: 'instanceVariableTypes'
+			put: (self instanceVariableTypeNamesOf: eachClass) ].
 
 	^Json render: answer! !
 
@@ -220,19 +226,18 @@ description
 		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.',
 		MCPLiveTypingTools howTypesAreListedDescription! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 valueWithArguments: anArguments
 
-	| method answer |
+	| answer |
 
-	method := MCPMethodProperty default valueFrom: anArguments.
 	answer := self decorateeAnswerFor: anArguments.
-	answer
-		at: 'returns' put: (self returnTypeNamesOf: method);
-		at: 'variables' put: (self variableTypeNamesOf: method).
+	(MCPMethodsProperty default valueFrom: anArguments) do: [ :eachMethod |
+		(answer at: eachMethod classAndSelector)
+			at: 'returns' put: (self returnTypeNamesOf: eachMethod);
+			at: 'variables' put: (self variableTypeNamesOf: eachMethod) ].
 
-	^Json render: answer
-! !
+	^Json render: answer! !
 
 !MCPMethodTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 6:59:55 pm (UTC)'!
 returnTypeNamesOf: aMethod

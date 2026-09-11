@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 11:08:43 am'!
-'Description Read whole classes in one call'!
-!provides: 'MCPServer' 1 82!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:12:11 pm'!
+'Description Take several items in every reading and removing tool'!
+!provides: 'MCPServer' 1 83!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -385,6 +385,16 @@ MCPToolProperty subclass: #MCPMethodProperty
 	category: 'MCPServer'!
 !classDefinition: 'MCPMethodProperty class' category: #MCPServer!
 MCPMethodProperty class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPMethodsProperty category: #MCPServer!
+MCPToolProperty subclass: #MCPMethodsProperty
+	instanceVariableNames: 'methodProperty'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPMethodsProperty class' category: #MCPServer!
+MCPMethodsProperty class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPPlainProperty category: #MCPServer!
@@ -2030,29 +2040,31 @@ named: aName describedBy: aDescription properties: aCollectionOfProperties
 	^self new initializeNamed: aName describedBy: aDescription properties: aCollectionOfProperties
 ! !
 
-!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 1/Sep/2026, 5:49:21 pm (UTC)'!
-requestedClassFrom: anArguments
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+definitionOf: aClass
+
+	^OrderedDictionary new
+		at: 'name' put: aClass name;
+		at: 'superclass' put: aClass superclass name;
+		at: 'category' put: aClass category;
+		at: 'instanceVariables' put: aClass instVarNames asArray;
+		at: 'classVariables' put: aClass classVarNames asArray;
+		at: 'methods' put: aClass selectors asArray sorted;
+		at: 'comment' put: (aClass comment ifNil: [ '' ]);
+		yourself! !
+
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 11/Sep/2026, 2:17:21 pm (UTC)'!
+requestedClassesFrom: anArguments
 
 	^ (self valuesFrom: anArguments) first! !
 
-!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 1/Sep/2026, 5:49:23 pm (UTC)'!
+!MCPClassDefinitionTool methodsFor: 'executing' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 valueWithArguments: anArguments
 
-	| requestedClass browsedClass |
-
-	requestedClass := self requestedClassFrom: anArguments.
-	browsedClass := OrderedDictionary new.
-	browsedClass
-		at: 'name' put: requestedClass name;
-		at: 'superclass' put: requestedClass superclass name;
-		at: 'category' put: requestedClass category;
-		at: 'instanceVariables' put: requestedClass instVarNames asArray;
-		at: 'classVariables' put: requestedClass classVarNames asArray;
-		at: 'methods' put: requestedClass selectors asArray sorted;
-		at: 'comment' put: (requestedClass comment ifNil: [ '' ]).
-
-	^Json render: browsedClass
-! !
+	^Json render: ((self requestedClassesFrom: anArguments)
+		inject: OrderedDictionary new
+		into: [ :anAnswer :eachClass |
+			anAnswer at: eachClass name put: (self definitionOf: eachClass); yourself ])! !
 
 !MCPDefineClassTool methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:48:03 am (UTC)'!
 assertCreated: aCreatedClass isNamed: aClassName
@@ -2614,23 +2626,23 @@ saveImageProcessName
 
 	^'MCP saving the image'! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 classDefinitionTool
 
 	^MCPClassDefinitionTool
 		named: self class classDefinitionToolName
-		describedBy: 'Read the definition of a class: its superclass, its instance and class variables, its selectors and its comment.'
-		properties: { MCPClassProperty default }! !
+		describedBy: 'Read the definition of several classes in one call: for each, its superclass, its instance and class variables, its selectors and its comment.'
+		properties: { MCPClassesProperty default }! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 classOrganizationTool
 
 	^MCPPluggableTool
 		named: self class classOrganizationToolName
-		describedBy: 'List the method categories of a class, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.'
-		properties: { MCPClassProperty default }
-		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
-! !
+		describedBy: 'List, for each class named, its method categories, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.'
+		properties: { MCPClassesProperty default }
+		executingWith: [ :someClasses |
+			Json render: (self forEachOf: someClasses answer: [ :eachClass | self organizationOf: eachClass ]) ]! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
 classSourceTool
@@ -2698,40 +2710,39 @@ defineMethodsTool
 		executingWith: [ :someDefinitions |
 			Json render: (someDefinitions collect: [ :eachDefinition | eachDefinition define ]) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 deleteClassTool
 
 	^MCPPluggableTool
 		named: self class deleteClassToolName
-		describedBy: 'Remove a class from the system.'
-		properties: { MCPClassProperty named: 'className' describedBy: 'Name of the class to remove' }
-		executingWith: [ :aClass |
-			aClass removeFromSystem.
-			'Class deleted successfully' ]
-! !
+		describedBy: 'Remove several classes from the system in one call, in the order named, and answer the ones removed.'
+		properties: { MCPClassesProperty
+			named: MCPClassesProperty defaultName
+			describedBy: 'Names of the classes to remove, separated by commas' }
+		executingWith: [ :someClasses | Json render: (self remove: someClasses) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 deleteMethodTool
 
 	^MCPPluggableTool
 		named: self class deleteMethodToolName
-		describedBy: 'Remove a method from a class.'
-		properties: { MCPMethodProperty selectorDescribedBy: 'Selector of the method to remove' }
-		executingWith: [ :aMethod |
-			aMethod methodClass removeSelector: aMethod selector.
-			'Method deleted successfully' ]
-! !
+		describedBy: 'Remove several methods of a class in one call, and answer the ones removed. A selector the class does not implement fails the whole call before anything is removed.'
+		properties: {
+			MCPClassProperty default.
+			MCPPlainProperty
+				named: 'selectors'
+				describedBy: 'Selectors of the methods to remove, separated by commas' }
+		executingWith: [ :aClass :someSelectors | Json render: (self remove: someSelectors from: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 hierarchyTool
 
 	^MCPPluggableTool
 		named: self class hierarchyToolName
-		describedBy: 'Get the inheritance hierarchy for a class (from Object down to the class).'
-		properties: { MCPClassProperty default }
-		executingWith: [ :aClass |
-			Json render: (aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray ]
-! !
+		describedBy: 'Answer, for each class named, the class and all its superclasses, from the class up to ProtoObject.'
+		properties: { MCPClassesProperty default }
+		executingWith: [ :someClasses |
+			Json render: (self forEachOf: someClasses answer: [ :eachClass | self hierarchyNamesOf: eachClass ]) ]! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 listCategoriesTool
@@ -2760,16 +2771,14 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 methodSourceTool
 
 	^MCPPluggableTool
 		named: self class methodSourceToolName
-		describedBy: 'Get the source code of a specific method, as the source field of the answer.'
-		properties: { MCPMethodProperty default }
-		executingWith: [ :aMethod |
-			Json render: (OrderedDictionary new at: 'source' put: aMethod sourceCode; yourself) ]
-! !
+		describedBy: 'Read the source code of several methods in one call, each under its name as Class>>#selector, in the source field.'
+		properties: { MCPMethodsProperty default }
+		executingWith: [ :someMethods | Json render: (self sourcesOfMethods: someMethods) ]! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 methodSourcesInCategoryTool
@@ -2805,17 +2814,15 @@ methodsInCategoryTool
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 subclassesTool
 
 	^MCPPluggableTool
 		named: self class subclassesToolName
-		describedBy: 'Get the direct subclasses of a class.'
-		properties: { MCPClassProperty default }
-		executingWith: [ :aClass |
-			Json render: (aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted ]
-
-! !
+		describedBy: 'Answer, for each class named, its direct subclasses.'
+		properties: { MCPClassesProperty default }
+		executingWith: [ :someClasses |
+			Json render: (self forEachOf: someClasses answer: [ :eachClass | self subclassNamesOf: eachClass ]) ]! !
 
 !MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -2857,16 +2864,12 @@ classSourceOf: aClass
 		at: 'classSide' put: (self classSideSourceOf: aClass);
 		yourself! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 classSourcesOf: someClasses
 
-	^someClasses
-		inject: OrderedDictionary new
-		into: [ :someSources :eachClass |
-			someSources
-				at: eachClass theNonMetaClass name
-				put: (self classSourceOf: eachClass theNonMetaClass);
-				yourself ]! !
+	^self
+		forEachOf: (someClasses collect: [ :eachClass | eachClass theNonMetaClass ])
+		answer: [ :eachClass | self classSourceOf: eachClass ]! !
 
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:48:59 pm (UTC)'!
 classify: someSelectors of: aClass under: aMethodCategory
@@ -2897,6 +2900,19 @@ classify: someSelectors of: aClass under: aMethodCategory
 		at: 'emptied' put: (self removedEmptyCategoriesOf: previousCategories using: classOrganization);
 		yourself)! !
 
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+forEachOf: someClasses answer: aBlock
+
+	^someClasses
+		inject: OrderedDictionary new
+		into: [ :anAnswer :eachClass |
+			anAnswer at: eachClass name put: (aBlock value: eachClass); yourself ]! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+hierarchyNamesOf: aClass
+
+	^(aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray! !
+
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 organizationOf: aClass
 
@@ -2911,6 +2927,24 @@ organizationOf: aClass
 				put: (aClass organization listAtCategoryNamed: eachMethodCategory) asArray sorted;
 				yourself ]
 ! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+remove: someClasses
+
+	^(someClasses collect: [ :eachClass |
+		| removedName |
+		removedName := eachClass theNonMetaClass name.
+		eachClass theNonMetaClass removeFromSystem.
+		removedName ]) asArray! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+remove: someSelectors from: aClass
+
+	^((self selectorsFrom: someSelectors implementedBy: aClass) collect: [ :eachSelector |
+		| removedName |
+		removedName := (aClass >> eachSelector) classAndSelector.
+		aClass removeSelector: eachSelector.
+		removedName ]) asArray! !
 
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:49:31 pm (UTC)'!
 removedEmptyCategoriesOf: someMethodCategories using: aClassOrganization
@@ -2979,6 +3013,22 @@ sourcesOf: aClass
 			sourcesByCategory at: eachMethodCategory asString put: sourcesInCategory ] ].
 
 	^sourcesByCategory! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+sourcesOfMethods: someMethods
+
+	^someMethods
+		inject: OrderedDictionary new
+		into: [ :someSources :eachMethod |
+			someSources
+				at: eachMethod classAndSelector
+				put: (OrderedDictionary new at: 'source' put: eachMethod sourceCode; yourself);
+				yourself ]! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+subclassNamesOf: aClass
+
+	^(aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted! !
 
 !MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
@@ -4019,7 +4069,7 @@ safelyRemoveClassRefactoringTool
 		properties: { MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to remove' }
 		executingWith: [ :aClass | MCPRefactoringApplier applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 11/Sep/2026, 2:20:00 pm (UTC)'!
 addParameterRefactoringTool
 
 	^MCPRefactoringTool
@@ -4031,7 +4081,11 @@ addParameterRefactoringTool
 				selectorDescribedBy: 'Selector to add the parameter to'.
 			MCPPlainProperty named: 'parameterName' describedBy: 'Name of the parameter to add'.
 			MCPPlainProperty named: 'parameterValue' describedBy: 'Expression every sender will pass for it'.
-			MCPPlainProperty named: 'keyword' describedBy: 'Keyword to add, needed only when the selector is a keyword one' defaultingTo: ''.
+			MCPPluggableProperty
+				named: 'keyword'
+				describedBy: 'Keyword to add, needed only when the selector is a keyword one'
+				defaultingTo: ''
+				valuedWith: [ :aKeyword | aKeyword asSymbol ].
 			MCPPlainProperty named: 'parameterIndex' describedBy: 'Position for the new keyword, counting from one. Defaults to the first' defaultingTo: '1'.
 			self scopeProperty }
 		executingWith: [ :aMethod :aParameterName :aParameterValue :aKeyword :aParameterIndex :aScopeName |
@@ -4519,27 +4573,41 @@ senderSelectorPropertyName
 
 	^'senderSelector'! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:43 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 implementorsOfTool
 
 	^MCPPluggableTool
 		named: self class implementorsOfToolName
-		describedBy: 'List the methods that implement a selector, in the methods field of the answer.'
-		properties: {
-			MCPPluggableProperty
-				named: 'selector'
-				describedBy: 'Selector the methods implement'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (smalltalk allImplementorsOf: aSelector) ]! !
+		describedBy: 'List the methods that implement each of several selectors, under the selector, in its methods field.'
+		properties: { MCPPlainProperty
+			named: self class selectorsPropertyName
+			describedBy: 'Selectors the methods implement, separated by commas' }
+		executingWith: [ :someSelectors |
+			self
+				renderReferencesBySelectorIn: someSelectors
+				foundBy: [ :eachSelector | smalltalk allImplementorsOf: eachSelector ] ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:50 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+referencesDescriptionOf: aCollectionOfMethodReferences
+
+	^OrderedDictionary new
+		at: 'methods'
+		put: (aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort;
+		yourself! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+referencesTo: aClass
+
+	^smalltalk allCallsOn: (smalltalk associationAt: aClass name)! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 referencesToClassTool
 
 	^MCPPluggableTool
 		named: self class referencesToClassToolName
-		describedBy: 'List the methods that refer to a class.'
-		properties: { MCPClassProperty default }
-		executingWith: [ :aClass | self renderReferences: (smalltalk allCallsOn: (smalltalk associationAt: aClass name)) ]! !
+		describedBy: 'List the methods that refer to each of several classes, under the class name, in its methods field.'
+		properties: { MCPClassesProperty default }
+		executingWith: [ :someClasses | self renderReferencesByClassIn: someClasses ]! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:53 pm (UTC)'!
 referencesToClassVariableTool
@@ -4568,16 +4636,35 @@ referencesToInstanceVariableTool
 				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
 			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 27/Aug/2026, 7:44:11 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 renderReferences: aCollectionOfMethodReferences
 
 	"Answer the methods a search found in a field of their own, so that a package loaded
 	afterwards can add what it knows about them beside it."
 
-	^Json render: (OrderedDictionary new
-		at: 'methods' put: ((aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort);
-		yourself)
-! !
+	^Json render: (self referencesDescriptionOf: aCollectionOfMethodReferences)! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+renderReferencesByClassIn: someClasses
+
+	^Json render: (someClasses
+		inject: OrderedDictionary new
+		into: [ :anAnswer :eachClass |
+			anAnswer
+				at: eachClass name
+				put: (self referencesDescriptionOf: (self referencesTo: eachClass));
+				yourself ])! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+renderReferencesBySelectorIn: someSelectors foundBy: aSearchBlock
+
+	^Json render: ((self selectorsFrom: someSelectors)
+		inject: OrderedDictionary new
+		into: [ :anAnswer :eachSelector |
+			anAnswer
+				at: eachSelector
+				put: (self referencesDescriptionOf: (aSearchBlock value: eachSelector));
+				yourself ])! !
 
 !MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 renderSelectors: someSelectors
@@ -4615,18 +4702,25 @@ selectorsContaining: aText
 	^messageNames computeSelectorListFromSearchString
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:46 pm (UTC)'!
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+selectorsFrom: aCommaSeparatedText
+
+	^(self namesFrom: aCommaSeparatedText)
+		collect: [ :eachName | eachName asSymbol ]! !
+
+!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 sendersOfTool
 
 	^MCPPluggableTool
 		named: self class sendersOfToolName
-		describedBy: 'List the methods that send a selector, in the methods field of the answer. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.'
-		properties: {
-			MCPPluggableProperty
-				named: 'selector'
-				describedBy: 'Selector the methods send'
-				valuedWith: [ :aSelector | aSelector asSymbol ] }
-		executingWith: [ :aSelector | self renderReferences: (smalltalk allCallsOn: aSelector) ]! !
+		describedBy: 'List the methods that send each of several selectors, under the selector, in its methods field. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.'
+		properties: { MCPPlainProperty
+			named: self class selectorsPropertyName
+			describedBy: 'Selectors the methods send, separated by commas' }
+		executingWith: [ :someSelectors |
+			self
+				renderReferencesBySelectorIn: someSelectors
+				foundBy: [ :eachSelector | smalltalk allCallsOn: eachSelector ] ]! !
 
 !MCPSearchTools methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:43 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -4669,6 +4763,11 @@ searchSelectorsToolName
 searchSourceToolName
 
 	^'smalltalk_search_source'! !
+
+!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+selectorsPropertyName
+
+	^'selectors'! !
 
 !MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
 sendersOfToolName
@@ -4723,16 +4822,30 @@ runTestsForClassesTool
 				named: someClassNames) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 runTestsInCategoryTool
 
 	^MCPPluggableTool
 		named: self class runTestsInCategoryToolName
-		describedBy: 'Run every test of the test case classes of a class category and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
-		properties: { MCPPlainProperty named: 'categoryName' describedBy: 'Name of the class category' }
-		executingWith: [ :aCategoryName |
-			self runTestsIn: (TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization) ]
-! !
+		describedBy: 'Run every test of the test case classes of several class categories as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.'
+		properties: { MCPPlainProperty named: 'categoryNames' describedBy: 'Names of the class categories, separated by commas' }
+		executingWith: [ :someCategoryNames | self runTestsIn: (self suiteForCategoriesNamed: someCategoryNames) ]! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+suiteForCategoriesNamed: someCategoryNames
+
+	| suite |
+
+	suite := TestSuite named: someCategoryNames.
+	(self namesFrom: someCategoryNames) do: [ :eachCategoryName |
+		suite addTests: (self suiteForCategoryNamed: eachCategoryName) tests ].
+
+	^suite! !
+
+!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+suiteForCategoryNamed: aCategoryName
+
+	^TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization! !
 
 !MCPTestRunningTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
 addToolsTo: anMCPServer
@@ -5213,13 +5326,13 @@ valueFrom: anArguments
 
 ! !
 
-!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 7/Sep/2026, 11:44:21 pm (UTC)'!
+!MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
 
 	^self
 		ofClass: (MCPClassProperty withDefaultNameDescribedBy: aClassDescription)
 		andSelector: (MCPPluggableProperty
-			named: 'selector'
+			named: self defaultSelectorName
 			describedBy: aSelectorDescription
 			valuedWith: [ :aSelector | aSelector asSymbol ])! !
 
@@ -5256,11 +5369,84 @@ defaultSelectorDescription
 	^'Selector of the method'
 ! !
 
+!MCPMethodProperty class methodsFor: 'defaults' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+defaultSelectorName
+
+	^'selector'! !
+
 !MCPMethodProperty class methodsFor: 'error descriptions' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
 methodNotFoundErrorDescriptionFor: aSelector in: aClass
 
 	^'Method not found: ', aClass name, '>>', aSelector
 ! !
+
+!MCPMethodsProperty methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock each: aMethodProperty
+
+	name := aName.
+	description := aDescription.
+	required := isRequired.
+	absentBlock := anAbsentBlock.
+	methodProperty := aMethodProperty! !
+
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+argumentsNaming: aMethodName
+
+	| separatorIndex |
+
+	separatorIndex := aMethodName findString: '>>' startingAt: 1.
+	separatorIndex = 0 ifTrue: [ self error: (self class notAMethodNameErrorDescriptionFor: aMethodName) ].
+
+	^Dictionary new
+		at: MCPClassProperty defaultName put: (self classNameIn: aMethodName upTo: separatorIndex);
+		at: MCPMethodProperty defaultSelectorName put: (self selectorIn: aMethodName after: separatorIndex);
+		yourself! !
+
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+classNameIn: aMethodName upTo: aSeparatorIndex
+
+	^(aMethodName copyFrom: 1 to: aSeparatorIndex - 1) withBlanksTrimmed! !
+
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+selectorIn: aMethodName after: aSeparatorIndex
+
+	^(aMethodName allButFirst: aSeparatorIndex + 1) withBlanksTrimmed copyWithout: $#! !
+
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+valueFor: aCommaSeparatedText
+
+	^(MCPToolGroup namesFrom: aCommaSeparatedText) collect: [ :eachMethodName |
+		methodProperty valueFrom: (self argumentsNaming: eachMethodName) ]! !
+
+!MCPMethodsProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+default
+
+	^self named: self defaultName describedBy: self defaultDescription! !
+
+!MCPMethodsProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+named: aName describedBy: aDescription
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		required: true
+		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
+		each: MCPMethodProperty default! !
+
+!MCPMethodsProperty class methodsFor: 'defaults' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+defaultDescription
+
+	^'The methods, written as Class>>selector and separated by commas. A class side is named the way it prints, as in MCPServer class>>startUp:'! !
+
+!MCPMethodsProperty class methodsFor: 'defaults' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+defaultName
+
+	^'methods'! !
+
+!MCPMethodsProperty class methodsFor: 'error descriptions' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+notAMethodNameErrorDescriptionFor: aText
+
+	^'Method expected as Class>>selector: ', aText! !
 
 !MCPPlainProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
 valueFor: aValue
@@ -5285,16 +5471,35 @@ valueFor: aValue
 	^valueBlock value: aValue
 ! !
 
-!MCPPluggableProperty class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:29:31 pm (UTC)'!
-named: aName describedBy: aDescription valuedWith: aBlock
+!MCPPluggableProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+named: aName describedBy: aDescription defaultingTo: aDefaultValue valuedWith: aBlock
+
+	^self
+		named: aName
+		describedBy: aDescription
+		required: false
+		absentValue: [ :aProperty | aDefaultValue ]
+		valuedWith: aBlock! !
+
+!MCPPluggableProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+named: aName describedBy: aDescription required: isRequired absentValue: anAbsentBlock valuedWith: aBlock
 
 	^self new
 		initializeNamed: aName
 		describedBy: aDescription
+		required: isRequired
+		absentValue: anAbsentBlock
+		valuedWith: aBlock! !
+
+!MCPPluggableProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+named: aName describedBy: aDescription valuedWith: aBlock
+
+	^self
+		named: aName
+		describedBy: aDescription
 		required: true
 		absentValue: [ :aProperty | aProperty signalNotProvided ]
-		valuedWith: aBlock
-! !
+		valuedWith: aBlock! !
 
 !MCPTransport methodsFor: 'serving' stamp: 'HAW 19/Aug/2026, 10:18:07 pm (UTC)'!
 serveRequestsFor: anMCPServer
