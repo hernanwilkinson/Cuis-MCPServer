@@ -260,7 +260,7 @@ Requires `WebClient`, `JSON` and `OSProcess`. The server, the transports and the
 
 #### Reading and writing code
 
-`smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` read a whole class or category in one call, which is much cheaper than a call per method.
+`smalltalk_class_source` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` one side or one category, all much cheaper than a call per method.
 `smalltalk_define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
 
 <!-- tools MCPServer MCPModelStructureTools -->
@@ -279,6 +279,14 @@ List the method categories of a class, each with the selectors filed under it, i
 | Parameter | | |
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
+
+##### `smalltalk_class_source`
+
+Read whole classes in one call. For each class named: its definition as it is written, its comment, the source of every method of its instance side under its selector and grouped by category, and under classSide the definition and the methods of its class side. A class side named answers the whole class. A category holding no method is left out.
+
+| Parameter | | |
+| --- | --- | --- |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
 ##### `smalltalk_classes_in_category`
 

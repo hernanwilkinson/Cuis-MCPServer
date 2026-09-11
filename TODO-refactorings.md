@@ -47,6 +47,14 @@ Errors and shortcomings found in the refactorings while driving them through the
   return statement flush left (`^aRequest` at column 0). Fix: format the inlined statements as a
   method body — empty line after the temporaries, one tab of indentation.
 
+## ExtractMethod
+
+- [ ] **The extracted method is written with a space after the return and one indentation level
+  too many.** Extracting the class-side dictionary out of `MCPModelStructureTools>>classSourceOf:`
+  produced `^ OrderedDictionary new` and the cascade lines with three tabs instead of two — the
+  indentation of the piece where it stood, kept as it was, plus a tab. Fix: `^` without a space,
+  and re-indent the piece so its first line starts at one tab.
+
 ## RemoveParameter
 
 - [x] **Leaves the whitespace of the removed keyword behind.** Done in the image: when the last keyword goes and the selector stays a keyword one, the separators before it go with it, in implementors and senders (`RemoveParameterTest` 08 corrected, 17 and 18 added). Removing `ofImageNamed:` from

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 10:51:29 am'!
-'Description Define several methods in one call'!
-!provides: 'MCPServerTests' 1 68!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 11:08:48 am'!
+'Description Read whole classes in one call'!
+!provides: 'MCPServerTests' 1 69!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1250,6 +1250,13 @@ propertyNamed: aPropertyName of: aToolName
 		detect: [ :eachProperty | eachProperty name = aPropertyName ]
 ! !
 
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:56:01 pm (UTC)'!
+subjectClassSideMethodSource
+
+	^'saludoDeClase
+
+	^''¡Hola a todos!!'''! !
+
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 4:40:07 pm (UTC)'!
 subjectFarewellMethodSource
 
@@ -1280,6 +1287,70 @@ testClassDefinitionAnswersTheSuperclassOfTheClass
 	self
 		assert: ((self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName with: (self arguments: 'className' being: 'MCPTestSubject')) at: 'superclass')
 		equals: 'Object'! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:01 pm (UTC)'!
+testClassSourceAnswersEveryClassNamed
+
+	| answer |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectSubclass.
+
+	answer := self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+		with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject').
+
+	self assert: answer size equals: 2.
+	self assert: ((answer at: 'MCPTestSubjectChild') at: 'definition') equals: (Smalltalk classNamed: 'MCPTestSubjectChild') definition.
+	self assert: ((answer at: 'MCPTestSubject') at: 'definition') equals: self createdClassInTest definition! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:00 pm (UTC)'!
+testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
+
+	| answer |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource category: 'saludos'.
+	self createdClassInTest comment: 'Un sujeto de prueba'.
+
+	answer := (self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+		with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject'.
+
+	self assert: (answer at: 'definition') equals: self createdClassInTest definition.
+	self assert: (answer at: 'comment') equals: 'Un sujeto de prueba'.
+	self
+		assert: ((answer at: 'methods') at: 'saludos')
+		equals: (OrderedDictionary new at: 'saludo' put: self subjectMethodSource; yourself).
+	self assert: ((answer at: 'classSide') at: 'definition') equals: self createdClassInTest class definition.
+	self
+		assert: (((answer at: 'classSide') at: 'methods') at: 'saludos')
+		equals: (OrderedDictionary new at: 'saludoDeClase' put: self subjectClassSideMethodSource; yourself)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:01 pm (UTC)'!
+testClassSourceNamedByAClassSideAnswersTheWholeClass
+
+	| answer |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethodIn: 'saludos'.
+
+	answer := self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+		with: (self arguments: 'classNames' being: 'MCPTestSubject class').
+
+	self assert: answer keys asArray equals: #('MCPTestSubject').
+	self assert: (((answer at: 'MCPTestSubject') at: 'methods') at: 'saludos') keys asArray equals: #('saludo')! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:57:18 pm (UTC)'!
+testClassSourceOfAnUnknownClassFails
+
+	self defineTestSubjectClass.
+
+	self
+		should: [ client
+			callTool: MCPModelStructureTools classSourceToolName
+			with: (self arguments: 'classNames' being: 'MCPTestSubject, NoSuchClassAtAll') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: (MCPClassProperty classNotFoundErrorDescriptionFor: 'NoSuchClassAtAll'))! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
@@ -3293,6 +3364,28 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 		includesSubstring: '^10' caseSensitive: true)
 
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 11/Sep/2026, 1:59:45 pm (UTC)'!
+testExtractMethodRefactoringNamesTheParameterAsTheCodeDoesWhenNoneIsAsked
+
+	| newMethodSource |
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpTotalFor: aNumber
+
+	^aNumber + 1'.
+
+	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpTotalFor:'
+			and: 'newSelector' being: 'mcpIncremented:'
+			and: 'text' being: 'aNumber + 1').
+
+	newMethodSource := self createdClassInTest sourceCodeAt: 'mcpIncremented:' asSymbol.
+	self assert: (newMethodSource includesSubstring: 'mcpIncremented: aNumber' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpTotalFor:' asSymbol)
+		includesSubstring: 'self mcpIncremented: aNumber' caseSensitive: true)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 4/Sep/2026, 1:03:38 pm (UTC)'!
 testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked

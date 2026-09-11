@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 10:51:24 am'!
-'Description Define several methods in one call'!
-!provides: 'MCPServer' 1 81!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 11:08:43 am'!
+'Description Read whole classes in one call'!
+!provides: 'MCPServer' 1 82!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -337,6 +337,16 @@ MCPToolProperty subclass: #MCPClassProperty
 MCPClassProperty class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPClassesProperty category: #MCPServer!
+MCPToolProperty subclass: #MCPClassesProperty
+	instanceVariableNames: 'classProperty'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPClassesProperty class' category: #MCPServer!
+MCPClassesProperty class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPCodePackageProperty category: #MCPServer!
 MCPToolProperty subclass: #MCPCodePackageProperty
 	instanceVariableNames: 'smalltalk'
@@ -575,6 +585,11 @@ Each tool creates the properties it takes in its own class side, in methods name
 I am the class a request names.
 
 I answer the class itself rather than its name, and I do not report a missing className as a missing property: a client that sends none is told the class was not found, which is what it was asking for.!
+
+!MCPClassesProperty commentStamp: '<historical>' prior: 0!
+I am a property that takes several classes, named as one text separated by commas.
+
+I read each name through the property that takes one class, so a class that is not there is told the same way, and I hand the tool the classes themselves, in the order they were named.!
 
 !MCPCodePackageProperty commentStamp: '<historical>' prior: 0!
 I am the code package a request names.
@@ -2617,6 +2632,15 @@ classOrganizationTool
 		executingWith: [ :aClass | Json render: (self organizationOf: aClass) ]
 ! !
 
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+classSourceTool
+
+	^MCPPluggableTool
+		named: self class classSourceToolName
+		describedBy: 'Read whole classes in one call. For each class named: its definition as it is written, its comment, the source of every method of its instance side under its selector and grouped by category, and under classSide the definition and the methods of its class side. A class side named answers the whole class. A category holding no method is left out.'
+		properties: { MCPClassesProperty default }
+		executingWith: [ :someClasses | Json render: (self classSourcesOf: someClasses) ]! !
+
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 classesInCategoryTool
 
@@ -2793,11 +2817,12 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
 		addTool: self classDefinitionTool;
+		addTool: self classSourceTool;
 		addTool: self classOrganizationTool;
 		addTool: self methodsInCategoryTool;
 		addTool: self methodSourceTool;
@@ -2813,6 +2838,35 @@ addToolsTo: anMCPServer
 		addTool: self classifyMethodsTool;
 		addTool: self deleteClassTool;
 		addTool: self deleteMethodTool! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:01:07 pm (UTC)'!
+classSideSourceOf: aClass
+
+	^OrderedDictionary new
+		at: 'definition' put: aClass class definition;
+		at: 'methods' put: (self sourcesOf: aClass class);
+		yourself! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:00:39 pm (UTC)'!
+classSourceOf: aClass
+
+	^OrderedDictionary new
+		at: 'definition' put: aClass definition;
+		at: 'comment' put: aClass comment;
+		at: 'methods' put: (self sourcesOf: aClass);
+		at: 'classSide' put: (self classSideSourceOf: aClass);
+		yourself! !
+
+!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+classSourcesOf: someClasses
+
+	^someClasses
+		inject: OrderedDictionary new
+		into: [ :someSources :eachClass |
+			someSources
+				at: eachClass theNonMetaClass name
+				put: (self classSourceOf: eachClass theNonMetaClass);
+				yourself ]! !
 
 !MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:48:59 pm (UTC)'!
 classify: someSelectors of: aClass under: aMethodCategory
@@ -2941,6 +2995,11 @@ classDefinitionToolName
 classOrganizationToolName
 
 	^'smalltalk_class_organization'! !
+
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 11/Sep/2026, 1:56:00 pm (UTC)'!
+classSourceToolName
+
+	^'smalltalk_class_source'! !
 
 !MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
 classesInCategoryToolName
@@ -3675,7 +3734,7 @@ methodNamed: aSelector inClassNamed: aClassName
 		compiledMethodAt: aSelector asSymbol
 		ifAbsent: [ self error: (MCPMethodProperty methodNotFoundErrorDescriptionFor: aSelector asSymbol in: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 11/Sep/2026, 1:59:58 pm (UTC)'!
 namesRenaming: someParameters asAskedIn: someArgumentNames
 
 	"Answer what the new method calls each parameter a client asked to name differently. One it
@@ -3684,6 +3743,7 @@ namesRenaming: someParameters asAskedIn: someArgumentNames
 	| askedNames renamedNames |
 
 	askedNames := self namesFrom: someArgumentNames.
+	askedNames ifEmpty: [ ^Dictionary new ].
 	self assert: someParameters isNamedBy: askedNames.
 
 	renamedNames := Dictionary new.
@@ -4923,6 +4983,46 @@ withDefaultNameDescribedBy: aDescription
 	takes it needs, which is what a tool asking for a class of its own kind describes itself."
 
 	^self named: self defaultName describedBy: aDescription! !
+
+!MCPClassesProperty methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock each: aClassProperty
+
+	name := aName.
+	description := aDescription.
+	required := isRequired.
+	absentBlock := anAbsentBlock.
+	classProperty := aClassProperty! !
+
+!MCPClassesProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 1:58:09 pm (UTC)'!
+valueFor: aCommaSeparatedText
+
+	^(MCPToolGroup namesFrom: aCommaSeparatedText)
+		collect: [ :eachName | classProperty valueFor: eachName ]! !
+
+!MCPClassesProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+default
+
+	^self named: self defaultName describedBy: self defaultDescription! !
+
+!MCPClassesProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+named: aName describedBy: aDescription
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		required: true
+		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
+		each: MCPClassProperty default! !
+
+!MCPClassesProperty class methodsFor: 'defaults' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+defaultDescription
+
+	^'Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class'! !
+
+!MCPClassesProperty class methodsFor: 'defaults' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
+defaultName
+
+	^'classNames'! !
 
 !MCPCodePackageProperty methodsFor: 'request arguments' stamp: 'HAW 8/Sep/2026, 2:44:28 pm (UTC)'!
 codePackageClass
