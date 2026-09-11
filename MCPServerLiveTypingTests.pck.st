@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 10:05:05 am'!
-'Description Give the refactoring tools the options their appliers ask for'!
-!provides: 'MCPServerLiveTypingTests' 1 16!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:18:34 pm'!
+'Description File out the LiveTyping tests of the multi-item tools'!
+!provides: 'MCPServerLiveTypingTests' 1 17!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -67,12 +67,20 @@ defineProbeHierarchy
 	^childClass
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
 definitionAnswerOfTheProbe
 
-	^self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName with: (Dictionary new
+		at: 'classNames' put: 'MCPLiveTypingProbe';
+		yourself)) at: 'MCPLiveTypingProbe'! !
+
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
+sendersAnswerOfTheProbeSelector
+
+	^(self jsonAnswerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
+		at: 'selectors' put: 'mcpAnswered';
 		at: 'className' put: 'MCPLiveTypingProbe';
-		yourself)! !
+		yourself)) at: 'mcpAnswered'! !
 
 !MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 11:17:12 pm (UTC)'!
 sendsOfTheProbeCaller
@@ -82,13 +90,12 @@ sendsOfTheProbeCaller
 		at: 'selector' put: 'mcpCaller';
 		yourself)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
 sourceAnswerOfTheProbe
 
-	^self jsonAnswerOf: MCPModelStructureTools methodSourceToolName with: (Dictionary new
-		at: 'className' put: 'MCPLiveTypingProbe';
-		at: 'selector' put: 'mcpHold:';
-		yourself)! !
+	^(self jsonAnswerOf: MCPModelStructureTools methodSourceToolName with: (Dictionary new
+		at: 'methods' put: 'MCPLiveTypingProbe>>mcpHold:';
+		yourself)) at: 'MCPLiveTypingProbe>>#mcpHold:'! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
 testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
@@ -285,19 +292,17 @@ testTheDefinitionOfAClassIsStillAnsweredWhenTheTypesAreAddedToIt
 
 	self assert: (self definitionAnswerOfTheProbe at: 'superclass') equals: 'Object'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
 testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
 
 	self defineProbeHierarchy.
 
 	self
-		deny: ((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
-			at: 'selector' put: 'mcpAnswered';
-			yourself)) includesKey: 'actual')
+		deny: (((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
+			at: 'selectors' put: 'mcpAnswered';
+			yourself)) at: 'mcpAnswered') includesKey: 'actual')! !
 
-! !
-
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
 testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 
 	"The stranger writes the same selector and is in no hierarchy with the probe, so a send to
@@ -316,11 +321,10 @@ testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 	^3' classified: 'probing'.
 
 	self
-		deny: (((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
-			at: 'selector' put: 'mcpAnswered';
+		deny: ((((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
+			at: 'selectors' put: 'mcpAnswered';
 			at: 'className' put: 'MCPLiveTypingProbe';
-			yourself)) at: 'actual') includes: 'MCPLiveTypingStranger mcpAnswered')
-! !
+			yourself)) at: 'mcpAnswered') at: 'actual') includes: 'MCPLiveTypingStranger mcpAnswered')! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
 testTheReturnTypesOfAMethodAreTheClassesItAnswered
@@ -335,19 +339,14 @@ testTheReturnTypesOfAMethodAreTheClassesItAnswered
 		equals: #('SmallInteger')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
 testTheSendersOfASelectorAreStillAnsweredWhenTheActualOnesAreAddedToThem
 
 	self defineProbeHierarchy.
 
-	self
-		assert: (((self jsonAnswerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
-			at: 'selector' put: 'mcpAnswered';
-			at: 'className' put: 'MCPLiveTypingProbe';
-			yourself)) at: 'methods') includes: 'MCPLiveTypingProbe mcpCaller')
-! !
+	self assert: ((self sendersAnswerOfTheProbeSelector at: 'methods') includes: 'MCPLiveTypingProbe mcpCaller')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
 testTheSendersOfASelectorCarryTheOnesReallySendingIt
 
 	"The caller writes the selector twice, and only one of them is a send to an object that
@@ -355,13 +354,7 @@ testTheSendersOfASelectorCarryTheOnesReallySendingIt
 
 	self defineProbeHierarchy.
 
-	self
-		assert: ((self jsonAnswerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
-			at: 'selector' put: 'mcpAnswered';
-			at: 'className' put: 'MCPLiveTypingProbe';
-			yourself)) at: 'actual')
-		equals: #('MCPLiveTypingProbe mcpCaller')
-! !
+	self assert: (self sendersAnswerOfTheProbeSelector at: 'actual') equals: #('MCPLiveTypingProbe mcpCaller')! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:27 pm (UTC)'!
 testTheSendsOfAMethodAreListedWithTheirReceiverInTheOrderTheyAreWritten
