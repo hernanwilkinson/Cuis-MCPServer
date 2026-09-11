@@ -17,6 +17,14 @@ SCOPE = ('Where the sends to change are looked for: `class`, `hierarchy`, `categ
 def cell(text):
     return text.replace('|', '\\|').replace('\n', ' ')
 
+def item_rows(name, p):
+    """One row per property of the items of an array parameter, named as name[].property."""
+    items = p.get('items', {})
+    item_required = items.get('required', [])
+    return [f"| `{name}[].{item}` | {'required' if item in item_required else 'optional'} | "
+            f"{cell(q['description'])} |"
+            for item, q in items.get('properties', {}).items()]
+
 def tool(definition):
     properties = definition['inputSchema'].get('properties', {})
     required = definition['inputSchema'].get('required', [])
@@ -28,6 +36,7 @@ def tool(definition):
             scoped = name == 'scope' and p['description'].startswith('Where the sends to change')
             lines.append(f"| `{name}` | {'required' if name in required else 'optional'} | "
                          f"{SCOPE if scoped else cell(p['description'])} |")
+            lines += item_rows(name, p)
         lines.append('')
     return '\n'.join(lines)
 

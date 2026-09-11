@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 10 September 2026 at 3:45:23 pm'!
-'Description Turn the call log on from the command line'!
-!provides: 'MCPServerTests' 1 67!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 10:51:29 am'!
+'Description Define several methods in one call'!
+!provides: 'MCPServerTests' 1 68!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -597,23 +597,27 @@ defineClassWith: aDefinition
 	^client callTool: MCPModelStructureTools defineClassToolName with: (self arguments: 'definition' being: aDefinition)
 ! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineMethodIn: aClassName source: aSource
 
-	^client callTool: MCPModelStructureTools defineMethodToolName with:
-		(self arguments: 'className' being: aClassName and: 'source' being: aSource)
-! !
+	^client callTool: MCPModelStructureTools defineMethodsToolName with:
+		(self arguments: 'methods' being: { self methodIn: aClassName source: aSource })! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
+defineMethodIn: aClassName source: aSource category: aMethodCategory
+
+	^client callTool: MCPModelStructureTools defineMethodsToolName with:
+		(self arguments: 'methods' being: { self methodIn: aClassName source: aSource category: aMethodCategory })! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 defineTestSubjectClass
 
 	^client callTool: MCPModelStructureTools defineClassToolName with: (self arguments: 'definition' being: self subjectClassDefinition)! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineTestSubjectMethod
 
-	^client callTool: MCPModelStructureTools defineMethodToolName with:
-		(self arguments: 'className' being: 'MCPTestSubject' and: 'source' being: self subjectMethodSource)! !
+	^self defineMethodIn: 'MCPTestSubject' source: self subjectMethodSource! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 defineTestSubjectSubclass
@@ -648,6 +652,21 @@ jsonAnswerOf: aToolName with: anArguments
 	"Answer the parsed value of a tool that answers JSON."
 
 	^Json readFrom: (client callTool: aToolName with: anArguments) readStream! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:56 pm (UTC)'!
+methodIn: aClassName source: aSource
+
+	^Dictionary new
+		at: 'className' put: aClassName;
+		at: 'source' put: aSource;
+		yourself! !
+
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:48 pm (UTC)'!
+methodIn: aClassName source: aSource category: aMethodCategory
+
+	^(self methodIn: aClassName source: aSource)
+		at: 'category' put: aMethodCategory;
+		yourself! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:48:42 am (UTC)'!
 serverClass
@@ -1192,22 +1211,20 @@ toolGroupClasses
 
 	^{ MCPImageTools }! !
 
-!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 2/Sep/2026, 4:40:11 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:21:05 pm (UTC)'!
+defineMethods: someMethods
+
+	^self jsonAnswerOf: MCPModelStructureTools defineMethodsToolName with: (self arguments: 'methods' being: someMethods)! !
+
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineTestSubjectFarewellIn: aMethodCategory
 
-	^client callTool: MCPModelStructureTools defineMethodToolName with: (self
-		arguments: 'className' being: 'MCPTestSubject'
-		and: 'source' being: self subjectFarewellMethodSource
-		and: 'category' being: aMethodCategory)! !
+	^self defineMethodIn: 'MCPTestSubject' source: self subjectFarewellMethodSource category: aMethodCategory! !
 
-!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineTestSubjectMethodIn: aMethodCategory
 
-	^client callTool: MCPModelStructureTools defineMethodToolName with: (self
-		arguments: 'className' being: 'MCPTestSubject'
-		and: 'source' being: self subjectMethodSource
-		and: 'category' being: aMethodCategory)
-! !
+	^self defineMethodIn: 'MCPTestSubject' source: self subjectMethodSource category: aMethodCategory! !
 
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 definitionWithANonLiteralClassName
@@ -1367,22 +1384,18 @@ testListCategoriesIncludesTheCategoryOfTheServer
 
 	self assert: ((self jsonAnswerOf: MCPModelStructureTools listCategoriesToolName) includes: MCPServer category)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 
 	self defineTestSubjectClass.
-	client callTool: MCPModelStructureTools defineMethodToolName with: (self
-		arguments: 'className' being: 'MCPTestSubject class'
-		and: 'source' being: 'saludoDeClase
+	self defineMethodIn: 'MCPTestSubject class' source: 'saludoDeClase
 
-	^''¡Hola!!'''
-		and: 'category' being: 'saludos').
+	^''¡Hola!!''' category: 'saludos'.
 
 	self
 		assert: ((self jsonAnswerOf: MCPModelStructureTools classOrganizationToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject class')) at: 'saludos')
-		equals: #('saludoDeClase')
-! !
+		equals: #('saludoDeClase')! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
@@ -1409,17 +1422,14 @@ testClassifyMethodsAnswersWhereEachMethodWasFiledBefore
 			and: 'category' being: 'despedidas')) at: 'classified') first at: 'wasUnder')
 		equals: 'saludos'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 testClassifyMethodsFilesEveryMethodNamed
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
-	client callTool: MCPModelStructureTools defineMethodToolName with: (self
-		arguments: 'className' being: 'MCPTestSubject'
-		and: 'source' being: 'despedida
+	self defineMethodIn: 'MCPTestSubject' source: 'despedida
 
-	^''¡Chau!!'''
-		and: 'category' being: 'saludos').
+	^''¡Chau!!''' category: 'saludos'.
 
 	client callTool: MCPModelStructureTools classifyMethodsToolName with: (self
 		arguments: 'className' being: 'MCPTestSubject'
@@ -1618,29 +1628,75 @@ testDeleteClassRemovesTheClassFromTheSystem
 
 	self assert: self createdClassInTest isNil! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
-testDefineMethodAddsTheMethodToTheClass
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:46:02 pm (UTC)'!
+testDefineMethodsAddsAMethodToItsClass
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
 	self assert: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
-testDefineMethodFilesTheMethodUnderTheGivenCategory
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:15 pm (UTC)'!
+testDefineMethodsAnswersWhatHappenedToEachMethodInOrder
+
+	| answer |
 
 	self defineTestSubjectClass.
 
-	client callTool: MCPModelStructureTools defineMethodToolName with:
-		(self
-			arguments: 'className' being: 'MCPTestSubject'
-			and: 'source' being: self subjectMethodSource
-			and: 'category' being: 'saludos').
+	answer := self defineMethods: {
+		self methodIn: 'MCPTestSubject' source: self subjectMethodSource.
+		self methodIn: 'MCPTestSubject' source: self subjectFarewellMethodSource }.
 
-	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'saludos'! !
+	self assert: answer size equals: 2.
+	self assert: (answer first at: 'class') equals: 'MCPTestSubject'.
+	self assert: (answer first at: 'selector') equals: 'saludo'.
+	self assert: (answer first at: 'defined').
+	self assert: (answer last at: 'selector') equals: 'despedida'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 31/Aug/2026, 11:30:41 pm (UTC)'!
-testDefineMethodKeepsTheSourceItWasGiven
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:12 pm (UTC)'!
+testDefineMethodsDefinesEveryMethodSent
+
+	self defineTestSubjectClass.
+
+	self defineMethods: {
+		self methodIn: 'MCPTestSubject' source: self subjectMethodSource.
+		self methodIn: 'MCPTestSubject class' source: self subjectFarewellMethodSource }.
+
+	self assert: (self createdClassInTest includesSelector: #saludo).
+	self assert: (self createdClassInTest class includesSelector: #despedida)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:17 pm (UTC)'!
+testDefineMethodsDefinesTheRestWhenOneDoesNotCompile
+
+	| answer |
+
+	self defineTestSubjectClass.
+
+	answer := self defineMethods: {
+		self methodIn: 'MCPTestSubject' source: 'saludo ^ )'.
+		self methodIn: 'MCPTestSubject' source: self subjectFarewellMethodSource }.
+
+	self deny: (answer first at: 'defined').
+	self assert: ((answer first at: 'error') includesSubstring: 'Expression to return expected' caseSensitive: true).
+	self deny: (self createdClassInTest includesSelector: #saludo).
+	self assert: (self createdClassInTest includesSelector: #despedida)! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:20 pm (UTC)'!
+testDefineMethodsFilesEachMethodUnderItsCategory
+
+	self defineTestSubjectClass.
+
+	self defineMethods: {
+		self methodIn: 'MCPTestSubject' source: self subjectMethodSource category: 'saludos'.
+		self methodIn: 'MCPTestSubject' source: self subjectFarewellMethodSource }.
+
+	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'saludos'.
+	self
+		assert: (self createdClassInTest organization categoryOfElement: #despedida)
+		equals: ClassOrganizer defaultMethodCategory! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:46:08 pm (UTC)'!
+testDefineMethodsKeepsTheSourceItWasGiven
 
 	"A method compiled without leaving a trail keeps no source, and what is read back is a
 	decompilation of it: no comment, no blank lines and a period after the return."
@@ -1652,15 +1708,30 @@ testDefineMethodKeepsTheSourceItWasGiven
 		assert: (self createdClassInTest sourceCodeAt: #saludo) asString
 		equals: self subjectMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
-testDefineMethodWithoutACategoryFilesTheMethodUnderTheDefaultCategory
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:23 pm (UTC)'!
+testDefineMethodsWithAClassThatDoesNotExistDefinesNothing
 
 	self defineTestSubjectClass.
-	self defineTestSubjectMethod.
 
 	self
-		assert: (self createdClassInTest organization categoryOfElement: #saludo)
-		equals: ClassOrganizer defaultMethodCategory! !
+		should: [ self defineMethods: {
+			self methodIn: 'MCPTestSubject' source: self subjectMethodSource.
+			self methodIn: 'MCPNoSuchClass' source: self subjectFarewellMethodSource } ]
+		raise: Error
+		withExceptionDo: [ :anError |
+			self
+				assert: anError messageText
+				equals: (self serverErrorTextFor: (MCPClassProperty classNotFoundErrorDescriptionFor: 'MCPNoSuchClass')).
+			self deny: (self createdClassInTest includesSelector: #saludo) ]! !
+
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:25 pm (UTC)'!
+testDefineMethodsWithoutMethodsFails
+
+	self
+		should: [ client callTool: MCPModelStructureTools defineMethodsToolName with: Dictionary new ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor:
+			(self propertyNamed: 'methods' of: MCPModelStructureTools defineMethodsToolName) notProvidedErrorDescription)! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testDeleteMethodRemovesTheMethodFromTheClass

@@ -17,9 +17,18 @@ Errors and shortcomings found in the refactorings while driving them through the
 - [ ] **A moved method whose body sends `self class bar`** ends up on the class side sending
   `self class bar` to the metaclass. Not hit, but it is the mirror of the case above.
 
+## PushUpMethod
+
+- [ ] **Pushing up the dependant methods misses a keyword one.** Pushing up
+  `MCPModelStructureToolsTest>>methodIn:source:category:`, whose body is
+  `^(self methodIn: aClassName source: aSource) at: ... ; yourself`, with *push up the dependant
+  methods* moved only itself; `methodIn:source:` — sent to self, not implemented by the superclass —
+  stayed behind and had to be pushed up in a second call. Either the dependants are looked for
+  among unary sends only, or a send that is the receiver of a cascade is not seen.
+
 ## InlineMethod
 
-- [ ] **Leaves a period after the inlined statement.** Inside a block the result is
+- [x] **Leaves a period after the inlined statement.** Done in the image (`InlineMethod>>replaceRange:withNewSourceCode:inMethod:` drops the copied period when a `]`, a period or the end of the source follows and the sender had none; `InlineMethodTest` 34 and 35, seven expectations corrected). Inside a block the result is
   `[ :aMethod | MCPRefactoringApplier applyReportingChanges: (...). ]`, and a returned
   statement ends with `^... .` at the end of the method. Seen in the 32 senders of the eight
   `applying` methods of `MCPRefactoringToolGroup` inlined in the `hierarchy` scope. Harmless
@@ -33,14 +42,14 @@ Errors and shortcomings found in the refactorings while driving them through the
   expression by hand before the refactoring would take it. An early return that is the last
   statement of a block could be inlined as an `ifTrue:ifFalse:` / `ifPresent:ifAbsent:` around the
   rest, at least when there are two.
-- [ ] **Loses the layout of the inlined body.** Inlining `handleRequest:` (with temporaries) into
+- [x] **Loses the layout of the inlined body.** Done in the image: the last inlined statement is indented like the others, and a temporaries declaration inserted at method level is followed by an empty line (`InlineMethodTest>>test36`). Inlining `handleRequest:` (with temporaries) into
   `responseTo:` produced `| id params |` followed by the statements with no empty line, and the
   return statement flush left (`^aRequest` at column 0). Fix: format the inlined statements as a
   method body — empty line after the temporaries, one tab of indentation.
 
 ## RemoveParameter
 
-- [ ] **Leaves the whitespace of the removed keyword behind.** Removing `ofImageNamed:` from
+- [x] **Leaves the whitespace of the removed keyword behind.** Done in the image: when the last keyword goes and the selector stays a keyword one, the separators before it go with it, in implementors and senders (`RemoveParameterTest` 08 corrected, 17 and 18 added). Removing `ofImageNamed:` from
   `MCPJsonLinesCallLog class>>toFile:ofImageNamed:`, `writingWith:ofImageNamed:` and the
   `initialize…` left a trailing space after every rewritten selector (`toFile: aFileName `), a
   dangling indented empty line where the keyword stood in a multi-line send, and a space before

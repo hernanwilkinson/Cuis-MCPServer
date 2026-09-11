@@ -1,8 +1,10 @@
-"Write tools.json next to the packages: every tool of every tool group, grouped by the package that
-adds it, and what each decorator makes of the tool it decorates. Evaluate it in an image that has
-every MCPServer package loaded; then run scripts/update-readme-tools.py."
+"Write tools.json into the repository: every tool of every tool group, grouped by the package that
+adds it, and what each decorator makes of the tool it decorates. Set repositoryDirectory, evaluate it
+in an image that has every MCPServer package loaded, then run scripts/update-readme-tools.py."
 
-| groups byPackage decorated fullServer packageOf |
+| repositoryDirectory groups byPackage decorated fullServer packageOf |
+
+repositoryDirectory := '/path/to/Cuis-MCPServer'.
 
 packageOf := [ :aClass | (CodePackage packageOfClass: aClass ifNone: [ nil ])
 	ifNil: [ 'none' ] ifNotNil: [ :aPackage | aPackage packageName ] ].
@@ -21,7 +23,7 @@ decorated := OrderedDictionary new.
 			at: 'decorates' put: eachDecorator decoratedToolName;
 			at: 'definition' put: (fullServer toolNamed: eachDecorator decoratedToolName) definition;
 			yourself) ].
-((CodePackage packageOfClass: MCPServer) fullFileName asFileEntry parentDirectory // 'tools.json')
+(repositoryDirectory asDirectoryEntry // 'tools.json')
 	forceWriteStreamDo: [ :aStream |
 		aStream nextPutAll: (Json render: (OrderedDictionary new
 			at: 'groups' put: byPackage;

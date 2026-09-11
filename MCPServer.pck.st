@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 10 September 2026 at 3:45:17 pm'!
-'Description Turn the call log on from the command line'!
-!provides: 'MCPServer' 1 80!
+'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 10:51:24 am'!
+'Description Define several methods in one call'!
+!provides: 'MCPServer' 1 81!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -97,6 +97,16 @@ MCPDebuggingSession subclass: #MCPOpenDebuggingSession
 MCPOpenDebuggingSession class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPDeclaredProperties category: #MCPServer!
+Object subclass: #MCPDeclaredProperties
+	instanceVariableNames: 'properties'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPDeclaredProperties class' category: #MCPServer!
+MCPDeclaredProperties class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPHttpSession category: #MCPServer!
 Object subclass: #MCPHttpSession
 	instanceVariableNames: 'identifier stream writeMutualExclusion open'
@@ -105,6 +115,16 @@ Object subclass: #MCPHttpSession
 	category: 'MCPServer'!
 !classDefinition: 'MCPHttpSession class' category: #MCPServer!
 MCPHttpSession class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPMethodDefinition category: #MCPServer!
+Object subclass: #MCPMethodDefinition
+	instanceVariableNames: 'methodClass source category'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPMethodDefinition class' category: #MCPServer!
+MCPMethodDefinition class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPRefactoringApplier category: #MCPServer!
@@ -337,6 +357,16 @@ MCPToolProperty subclass: #MCPInstanceVariableProperty
 MCPInstanceVariableProperty class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPListProperty category: #MCPServer!
+MCPToolProperty subclass: #MCPListProperty
+	instanceVariableNames: 'items valueBlock'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPListProperty class' category: #MCPServer!
+MCPListProperty class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPMethodProperty category: #MCPServer!
 MCPToolProperty subclass: #MCPMethodProperty
 	instanceVariableNames: 'classProperty selectorProperty'
@@ -435,10 +465,20 @@ I am the debugger an MCP client is driving.
 
 There is one at a time, so my class answers the current one: an MCPOpenDebuggingSession while an evaluation is suspended at an error, and an MCPNoDebuggingSession when there is none, which answers every message with the error a client gets for driving a debugger that is not there.!
 
+!MCPDeclaredProperties commentStamp: '<historical>' prior: 0!
+I am the properties something declares to a client, as a tool declares its arguments and a list property declares each of its items.
+
+I say what they look like, as the JSON schema of an object with one entry per property and the names a client has to send, and I read their values out of what a client sent, in the order they were declared.!
+
 !MCPHttpSession commentStamp: '<historical>' prior: 0!
 I am one open Server-Sent Events stream between an MCPTransportHttpCopy and a client that speaks the older SSE transport.
 
 I know my identifier, which the client sends back in the sessionId parameter of every message it posts, and the socket stream my events are written to. Only one writer at a time writes on that stream. A write that fails closes me, and a closed session never writes again.!
+
+!MCPMethodDefinition commentStamp: '<historical>' prior: 0!
+I am a method a client asked to define: its source, the class it goes in and the category it is filed under.
+
+I define it and describe what happened, so that a client defining several methods at once is told about each one: the selector it was defined as, or why it could not be, without one of them stopping the rest.!
 
 !MCPRefactoringApplier commentStamp: '<historical>' prior: 0!
 I apply a refactoring and say what it changed, the way a client of the server reads it.
@@ -540,6 +580,11 @@ I answer the class itself rather than its name, and I do not report a missing cl
 I am the code package a request names.
 
 I answer the package itself rather than its name, so a tool that takes a package is handed the package and not the name it was found by, and a name no installed package answers to is reported as a package that was not found.!
+
+!MCPListProperty commentStamp: '<historical>' prior: 0!
+I am a property whose value is a list, each item of which is described by properties of its own, the way the arguments of a tool are.
+
+I am shown to a client as an array of objects with those properties, and I read each item through them, handing their values to the block I was created with, which builds what the tool works on for that item.!
 
 !MCPPlainProperty commentStamp: '<historical>' prior: 0!
 I am a property whose value is the one that came in the request, with nothing done to it.!
@@ -910,6 +955,52 @@ debugging: aProcess at: aSignalerContext
 	^self new initializeDebugger: debugger
 ! !
 
+!MCPDeclaredProperties methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 1:23:20 pm (UTC)'!
+initializeOf: someProperties
+
+	properties := someProperties! !
+
+!MCPDeclaredProperties methodsFor: 'definition' stamp: 'HAW 11/Sep/2026, 1:23:23 pm (UTC)'!
+definition
+
+	| schema |
+
+	schema := OrderedDictionary new
+		at: 'type' put: 'object';
+		at: 'properties' put: self propertiesDefinition;
+		yourself.
+	self requiredNames ifNotEmpty: [ :someNames | schema at: 'required' put: someNames ].
+
+	^schema! !
+
+!MCPDeclaredProperties methodsFor: 'definition' stamp: 'HAW 11/Sep/2026, 1:23:24 pm (UTC)'!
+propertiesDefinition
+
+	^properties
+		inject: OrderedDictionary new
+		into: [ :aProperties :eachProperty | eachProperty addTo: aProperties ]! !
+
+!MCPDeclaredProperties methodsFor: 'definition' stamp: 'HAW 11/Sep/2026, 1:26:47 pm (UTC)'!
+requiredNames
+
+	^(properties
+		inject: OrderedCollection new
+		into: [ :someNames :eachProperty |
+			eachProperty addRequiredNamesTo: someNames ]) asArray! !
+
+!MCPDeclaredProperties methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 1:26:45 pm (UTC)'!
+valuesFrom: anArguments
+
+	^(properties
+		inject: OrderedCollection new
+		into: [ :someValues :eachProperty |
+			eachProperty addValueFrom: anArguments to: someValues ]) asArray! !
+
+!MCPDeclaredProperties class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:23:17 pm (UTC)'!
+of: someProperties
+
+	^self new initializeOf: someProperties! !
+
 !MCPHttpSession methodsFor: 'initialization' stamp: ''!
 initializeIdentifiedAs: anIdentifier writingTo: aStream
 
@@ -986,6 +1077,44 @@ sendMessageEvent: aJsonString
 identifiedAs: anIdentifier writingTo: aStream
 
 	^self new initializeIdentifiedAs: anIdentifier writingTo: aStream! !
+
+!MCPMethodDefinition methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 1:22:43 pm (UTC)'!
+initializeOf: aSource in: aClass under: aMethodCategory
+
+	source := aSource.
+	methodClass := aClass.
+	category := aMethodCategory! !
+
+!MCPMethodDefinition methodsFor: 'defining' stamp: 'HAW 11/Sep/2026, 1:26:49 pm (UTC)'!
+define
+
+	^[ self definedDescriptionOf: (methodClass compile: source classified: category) ]
+		on: SyntaxErrorNotification, Error
+		do: [ :anError |
+			anError return: (self notDefinedDescriptionBecause: anError messageText) ]! !
+
+!MCPMethodDefinition methodsFor: 'describing' stamp: 'HAW 11/Sep/2026, 1:22:48 pm (UTC)'!
+definedDescriptionOf: aSelector
+
+	^OrderedDictionary new
+		at: 'class' put: methodClass name;
+		at: 'defined' put: true;
+		at: 'selector' put: aSelector;
+		yourself! !
+
+!MCPMethodDefinition methodsFor: 'describing' stamp: 'HAW 11/Sep/2026, 1:22:50 pm (UTC)'!
+notDefinedDescriptionBecause: anErrorDescription
+
+	^OrderedDictionary new
+		at: 'class' put: methodClass name;
+		at: 'defined' put: false;
+		at: 'error' put: anErrorDescription;
+		yourself! !
+
+!MCPMethodDefinition class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:22:41 pm (UTC)'!
+of: aSource in: aClass under: aMethodCategory
+
+	^self new initializeOf: aSource in: aClass under: aMethodCategory! !
 
 !MCPRefactoringApplier methodsFor: 'initialization' stamp: 'HAW 2/Sep/2026, 11:02:26 pm (UTC)'!
 initializeApplying: aRefactoring changing: aMethod
@@ -1864,34 +1993,10 @@ definition
 		yourself
 ! !
 
-!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 11/Sep/2026, 1:23:40 pm (UTC)'!
 inputSchema
 
-	| schema |
-
-	schema := OrderedDictionary new
-		at: 'type' put: 'object';
-		at: 'properties' put: self propertiesDefinition;
-		yourself.
-	self requiredPropertyNames ifNotEmpty: [ :aCollectionOfNames | schema at: 'required' put: aCollectionOfNames ].
-
-	^schema
-! !
-
-!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 21/Aug/2026, 7:30:59 pm (UTC)'!
-propertiesDefinition
-
-	^properties 
-		inject: OrderedDictionary new
-		into: [ :aProperties :aToolProperty  | aToolProperty addTo: aProperties ]! !
-
-!MCPToolDeclaration methodsFor: 'tool definition' stamp: 'HAW 24/Aug/2026, 11:24:41 pm (UTC)'!
-requiredPropertyNames
-
-	^(properties
-		inject: OrderedCollection new
-		into: [ :someNames :aToolProperty | aToolProperty addRequiredNamesTo: someNames ]) asArray
-! !
+	^(MCPDeclaredProperties of: properties) definition! !
 
 !MCPToolDeclaration methodsFor: 'executing' stamp: 'HAW 24/Aug/2026, 11:33:45 am (UTC)'!
 valueWithArguments: anArguments
@@ -1899,13 +2004,10 @@ valueWithArguments: anArguments
 	^self subclassResponsibility
 ! !
 
-!MCPToolDeclaration methodsFor: 'executing' stamp: 'HAW 7/Sep/2026, 11:31:55 pm (UTC)'!
+!MCPToolDeclaration methodsFor: 'executing' stamp: 'HAW 11/Sep/2026, 1:23:42 pm (UTC)'!
 valuesFrom: anArguments
 
-	^(properties 
-		inject: OrderedCollection new 
-		into: [ :someValues :eachProperty | 
-			eachProperty addValueFrom: anArguments to: someValues ]) asArray! !
+	^(MCPDeclaredProperties of: properties) valuesFrom: anArguments! !
 
 !MCPToolDeclaration class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 7:18:19 pm (UTC)'!
 named: aName describedBy: aDescription properties: aCollectionOfProperties
@@ -2551,22 +2653,26 @@ defineClassTool
 		properties: { MCPPlainProperty named: 'definition' describedBy: 'Full class definition expression' }
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
-defineMethodTool
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 1:26:52 pm (UTC)'!
+defineMethodsTool
 
 	^MCPPluggableTool
-		named: self class defineMethodToolName
-		describedBy: 'Define or modify a method on a class.'
-		properties: {
-			MCPClassProperty default.
-			MCPPlainProperty named: 'source' describedBy: 'Full method source including selector'.
-			MCPPlainProperty
-				named: 'category'
-				describedBy: 'Optional method category. Defaults to as yet unclassified'
-				defaultingTo: ClassOrganizer defaultMethodCategory }
-		executingWith: [ :aClass :aSource :aMethodCategory |
-			aClass compile: aSource classified: aMethodCategory.
-			'Method defined successfully' ]! !
+		named: self class defineMethodsToolName
+		describedBy: 'Define or modify several methods in one call, each on its class and under its category. Every method is compiled whatever happens to the others, and the answer says for each one, in the order sent, whether it was defined and its selector, or why it was not.'
+		properties: { MCPListProperty
+			named: 'methods'
+			describedBy: 'The methods to define, each with the class, the source and optionally the category'
+			itemsDeclaredBy: {
+				MCPClassProperty default.
+				MCPPlainProperty named: 'source' describedBy: 'Full method source including selector'.
+				MCPPlainProperty
+					named: 'category'
+					describedBy: 'Optional method category. Defaults to as yet unclassified'
+					defaultingTo: ClassOrganizer defaultMethodCategory }
+			valuedWith: [ :aClass :aSource :aMethodCategory |
+				MCPMethodDefinition of: aSource in: aClass under: aMethodCategory ] }
+		executingWith: [ :someDefinitions |
+			Json render: (someDefinitions collect: [ :eachDefinition | eachDefinition define ]) ]! !
 
 !MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 deleteClassTool
@@ -2687,7 +2793,7 @@ subclassesTool
 
 ! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 2/Sep/2026, 4:47:13 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -2703,7 +2809,7 @@ addToolsTo: anMCPServer
 		addTool: self listCategoriesTool;
 		addTool: self classesInCategoryTool;
 		addTool: self defineClassTool;
-		addTool: self defineMethodTool;
+		addTool: self defineMethodsTool;
 		addTool: self classifyMethodsTool;
 		addTool: self deleteClassTool;
 		addTool: self deleteMethodTool! !
@@ -2851,10 +2957,10 @@ defineClassToolName
 
 	^'smalltalk_define_class'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
-defineMethodToolName
+!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 11/Sep/2026, 1:21:03 pm (UTC)'!
+defineMethodsToolName
 
-	^'smalltalk_define_method'! !
+	^'smalltalk_define_methods'! !
 
 !MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
 deleteClassToolName
@@ -4923,6 +5029,45 @@ defaultVariableName
 defaultVariableNameDescription
 
 	^'Name of the instance variable'! !
+
+!MCPListProperty methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 1:26:40 pm (UTC)'!
+initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: anAbsentBlock items: someDeclaredProperties valuedWith: aValueBlock
+
+	name := aName.
+	description := aDescription.
+	required := isRequired.
+	absentBlock := anAbsentBlock.
+	items := someDeclaredProperties.
+	valueBlock := aValueBlock! !
+
+!MCPListProperty methodsFor: 'property definition' stamp: 'HAW 11/Sep/2026, 1:23:36 pm (UTC)'!
+definition
+
+	^super definition
+		at: 'items' put: items definition;
+		yourself! !
+
+!MCPListProperty methodsFor: 'property definition' stamp: 'HAW 11/Sep/2026, 1:23:35 pm (UTC)'!
+type
+
+	^'array'! !
+
+!MCPListProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 1:26:43 pm (UTC)'!
+valueFor: someItems
+
+	^someItems collect: [ :eachItem |
+		valueBlock valueWithArguments: (items valuesFrom: eachItem) ]! !
+
+!MCPListProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:23:30 pm (UTC)'!
+named: aName describedBy: aDescription itemsDeclaredBy: someProperties valuedWith: aValueBlock
+
+	^self new
+		initializeNamed: aName
+		describedBy: aDescription
+		required: true
+		ifAbsent: [ :aProperty | aProperty signalNotProvided ]
+		items: (MCPDeclaredProperties of: someProperties)
+		valuedWith: aValueBlock! !
 
 !MCPMethodProperty methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
 initializeOfClass: aClassProperty andSelector: aSelectorProperty

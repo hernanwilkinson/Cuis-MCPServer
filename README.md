@@ -248,10 +248,10 @@ once every tool is in place — neither package names the other, and a decorator
 loaded decorates nothing. A server is built with every group and decorator loaded, or with the
 ones it is given: `MCPServer servingOver: aTransport smalltalk: Smalltalk providing: someGroupClasses decoratedBy: someDecoratorClasses`, which is how the tests give each server only the tools under test.
 
-The tool tables below are generated from what the image advertises: evaluate
-`scripts/dump-tools.st` in an image with every package loaded, which writes `tools.json` next to
-the packages, then run `scripts/update-readme-tools.py`, which rewrites only the tables. The prose
-around them is written by hand.
+The tool tables below are generated from what the image advertises: set the repository directory
+in `scripts/dump-tools.st` and evaluate it in an image with every package loaded, which writes
+`tools.json` there, then run `scripts/update-readme-tools.py`, which rewrites only the tables. The
+prose around them is written by hand.
 
 ### MCPServer
 
@@ -261,6 +261,7 @@ Requires `WebClient`, `JSON` and `OSProcess`. The server, the transports and the
 #### Reading and writing code
 
 `smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` read a whole class or category in one call, which is much cheaper than a call per method.
+`smalltalk_define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
 
 <!-- tools MCPServer MCPModelStructureTools -->
 ##### `smalltalk_class_definition`
@@ -305,15 +306,16 @@ Define a new class or modify an existing class definition.
 | --- | --- | --- |
 | `definition` | required | Full class definition expression |
 
-##### `smalltalk_define_method`
+##### `smalltalk_define_methods`
 
-Define or modify a method on a class.
+Define or modify several methods in one call, each on its class and under its category. Every method is compiled whatever happens to the others, and the answer says for each one, in the order sent, whether it was defined and its selector, or why it was not.
 
 | Parameter | | |
 | --- | --- | --- |
-| `className` | required | Name of the class, or of its class side as in MCPServer class |
-| `source` | required | Full method source including selector |
-| `category` | optional | Optional method category. Defaults to as yet unclassified |
+| `methods` | required | The methods to define, each with the class, the source and optionally the category |
+| `methods[].className` | required | Name of the class, or of its class side as in MCPServer class |
+| `methods[].source` | required | Full method source including selector |
+| `methods[].category` | optional | Optional method category. Defaults to as yet unclassified |
 
 ##### `smalltalk_delete_class`
 
