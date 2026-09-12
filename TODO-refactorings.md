@@ -19,7 +19,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## PushUpMethod
 
-- [ ] **Pushing up the dependant methods misses a keyword one.** Pushing up
+- [x] **Pushing up the dependant methods misses a keyword one.** Done in the image: not the keyword, the nesting — `MessageNode>>sendsMessageToSelf:` only saw a send that was a whole statement (`^ self foo`), so one nested as a receiver (`self foo + 1`), an argument, a cascade, an assignment or a brace was missed, and `receiver referencesSelf` matched a receiver merely containing `self`. Now the receiver has to be `self` and the search recurses through receivers, arguments, cascades, assignments and braces (`PushUpMethodTest` 25–28). The self-recursion warning of the parser, which shares the message, sees a nested recursive send too. Pushing up
   `MCPModelStructureToolsTest>>methodIn:source:category:`, whose body is
   `^(self methodIn: aClassName source: aSource) at: ... ; yourself`, with *push up the dependant
   methods* moved only itself; `methodIn:source:` — sent to self, not implemented by the superclass —
@@ -45,6 +45,10 @@ Errors and shortcomings found in the refactorings while driving them through the
   Fix: when the replaced send is the last statement of its block or method, do not add the
   period (or take the one the original statement had, and only that one).
 
+- [x] **Drops the parentheses around an inlined cascade.** Done in the image (`InlineMethod>>statementWithMessageSend:usedIn:lastStatement:replacement:` now adds parentheses when the inlined expression is a cascade, as it already did for a message send; `InlineMethodTest` 37 and 38). Inlining `keyword ^OrderedCollection new add: 1; yourself` into `at: 1 put: (self keyword); yourself` produced `at: 1 put: OrderedCollection new add: 1; yourself; yourself`, which parses as one cascade on `Dictionary new`.
+
+- [x] **Keeps the implementor's indentation on the lines of a multi-line statement.** Done in the image: the lines after the first of each inlined statement are re-based from the implementor's indentation to that of the sender line (`MessageNodeReference>>lineIndentation`, `InlineMethodTest>>test39`). Inlining a cascade written at one tab into a sender line at two tabs left `add: 1;` at two tabs instead of three.
+
 - [ ] **Refuses a method with an early return.** `MCPServer>>handleRequest:` answered `^nil` from an
   `ifAbsent:` block and its value at the end; inlining it fails with *Method to inline has more
   than one possible return value*. It had to be rewritten as a single `at:ifPresent:ifAbsent:`
@@ -58,11 +62,35 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## ExtractMethod
 
-- [ ] **The extracted method is written with a space after the return and one indentation level
-  too many.** Extracting the class-side dictionary out of `MCPModelStructureTools>>classSourceOf:`
+- [x] **The extracted method is written one indentation level too many.** Done in the image:
+  `ExtractMethodNewMethodSourceCode>>sourceCodeToExtractIndentedAsAMethodBody` re-bases the
+  piece on the indentation of the line it starts on and gives it the body's one tab, through
+  `CharacterSequence>>indentationOfLineAt:` and `withIndentation:replacedBy:`; a piece starting
+  on the selector line is left as written (`ExtractMethodTest` 161 added, 152 corrected).
+  **The space after the return stays**: `^ ` is the convention of the whole suite (the sender
+  gets `^ self m2` too) and of ~100 expectations — a decision, not a defect fix.
+- [ ] **The extracted method is written with a space after the return.** Extracting the class-side dictionary out of `MCPModelStructureTools>>classSourceOf:`
   produced `^ OrderedDictionary new` and the cascade lines with three tabs instead of two — the
   indentation of the piece where it stood, kept as it was, plus a tab. Fix: `^` without a space,
   and re-indent the piece so its first line starts at one tab.
+
+- [x] **Extracting a cascade written inside parentheses from the browser fails with a parse
+  error.** The tool's tests passed because they build the replacement from the interval given;
+  the browser goes through `ExtractMethodReplacementsFinder`, which takes the cascade's
+  *complete source range* — and `Parser>>createCascadeNodeWith:and:` ended a cascade's range at
+  `hereMark + 1`, one past the start of the token *after* the cascade, so a cascade in
+  parentheses ranged over its `)` and whatever followed (`);`). The replacement then swallowed
+  those characters and `m1` no longer parsed; the same bad range made the finder report a second,
+  garbage replacement. Done in the image: the range ends at the last message's own range end
+  (`ParserTest>>testACascadeInParenthesesRangesOverItselfAndItsParentheses`), and
+  `SourceCodeOfMethodToBeExtractedPrecondition>>intervalCoversCompleteAstNodes` accepts the
+  initial node's start with or without its parentheses, since a cascade's complete range now
+  includes them the way a message's does.
+
+- [x] **Leaves parentheses the new send does not need, or doubles them.** Done in the image. Extracting `(3 + 4) factorial` to a unary message gave `(self m2) factorial`; `((42))` gave `((self m2))`; `(2 + arg) * 3` to a keyword message gave `((self m2: arg)) * 3`, one pair from the source and one added for precedence; a cascade in parentheses gave `at: 1 put: (self m2);`. The decision now lives in one object, `ExpressionReplacement` (`of:in:by:withPrecedence:`), which replaces the range together with every pair of parentheses around it and writes the new expression with exactly one pair when the parent node needs it (`ParseNode>>requiresParenthesesToReplace:withAnExpressionOfPrecedence:` on `MessageNode` and `CascadeNode`; precedence 1 to 4 named on `ParseNode class`). `ExtractMethodReplacement` is its first client, with the precedence of the send collaboration from `ExtractMethodProgrammer>>sendCollaborationPrecedence` (`ExpressionReplacementTest`, `ExtractMethodTest` 162 to 165 and 167, 019, 038 and 161 corrected, `SourceCodeIntervalTest` 26 and 27).
+- [ ] **The same parentheses problem in the other refactorings**, to be moved onto `ExpressionReplacement` one at a time: `RemoveParameter` leaves `(self m1) yourself` when the pair is no longer needed; `AddParameter` produces `self m1: 1 yourself` when a pair becomes needed; `InlineMethod` (`addParenthesesIfNeededTo:`, `messageSendIsInsideMessageNode:`) wraps any message inside a message; `InlineTemporaryVariable` has its own walk over unary, infix and keyword parents; `CodeForNodeToMove` wraps assignments only.
+
+- [x] **Extracting the receiver of a cascade written in parentheses failed from the browser.** Done in the image: `SourceCodeOfMethodToBeExtractedPrecondition` took the whole cascade as the initial node whenever the selection was inside one, so the covered range began at the cascade's `(` and *the selected code contains an invalid expression* was signalled; and `EquivalentNodesFinder` reported the receiver twice, once as a partial cascade and once by the plain visit, so the browser offered the repeated-code window instead of extracting (`ExtractMethodFinderTest>>test61`).
 
 ## RemoveParameter
 

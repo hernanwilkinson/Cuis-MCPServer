@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:12:17 pm'!
-'Description Take several items in every reading and removing tool'!
-!provides: 'MCPServerTests' 1 70!
+'From Cuis7.9 [latest update: #8163] on 12 September 2026 at 7:12:46 pm'!
+'Description Expect no parentheses around the extracted unary send'!
+!provides: 'MCPServerTests' 1 72!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -3273,7 +3273,7 @@ testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 12/Sep/2026, 6:23:50 pm (UTC)'!
 testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 
 	self defineTestSubjectClass.
@@ -3291,7 +3291,7 @@ testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 				yourself).
 
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
-		includesSubstring: '(self mcpExtracted) * (self mcpExtracted)' caseSensitive: true)
+		includesSubstring: 'self mcpExtracted * self mcpExtracted' caseSensitive: true)
 
 ! !
 
