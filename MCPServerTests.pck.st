@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 12 September 2026 at 7:12:46 pm'!
-'Description Expect no parentheses around the extracted unary send'!
-!provides: 'MCPServerTests' 1 72!
+'From Cuis7.9 [latest update: #8184] on 15 September 2026 at 8:29:20 pm'!
+'Description Call several tools in one call with smalltalk_batch'!
+!provides: 'MCPServerTests' 1 73!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -78,7 +78,7 @@ MCPDebuggingToolsTest class
 
 !classDefinition: #MCPImageToolsTest category: #MCPServerTests!
 MCPToolsTest subclass: #MCPImageToolsTest
-	instanceVariableNames: 'savedImageCount'
+	instanceVariableNames: 'savedImageCount records'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerTests'!
@@ -200,6 +200,9 @@ I test the seven tools that drive a debugger.
 Six of my tests ask each tool what it answers when no debugger is open, which is what a client sees when it drives one out of turn. The rest let a real failure leave a real debugger open and drive that, so what they exercise is the debugger the server really opens.
 
 My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
+
+!MCPImageToolsTest commentStamp: '<historical>' prior: 0!
+I am the tests of MCPImageTools: evaluating code, saving the image, and the batch tool that calls several tools in one call. I play the image the server saves, so that saving it in a test writes nothing to disk.!
 
 !MCPModelStructureToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of MCPMetamodelTools, which read and change classes, their categories, their hierarchy and their methods.!
@@ -581,6 +584,18 @@ arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey
 		at: aThirdKey put: aThirdValue;
 		yourself! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 15/Sep/2026, 2:00:49 pm (UTC)'!
+arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey being: aThirdValue and: aFourthKey being: aFourthValue
+
+	^Dictionary new
+		at: aKey put: aValue;
+		at: anotherKey put: anotherValue;
+		at: aThirdKey put: aThirdValue;
+		at: aFourthKey put: aFourthValue;
+		yourself
+
+! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 6:33:22 pm (UTC)'!
 createdClassInTest
 
@@ -762,10 +777,10 @@ toolDecoratorClasses
 
 	^#()! !
 
-!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 9/Sep/2026, 9:05:43 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 15/Sep/2026, 1:56:57 pm (UTC)'!
 toolGroupClasses
 
-	^{ MCPImageTools }! !
+	^{ MCPImageTools. MCPModelStructureTools }! !
 
 !MCPCallLogTest methodsFor: 'running' stamp: 'HAW 10/Sep/2026, 5:16:42 pm (UTC)'!
 setUp
@@ -779,6 +794,16 @@ tearDown
 
 	self probeLogFileName asFileEntry exists ifTrue: [ self probeLogFileName asFileEntry delete ].
 	super tearDown! !
+
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 15/Sep/2026, 11:23:25 pm (UTC)'!
+defineTwoTestSubjectMethods
+
+	self defineTestSubjectClass.
+	client
+		callTool: MCPModelStructureTools defineMethodsToolName
+		with: (self arguments: 'methods' being: {
+			self methodIn: 'MCPTestSubject' source: 'saludo ^1'.
+			self methodIn: 'MCPTestSubject' source: 'despedida ^2' })! !
 
 !MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:52 pm (UTC)'!
 evaluate: aCode
@@ -862,6 +887,18 @@ testARecordSaysWhenAndHowLongTheCallTook
 	self assert: (record at: 'milliseconds') >= 0.
 	self deny: (record at: 'at') isEmpty.
 	self deny: (record at: 'session') isEmpty! !
+
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 11:23:25 pm (UTC)'!
+testCallWithListOfObjectsInArgumentsIsRecordedOnOneLine
+
+	| record |
+
+	self defineTwoTestSubjectMethods.
+
+	self assert: self recordedCalls size equals: 2.
+	record := self recordedCalls last.
+	self assert: (record at: 'tool') equals: MCPModelStructureTools defineMethodsToolName.
+	self assert: ((record at: 'arguments') at: 'methods') size equals: 2! !
 
 !MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:08 pm (UTC)'!
 testCallsAreNumberedInTheOrderTheyWereMadeWithinTheSession
@@ -1185,11 +1222,12 @@ smalltalkForTheServer
 
 	^self! !
 
-!MCPImageToolsTest methodsFor: 'running' stamp: 'HAW 28/Aug/2026, 12:48:15 am (UTC)'!
+!MCPImageToolsTest methodsFor: 'running' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 setUp
 
 	super setUp.
-	savedImageCount := 0! !
+	savedImageCount := 0.
+	self recordCallsInMemory! !
 
 !MCPImageToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 28/Aug/2026, 12:48:28 am (UTC)'!
 imageName
@@ -1206,10 +1244,340 @@ toolDecoratorClasses
 
 	^#()! !
 
-!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:16 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 toolGroupClasses
 
-	^{ MCPImageTools }! !
+	^{ MCPImageTools. MCPModelStructureTools. MCPRefactoringTools }! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+assertSideEffectStepDidNotRun
+
+	self deny: (Smalltalk includesKey: self class sideEffectGlobalName)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+categoriesListingLine: aNumber
+
+	^self
+		line: aNumber
+		of: MCPModelStructureTools listCategoriesToolName
+		answering: '['! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+categoriesListingStep
+
+	^self step: MCPModelStructureTools listCategoriesToolName! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+childProbePushUpStep
+
+	^self
+		step: MCPRefactoringTools pushUpMethodRefactoringToolName
+		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe')! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+defineTestSubjectChildReadingAnInstanceVariable
+
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubjectChild'
+		subclassOf: 'MCPTestSubject'
+		instanceVariableNames: 'held'
+		classVariableNames: '').
+	self defineMethodIn: 'MCPTestSubjectChild' source: 'mcpProbe
+
+	^held'! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+evaluationLine: aNumber answering: anAnswer
+
+	^self line: aNumber of: MCPImageTools evaluateToolName answering: anAnswer! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+evaluationStepOf: aCode
+
+	^self
+		step: MCPImageTools evaluateToolName
+		with: (self arguments: 'code' being: aCode)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+failingEvaluationStep
+
+	^self evaluationStepOf: 'self error: ''probe'''! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+instanceVariableWarningNotApplied
+
+	^MCPRefactoringTool notAppliedDescriptionFor:
+		(PushUpMethod accessingInstanceVariableWarningMessage: { 'held' })! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+line: aNumber of: aToolName answering: anAnswer
+
+	^aNumber printString , '. ' , aToolName , ': ' , anAnswer! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+linesOfRunning: someSteps
+
+	| answer |
+
+	answer := client
+		callTool: MCPImageTools batchToolName
+		with: (self arguments: 'steps' being: someSteps).
+
+	^answer lines asArray! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+methodNotFoundErrorText
+
+	^self serverErrorTextFor: (MCPMethodProperty
+		methodNotFoundErrorDescriptionFor: 'noSuchSelector'
+		in: self createdClassInTest)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+notRunLine: aNumber of: aToolName
+
+	^self line: aNumber of: aToolName answering: 'not run'! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+recordCallsInMemory
+
+	records := WriteStream on: String new.
+	server logCallsIn: (MCPJsonLinesCallLog writingWith: [ :aWritingBlock |
+		aWritingBlock value: records ])! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+recordedToolNames
+
+	^((records contents lines reject: [ :eachLine | eachLine isEmpty ])
+		collect: [ :eachLine | (Json readFrom: eachLine readStream) at: 'tool' ]) asArray! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+renameSelectorStepOf: aSelector to: aNewSelector
+
+	"The scope is the class, so that a rename does not reach the tests that name the selector."
+
+	^self
+		step: MCPRefactoringTools renameSelectorRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: aSelector
+			and: 'newSelector' being: aNewSelector
+			and: 'scope' being: 'class')! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+sideEffectStep
+
+	^self evaluationStepOf: 'Smalltalk at: #' , self class sideEffectGlobalName , ' put: 1'! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+step: aToolName
+
+	^Dictionary new
+		at: 'tool' put: aToolName;
+		yourself! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+step: aToolName with: anArguments
+
+	^(self step: aToolName)
+		at: 'arguments' put: anArguments;
+		yourself! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+stepsPropertyNotProvidedErrorText
+
+	| stepsProperty |
+
+	stepsProperty := (self toolNamed: MCPImageTools batchToolName) properties first.
+
+	^self serverErrorTextFor: stepsProperty notProvidedErrorDescription! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+stoppingLine: aNumber of: aToolName with: anAnswer
+
+	^aNumber printString , '. ' , aToolName , ' stopped the batch: ' , anAnswer! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+testSubjectClassDefinitionStep
+
+	^self
+		step: MCPModelStructureTools defineClassToolName
+		with: (self arguments: 'definition' being: self subjectClassDefinition)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+testSubjectMethodDefinitionStep
+
+	| methods |
+
+	methods := { self methodIn: 'MCPTestSubject' source: self subjectMethodSource }.
+
+	^self
+		step: MCPModelStructureTools defineMethodsToolName
+		with: (self arguments: 'methods' being: methods)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testSubjectMethodSourceStep
+
+	^self
+		step: MCPModelStructureTools methodSourceToolName
+		with: (self arguments: 'methods' being: 'MCPTestSubject>>saludo')! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+unknownClassMethodDeletionStep
+
+	^self
+		step: MCPModelStructureTools deleteMethodToolName
+		with: (self arguments: 'className' being: 'MCPNoSuchClass' and: 'selectors' being: 'saludo')! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+unknownToolErrorTextFor: aToolName
+
+	^self serverErrorTextFor: (MCPServer unknownToolErrorDescriptionFor: aToolName)! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testAppliedRefactoringLetsBatchGoOn
+
+	| lines |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+
+	lines := self linesOfRunning: {
+		self renameSelectorStepOf: 'saludo' to: 'hola'.
+		self evaluationStepOf: '7' }.
+
+	self assert: (self createdClassInTest includesSelector: #hola).
+	self assert: lines last equals: (self evaluationLine: 2 answering: '7')! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testBatchRunsStepsInOrderAnsweringOneLinePerStep
+
+	| lines |
+
+	lines := self linesOfRunning: {
+		self evaluationStepOf: '3 + 4'.
+		self evaluationStepOf: '5 * 6' }.
+
+	self assert: lines equals: {
+		self evaluationLine: 1 answering: '7'.
+		self evaluationLine: 2 answering: '30' }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testBatchTakesReadsAndChangesTogether
+
+	| lines |
+
+	lines := self linesOfRunning: {
+		self testSubjectClassDefinitionStep.
+		self testSubjectMethodDefinitionStep.
+		self testSubjectMethodSourceStep }.
+
+	self assert: lines size equals: 3.
+	self assert: (self createdClassInTest includesSelector: #saludo).
+	self assert: (lines last includesSubstring: 'Hola' caseSensitive: true)! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testBatchWithoutStepsFails
+
+	self
+		should: [ client callTool: MCPImageTools batchToolName with: Dictionary new ]
+		raise: Error
+		withMessageText: self stepsPropertyNotProvidedErrorText! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testEachStepIsLoggedUnderOwnTool
+
+	self linesOfRunning: {
+		self evaluationStepOf: '1'.
+		self categoriesListingStep }.
+
+	self assert: self recordedToolNames equals: {
+		MCPImageTools evaluateToolName.
+		MCPModelStructureTools listCategoriesToolName.
+		MCPImageTools batchToolName }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testFailingNonRefactoringStepDoesNotStopNextSteps
+
+	self linesOfRunning: {
+		self unknownClassMethodDeletionStep.
+		self sideEffectStep }.
+
+	self assert: (Smalltalk includesKey: self class sideEffectGlobalName)! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testFailingRefactoringStopsBatch
+
+	| lines |
+
+	self defineTestSubjectClass.
+
+	lines := self linesOfRunning: {
+		self renameSelectorStepOf: 'noSuchSelector' to: 'hola'.
+		self sideEffectStep.
+		self categoriesListingStep }.
+
+	self assert: lines equals: {
+		self
+			stoppingLine: 1
+			of: MCPRefactoringTools renameSelectorRefactoringToolName
+			with: self methodNotFoundErrorText.
+		self notRunLine: 2 of: MCPImageTools evaluateToolName.
+		self notRunLine: 3 of: MCPModelStructureTools listCategoriesToolName }.
+	self assertSideEffectStepDidNotRun! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testFailingStepAnswersErrorAndBatchGoesOn
+
+	| lines |
+
+	lines := self linesOfRunning: {
+		self failingEvaluationStep.
+		self evaluationStepOf: '7' }.
+
+	self assert: lines equals: {
+		self evaluationLine: 1 answering: (self serverErrorTextFor: 'probe').
+		self evaluationLine: 2 answering: '7' }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testRefactoringStoppedAtWarningStopsBatch
+
+	| lines |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectChildReadingAnInstanceVariable.
+
+	lines := self linesOfRunning: {
+		self childProbePushUpStep.
+		self sideEffectStep }.
+
+	self assert: lines equals: {
+		self
+			stoppingLine: 1
+			of: MCPRefactoringTools pushUpMethodRefactoringToolName
+			with: self instanceVariableWarningNotApplied.
+		self notRunLine: 2 of: MCPImageTools evaluateToolName }.
+	self assertSideEffectStepDidNotRun! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testStepWithoutArgumentsCallsToolWithNone
+
+	| lines |
+
+	lines := self linesOfRunning: { self categoriesListingStep }.
+
+	self assert: (lines first beginsWith: (self categoriesListingLine: 1)).
+	self assert: (lines first includesSubstring: '"MCPServer"' caseSensitive: true)! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+testUnknownToolStepFailsAndBatchGoesOn
+
+	| lines |
+
+	lines := self linesOfRunning: { self step: 'no_such_tool'. self evaluationStepOf: '7' }.
+
+	self assert: lines equals: {
+		self line: 1 of: 'no_such_tool' answering: (self unknownToolErrorTextFor: 'no_such_tool').
+		self evaluationLine: 2 answering: '7' }! !
 
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:21:05 pm (UTC)'!
 defineMethods: someMethods
@@ -1544,7 +1912,7 @@ testClassifyMethodsAnswersWhereEachMethodWasFiledBefore
 			and: 'category' being: 'despedidas')) at: 'classified') first at: 'wasUnder')
 		equals: 'saludos'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testClassifyMethodsFilesEveryMethodNamed
 
 	self defineTestSubjectClass.
@@ -1562,7 +1930,7 @@ testClassifyMethodsFilesEveryMethodNamed
 		assert: (self createdClassInTest organization listAtCategoryNamed: 'despedidas') asSortedCollection asArray
 		equals: #(#despedida #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testClassifyMethodsFilesTheMethodUnderTheCategoryNamed
 
 	self defineTestSubjectClass.
@@ -1763,7 +2131,7 @@ testDeleteClassRemovesTheClassFromTheSystem
 
 	self assert: self createdClassInTest isNil! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:46:02 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsAddsAMethodToItsClass
 
 	self defineTestSubjectClass.
@@ -1788,7 +2156,7 @@ testDefineMethodsAnswersWhatHappenedToEachMethodInOrder
 	self assert: (answer first at: 'defined').
 	self assert: (answer last at: 'selector') equals: 'despedida'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:12 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsDefinesEveryMethodSent
 
 	self defineTestSubjectClass.
@@ -1800,7 +2168,7 @@ testDefineMethodsDefinesEveryMethodSent
 	self assert: (self createdClassInTest includesSelector: #saludo).
 	self assert: (self createdClassInTest class includesSelector: #despedida)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:17 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsDefinesTheRestWhenOneDoesNotCompile
 
 	| answer |
@@ -1816,7 +2184,7 @@ testDefineMethodsDefinesTheRestWhenOneDoesNotCompile
 	self deny: (self createdClassInTest includesSelector: #saludo).
 	self assert: (self createdClassInTest includesSelector: #despedida)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:20 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsFilesEachMethodUnderItsCategory
 
 	self defineTestSubjectClass.
@@ -1830,7 +2198,7 @@ testDefineMethodsFilesEachMethodUnderItsCategory
 		assert: (self createdClassInTest organization categoryOfElement: #despedida)
 		equals: ClassOrganizer defaultMethodCategory! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:46:08 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsKeepsTheSourceItWasGiven
 
 	"A method compiled without leaving a trail keeps no source, and what is read back is a
@@ -1843,7 +2211,7 @@ testDefineMethodsKeepsTheSourceItWasGiven
 		assert: (self createdClassInTest sourceCodeAt: #saludo) asString
 		equals: self subjectMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:23 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDefineMethodsWithAClassThatDoesNotExistDefinesNothing
 
 	self defineTestSubjectClass.
@@ -1868,7 +2236,7 @@ testDefineMethodsWithoutMethodsFails
 		withMessageText: (self serverErrorTextFor:
 			(self propertyNamed: 'methods' of: MCPModelStructureTools defineMethodsToolName) notProvidedErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDeleteMethodRemovesEveryMethodNamed
 
 	self defineTestSubjectClass.
@@ -1882,7 +2250,7 @@ testDeleteMethodRemovesEveryMethodNamed
 	self deny: (self createdClassInTest includesSelector: #saludo).
 	self deny: (self createdClassInTest includesSelector: #despedida)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDeleteMethodRemovesTheMethodFromTheClass
 
 	self defineTestSubjectClass.
@@ -1893,7 +2261,7 @@ testDeleteMethodRemovesTheMethodFromTheClass
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
 testDeleteMethodWithASelectorTheClassDoesNotImplementRemovesNothing
 
 	self defineTestSubjectClass.
@@ -2172,18 +2540,6 @@ packageNameOfTestData
 applyRefactoring: aToolName with: anArguments
 
 	^client callTool: aToolName with: anArguments
-! !
-
-!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 27/Aug/2026, 6:09:54 pm (UTC)'!
-arguments: aKey being: aValue and: anotherKey being: anotherValue and: aThirdKey being: aThirdValue and: aFourthKey being: aFourthValue
-
-	^Dictionary new
-		at: aKey put: aValue;
-		at: anotherKey put: anotherValue;
-		at: aThirdKey put: aThirdValue;
-		at: aFourthKey put: aFourthValue;
-		yourself
-
 ! !
 
 !MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:02 pm (UTC)'!
@@ -3876,7 +4232,7 @@ setUp
 	super setUp.
 	methodsFound := #()! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:36 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 11:24:43 pm (UTC)'!
 testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
 
 	| aServer |
@@ -3892,7 +4248,8 @@ testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
 		equals: (Set
 			with: MCPImageTools evaluateToolName
 			with: MCPImageTools screenshotToolName
-			with: MCPImageTools saveImageToolName)! !
+			with: MCPImageTools saveImageToolName
+			with: MCPImageTools batchToolName)! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 testCallingAnUnknownToolFails

@@ -473,7 +473,19 @@ List the methods that send each of several selectors, under the selector, in its
 
 #### Image
 
+`smalltalk_batch` calls several tools in one call, in the order given, and answers one line per step, so that reading a class and then defining, or defining and then running the tests, take one turn instead of two. A step that fails answers its error and the batch goes on, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, since they would work over what it did not do. The call log records each step under its own tool, and then the batch.
+
 <!-- tools MCPServer MCPImageTools -->
+##### `smalltalk_batch`
+
+Call several tools in one call, in the order given, and answer one line per step: its number, the tool and what it answered, or the error it failed with. Reads and changes go together, so that reading a class and then defining, or defining and then running the tests, take one call. A step that fails does not stop the ones after it, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, because they would work over what it did not do. Each step is logged as a call of its own tool.
+
+| Parameter | | |
+| --- | --- | --- |
+| `steps` | required | The steps to run, in order, each naming a tool and carrying its arguments |
+| `steps[].tool` | required | Name of the tool to call, as it is advertised |
+| `steps[].arguments` | optional | The arguments of the tool, as they would be sent to it on its own. A tool that takes none is called without them |
+
 ##### `smalltalk_evaluate`
 
 Evaluate arbitrary Smalltalk code and return the result.

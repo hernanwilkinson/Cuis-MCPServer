@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:12:11 pm'!
-'Description Take several items in every reading and removing tool'!
-!provides: 'MCPServer' 1 83!
+'From Cuis7.9 [latest update: #8184] on 15 September 2026 at 8:29:14 pm'!
+'Description Call several tools in one call with smalltalk_batch'!
+!provides: 'MCPServer' 1 84!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -35,6 +35,26 @@ MCPAuthentication subclass: #MCPNoAuthentication
 	category: 'MCPServer'!
 !classDefinition: 'MCPNoAuthentication class' category: #MCPServer!
 MCPNoAuthentication class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPBatch category: #MCPServer!
+Object subclass: #MCPBatch
+	instanceVariableNames: 'steps server lines isStopped'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPBatch class' category: #MCPServer!
+MCPBatch class
+	instanceVariableNames: ''!
+
+!classDefinition: #MCPBatchStep category: #MCPServer!
+Object subclass: #MCPBatchStep
+	instanceVariableNames: 'toolName arguments'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPBatchStep class' category: #MCPServer!
+MCPBatchStep class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPCallLog category: #MCPServer!
@@ -397,6 +417,16 @@ MCPToolProperty subclass: #MCPMethodsProperty
 MCPMethodsProperty class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPObjectProperty category: #MCPServer!
+MCPToolProperty subclass: #MCPObjectProperty
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServer'!
+!classDefinition: 'MCPObjectProperty class' category: #MCPServer!
+MCPObjectProperty class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPPlainProperty category: #MCPServer!
 MCPToolProperty subclass: #MCPPlainProperty
 	instanceVariableNames: ''
@@ -464,6 +494,14 @@ which is the scheme RemoteControlMCP uses and the one an MCP client configures w
 I serve every request: the endpoint I guard asks for no credentials.
 
 I am the right choice while the endpoint listens on the loopback interface only, where the operating system already keeps other machines out. Guard an endpoint reachable from the network with MCPBearerTokenAuthenticationCopy instead.!
+
+!MCPBatch commentStamp: '<historical>' prior: 0!
+I run the steps of one call of the batch tool, in order, and answer one line per step: its number, the tool, and what it answered or the error it failed with.
+
+A step that fails does not stop the ones after it, except when its tool says so: a refactoring that fails or stops at a warning leaves nothing for the steps after it to work over, so they are not run and say so. Each step is called through the server, so that the call log records it under its own tool.!
+
+!MCPBatchStep commentStamp: '<historical>' prior: 0!
+I am one step of a batch: the name of the tool to call and the arguments to call it with, as a client would send them to the tool on its own. I describe what happened to me in the line the batch answers for me.!
 
 !MCPCallLog commentStamp: '<historical>' prior: 0!
 I am where a server records the tool calls it answers, so that how a client uses it can be measured afterwards.
@@ -554,7 +592,7 @@ Every subclass of mine is asked to add its tools, so a package that has some is 
 I am the tools that open a debugger on code that fails and drive the one that is open.!
 
 !MCPImageTools commentStamp: '<historical>' prior: 0!
-I am the tools that act on the image itself: evaluating code in it, seeing what it looks like, and saving it.!
+I am the tools that act on the image itself: evaluating code in it, seeing what it looks like, saving it, and calling several of the tools the server serves in one call, which MCPBatch runs.!
 
 !MCPModelStructureTools commentStamp: '<historical>' prior: 0!
 I am the tools that read and change the metamodel: classes, their categories, their hierarchy and their methods.!
@@ -610,6 +648,9 @@ I answer the package itself rather than its name, so a tool that takes a package
 I am a property whose value is a list, each item of which is described by properties of its own, the way the arguments of a tool are.
 
 I am shown to a client as an array of objects with those properties, and I read each item through them, handing their values to the block I was created with, which builds what the tool works on for that item.!
+
+!MCPObjectProperty commentStamp: '<historical>' prior: 0!
+I am a property whose value is an object with any fields, taken as it came in the request. A batch declares the arguments of each step through me, since what they hold is what the tool of the step declares, not the batch.!
 
 !MCPPlainProperty commentStamp: '<historical>' prior: 0!
 I am a property whose value is the one that came in the request, with nothing done to it.!
@@ -704,6 +745,114 @@ authorizes: aWebRequest
 
 	^true! !
 
+!MCPBatch methodsFor: 'initialization' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+initializeOf: someSteps runningIn: anMCPServer
+
+	steps := someSteps.
+	server := anMCPServer.
+	lines := OrderedCollection new.
+	isStopped := false! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 2:03:34 pm (UTC)'!
+execute: aStep
+
+	^server executeTool: aStep toolName arguments: aStep arguments! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 7:26:43 pm (UTC)'!
+goOnOrStopAfter: aStep answering: anAnswer
+
+	(server stopsBatch: aStep toolName whenAnswering: anAnswer)
+		ifTrue: [ self stopAt: aStep with: anAnswer ]
+		ifFalse: [ self addLine: (aStep descriptionAnswering: anAnswer) ]! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 7:30:03 pm (UTC)'!
+goOnOrStopAfter: aStep failingWith: anError
+
+	(server stopsBatchWhenFails: aStep toolName)
+		ifTrue: [ self stopAt: aStep with: anError printString ]
+		ifFalse: [ self addLine: (aStep descriptionAnswering: anError printString) ]! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 2:06:07 pm (UTC)'!
+run: aStep
+
+	isStopped ifTrue: [ ^self addLine: aStep descriptionNotRun ].
+
+	[ self goOnOrStopAfter: aStep answering: (self execute: aStep) ]
+		on: Error
+		do: [ :anError | self goOnOrStopAfter: aStep failingWith: anError ]! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+stopAt: aStep with: aText
+
+	isStopped := true.
+	self addLine: (aStep descriptionStoppingWith: aText)! !
+
+!MCPBatch methodsFor: 'running' stamp: 'HAW 15/Sep/2026, 7:23:28 pm (UTC)'!
+answer
+
+	^self 
+		runSteps;
+		createAnswer! !
+
+!MCPBatch methodsFor: 'running' stamp: 'HAW 15/Sep/2026, 7:23:17 pm (UTC)'!
+createAnswer
+
+	^ String streamContents: [ :aStream |
+		lines
+			do: [ :eachLine | aStream nextPutAll: eachLine ]
+			separatedBy: [ aStream newLine ] ]! !
+
+!MCPBatch methodsFor: 'running' stamp: 'HAW 15/Sep/2026, 7:24:54 pm (UTC)'!
+runSteps
+
+	steps do: [ :eachStep | self run: eachStep ]! !
+
+!MCPBatch methodsFor: 'answering' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+addLine: aText
+
+	lines add: (lines size + 1) printString , '. ' , aText! !
+
+!MCPBatch class methodsFor: 'instance creation' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+of: someSteps runningIn: anMCPServer
+
+	^self new initializeOf: someSteps runningIn: anMCPServer! !
+
+!MCPBatchStep methodsFor: 'initialization' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+initializeOf: aToolName with: anArguments
+
+	toolName := aToolName.
+	arguments := anArguments! !
+
+!MCPBatchStep methodsFor: 'accessing' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+arguments
+
+	^arguments! !
+
+!MCPBatchStep methodsFor: 'accessing' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+toolName
+
+	^toolName! !
+
+!MCPBatchStep methodsFor: 'describing' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+descriptionAnswering: aText
+
+	^toolName , ': ' , aText! !
+
+!MCPBatchStep methodsFor: 'describing' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+descriptionNotRun
+
+	^self descriptionAnswering: 'not run'! !
+
+!MCPBatchStep methodsFor: 'describing' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+descriptionStoppingWith: aText
+
+	^toolName , ' stopped the batch: ' , aText! !
+
+!MCPBatchStep class methodsFor: 'instance creation' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+of: aToolName with: anArguments
+
+	^self new initializeOf: aToolName with: anArguments! !
+
 !MCPCallLog methodsFor: 'recording' stamp: 'HAW 9/Sep/2026, 9:03:58 pm (UTC)'!
 record: aBlock of: aToolName with: anArguments
 
@@ -762,10 +911,13 @@ record: aBlock of: aToolName with: anArguments
 
 	^answer! !
 
-!MCPJsonLinesCallLog methodsFor: 'writing' stamp: 'HAW 9/Sep/2026, 9:04:19 pm (UTC)'!
+!MCPJsonLinesCallLog methodsFor: 'writing' stamp: 'HAW 15/Sep/2026, 2:03:49 pm (UTC)'!
 write: aRecord
 
-	writer value: [ :aStream | aStream nextPutAll: (Json render: aRecord); newLine ]! !
+	"The JSON writer of Cuis puts a line break between the elements of an array of objects. A line
+	break inside a string is written escaped, so the ones left are all separators and go away."
+
+	writer value: [ :aStream | aStream nextPutAll: (Json render: aRecord) withoutLineBreaks; newLine ]! !
 
 !MCPJsonLinesCallLog class methodsFor: 'instance creation' stamp: 'HAW 10/Sep/2026, 5:16:35 pm (UTC)'!
 toFile: aFileName
@@ -1616,11 +1768,15 @@ signalUnknownTool: aToolName
 	self error: (self class unknownToolErrorDescriptionFor: aToolName)
 ! !
 
-!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 24/Aug/2026, 11:45:29 am (UTC)'!
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
 toolNamed: aToolName
 
-	^tools at: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]
-! !
+	^self toolNamed: aToolName ifAbsent: [ self signalUnknownTool: aToolName ]! !
+
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+toolNamed: aToolName ifAbsent: anAbsentBlock
+
+	^tools at: aToolName ifAbsent: anAbsentBlock! !
 
 !MCPServer methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:30 pm (UTC)'!
 addProvidedTools
@@ -1651,6 +1807,16 @@ decorateTools
 		self 
 			decorateToolNamed: eachDecoratorClass decoratedToolName 
 			with: eachDecoratorClass ]! !
+
+!MCPServer methodsFor: 'testing' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
+stopsBatch: aToolName whenAnswering: anAnswer
+
+	^(self toolNamed: aToolName) stopsBatchWhenAnswering: anAnswer ! !
+
+!MCPServer methodsFor: 'testing' stamp: 'HAW 15/Sep/2026, 7:33:52 pm (UTC)'!
+stopsBatchWhenFails: aToolName 
+
+	^(self toolNamed: aToolName ifAbsent: [ ^false ]) stopsBatchWhenFails ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
 servingOver: aTransport
@@ -1975,6 +2141,16 @@ valueWithArguments: anArguments
 	^self subclassResponsibility
 
 ! !
+
+!MCPTool methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
+stopsBatchWhenAnswering: anAnswer
+
+	^false! !
+
+!MCPTool methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:30:44 pm (UTC)'!
+stopsBatchWhenFails
+
+	^false! !
 
 !MCPTool class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:10:11 pm (UTC)'!
 isAbstract
@@ -2308,6 +2484,16 @@ acceptedWarningsProperty
 		describedBy: self class acceptedWarningsPropertyDescription
 		defaultingTo: ''! !
 
+!MCPRefactoringTool methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
+stopsBatchWhenAnswering: anAnswer
+
+	^self class isNotAppliedDescription: anAnswer! !
+
+!MCPRefactoringTool methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:30:44 pm (UTC)'!
+stopsBatchWhenFails
+
+	^true! !
+
 !MCPRefactoringTool class methodsFor: 'instance creation' stamp: 'HAW 9/Sep/2026, 4:43:56 pm (UTC)'!
 named: aName describedBy: aDescription properties: aCollectionOfProperties executingWith: aBlock
 
@@ -2327,11 +2513,21 @@ acceptedWarningsPropertyName
 
 	^'acceptedWarnings'! !
 
-!MCPRefactoringTool class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 6:21:12 pm (UTC)'!
+!MCPRefactoringTool class methodsFor: 'descriptions' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+isNotAppliedDescription: aText
+
+	^aText beginsWith: self notAppliedDescriptionPrefix! !
+
+!MCPRefactoringTool class methodsFor: 'descriptions' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
 notAppliedDescriptionFor: aWarningDescription
 
-	^'Refactoring not applied. Warning: ' , aWarningDescription ,
+	^self notAppliedDescriptionPrefix , aWarningDescription ,
 		'. To apply it anyway, call the tool again with the same arguments and this warning added to ' , self acceptedWarningsPropertyName! !
+
+!MCPRefactoringTool class methodsFor: 'descriptions' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+notAppliedDescriptionPrefix
+
+	^'Refactoring not applied. Warning: '! !
 
 !MCPToolDecorator methodsFor: 'initialization' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
 initializeDecorating: aTool in: aSmalltalk
@@ -2387,6 +2583,16 @@ name
 
 	^decoratee name
 ! !
+
+!MCPToolDecorator methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
+stopsBatchWhenAnswering: anAnswer
+
+	^decoratee stopsBatchWhenAnswering: anAnswer! !
+
+!MCPToolDecorator methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:30:44 pm (UTC)'!
+stopsBatchWhenFails
+
+	^decoratee stopsBatchWhenFails! !
 
 !MCPToolDecorator class methodsFor: 'instance creation' stamp: 'HAW 27/Aug/2026, 7:45:50 pm (UTC)'!
 decorating: aTool in: aSmalltalk
@@ -2553,6 +2759,15 @@ finishDebuggingToolName
 
 	^'smalltalk_finish_debugging'! !
 
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+batchToolRunningIn: anMCPServer
+
+	^MCPPluggableTool
+		named: self class batchToolName
+		describedBy: 'Call several tools in one call, in the order given, and answer one line per step: its number, the tool and what it answered, or the error it failed with. Reads and changes go together, so that reading a class and then defining, or defining and then running the tests, take one call. A step that fails does not stop the ones after it, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, because they would work over what it did not do. Each step is logged as a call of its own tool.'
+		properties: { self stepsProperty }
+		executingWith: [ :someSteps | (MCPBatch of: someSteps runningIn: anMCPServer) answer ]! !
+
 !MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 evaluateTool
 
@@ -2585,6 +2800,19 @@ screenshotTool
 		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
 ! !
 
+!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+stepsProperty
+
+	^MCPListProperty
+		named: 'steps'
+		describedBy: 'The steps to run, in order, each naming a tool and carrying its arguments'
+		itemsDeclaredBy: {
+			MCPPlainProperty named: 'tool' describedBy: 'Name of the tool to call, as it is advertised'.
+			MCPObjectProperty
+				named: 'arguments'
+				describedBy: 'The arguments of the tool, as they would be sent to it on its own. A tool that takes none is called without them' }
+		valuedWith: [ :aToolName :anArguments | MCPBatchStep of: aToolName with: anArguments ]! !
+
 !MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 6:57:02 pm (UTC)'!
 writeScreenshotTo: aFileName
 
@@ -2597,14 +2825,20 @@ writeScreenshotTo: aFileName
 
 	^aFileName! !
 
-!MCPImageTools methodsFor: 'tools' stamp: 'HAW 28/Aug/2026, 12:36:49 am (UTC)'!
+!MCPImageTools methodsFor: 'tools' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
 		addTool: self evaluateTool;
 		addTool: self screenshotTool;
-		addTool: self saveImageTool
+		addTool: self saveImageTool;
+		addTool: (self batchToolRunningIn: anMCPServer)
 ! !
+
+!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+batchToolName
+
+	^'smalltalk_batch'! !
 
 !MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:05 pm (UTC)'!
 evaluateToolName
@@ -5448,6 +5682,25 @@ notAMethodNameErrorDescriptionFor: aText
 
 	^'Method expected as Class>>selector: ', aText! !
 
+!MCPObjectProperty methodsFor: 'property definition' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+type
+
+	^'object'! !
+
+!MCPObjectProperty methodsFor: 'request arguments' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+valueFor: aValue
+
+	^aValue! !
+
+!MCPObjectProperty class methodsFor: 'instance creation' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+named: aName describedBy: aDescription
+
+	^self
+		named: aName
+		describedBy: aDescription
+		required: false
+		ifAbsent: [ :aProperty | Dictionary new ]! !
+
 !MCPPlainProperty methodsFor: 'request arguments' stamp: 'HAW 21/Aug/2026, 3:21:39 pm (UTC)'!
 valueFor: aValue
 
@@ -6011,17 +6264,14 @@ readMessage
 	^self readLine ifNotNil: [ :aLine | self utf8Decode: aLine ]
 ! !
 
-!MCPTransportText methodsFor: 'writing' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!MCPTransportText methodsFor: 'writing' stamp: 'HAW 15/Sep/2026, 2:03:49 pm (UTC)'!
 writeMessage: aJsonString
 
 	"Write aJsonString as one line, because a message is delimited by the line it is on."
 
-	| singleLine |
-
 	out closed ifTrue: [ ^self ].
-	singleLine := (aJsonString copyWithout: Character cr) copyWithout: Character lf.
 	out
-		nextPutAll: singleLine asUtf8Bytes asString;
+		nextPutAll: aJsonString withoutLineBreaks asUtf8Bytes asString;
 		newLine;
 		flush
 ! !
@@ -6086,6 +6336,11 @@ isTrue
 	what stands for a boolean is read here once instead of at each place that takes one."
 
 	^self = 'true'! !
+
+!CharacterSequence methodsFor: '*MCPServer' stamp: 'HAW 15/Sep/2026, 2:03:49 pm (UTC)'!
+withoutLineBreaks
+
+	^(self copyWithout: Character cr) copyWithout: Character lf! !
 
 !RefactoringWarning methodsFor: '*MCPServer' stamp: 'HAW 9/Sep/2026, 3:24:25 pm (UTC)'!
 descriptionForClient
