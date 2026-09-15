@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 14 September 2026 at 9:36:42 pm'!
-'Description Check the parentheses of a send whose parameters are gathered in the actual scope'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 13!
+'From Cuis7.9 [latest update: #8184] on 15 September 2026 at 10:27:39 am'!
+'Description Leave the tests of the refactorings themselves to ExtraRefactoringsLiveTypingTest'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 14!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -98,12 +98,6 @@ parameterObjectClass
 	^Smalltalk classNamed: 'MCPExtraLiveTypingRefactoringParameters'
 ! !
 
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-probeClass
-
-	^probeClass
-! !
-
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 26/Aug/2026, 7:37:02 pm (UTC)'!
 testGatheringParametersInTheActualScopeAnswersTheMethodsItChanged
 
@@ -119,67 +113,6 @@ MCPExtraLiveTypingRefactoringProbe>>#second:mCPExtraLiveTypingRefactoringParamet
 1 method removed:
 MCPExtraLiveTypingRefactoringProbe>>#mcpFirst:second:'
 
-! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-testGatheringParametersInTheActualScopeChangesTheSendsItSaw
-
-	self compileProbeSending: 'mcpCaller
-
-	^self mcpFirst: 1 second: 2'.
-
-	self gatherFirstParameterOf: 'mcpFirst:second:'.
-
-	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
-		includesSubstring: 'MCPExtraLiveTypingRefactoringParameters' caseSensitive: true)
-! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 12:14:22 am (UTC)'!
-testGatheringParametersInTheActualScopeKeepsTheParenthesesTheSendNeeds
-
-	self compileProbeSending: 'mcpCaller
-
-	^(self mcpFirst: 1 second: 2) yourself'.
-
-	self gatherFirstParameterOf: 'mcpFirst:second:'.
-
-	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
-		includesSubstring: '^(self ' caseSensitive: true).
-	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
-		includesSubstring: ')) yourself' caseSensitive: true)! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-testGatheringParametersInTheActualScopeLeavesASendToAnythingElseAlone
-
-	"The send inside the ifTrue: is to a variable LiveTyping never saw hold anything, so it is
-	a send of the same name that is not a send to this class, and it is left as it was."
-
-	self compileProbeSending: 'mcpCaller
-
-	| anythingElse |
-
-	self mcpFirst: 1 second: 2.
-	false ifTrue: [ anythingElse mcpFirst: 3 second: 4 ]'.
-
-	self gatherFirstParameterOf: 'mcpFirst:second:'.
-
-	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
-		includesSubstring: 'anythingElse mcpFirst: 3 second: 4' caseSensitive: true)
-! !
-
-!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
-testGatheringParametersInTheActualScopeTakesThemToTheNewClass
-
-	"The parameters keep their names without the article they were written with, so aFirst is
-	held as first."
-
-	self compileProbeSending: 'mcpCaller
-
-	^self mcpFirst: 1 second: 2'.
-
-	self gatherFirstParameterOf: 'mcpFirst:second:'.
-
-	self assert: (self parameterObjectClass instVarNames includes: 'first')
 ! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 8:54:38 pm (UTC)'!
