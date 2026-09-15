@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:30:11 am'!
-'Description Move a method to the class of what its receiver holds'!
-!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 12!
+'From Cuis7.9 [latest update: #8184] on 14 September 2026 at 9:36:42 pm'!
+'Description Check the parentheses of a send whose parameters are gathered in the actual scope'!
+!provides: 'MCPServerExtraLiveTypingRefactoringsTests' 1 13!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerExtraLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactoringsTests!
@@ -133,6 +133,20 @@ testGatheringParametersInTheActualScopeChangesTheSendsItSaw
 	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
 		includesSubstring: 'MCPExtraLiveTypingRefactoringParameters' caseSensitive: true)
 ! !
+
+!MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 12:14:22 am (UTC)'!
+testGatheringParametersInTheActualScopeKeepsTheParenthesesTheSendNeeds
+
+	self compileProbeSending: 'mcpCaller
+
+	^(self mcpFirst: 1 second: 2) yourself'.
+
+	self gatherFirstParameterOf: 'mcpFirst:second:'.
+
+	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
+		includesSubstring: '^(self ' caseSensitive: true).
+	self assert: ((self probeClass sourceCodeAt: 'mcpCaller' asSymbol)
+		includesSubstring: ')) yourself' caseSensitive: true)! !
 
 !MCPExtraLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Aug/2026, 12:28:39 pm (UTC)'!
 testGatheringParametersInTheActualScopeLeavesASendToAnythingElseAlone
