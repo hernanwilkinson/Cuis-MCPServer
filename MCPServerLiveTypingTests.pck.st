@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:18:34 pm'!
-'Description File out the LiveTyping tests of the multi-item tools'!
-!provides: 'MCPServerLiveTypingTests' 1 17!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:34 pm'!
+'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
+!provides: 'MCPServerLiveTypingTests' 1 18!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -67,10 +67,10 @@ defineProbeHierarchy
 	^childClass
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
 definitionAnswerOfTheProbe
 
-	^(self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName with: (Dictionary new
 		at: 'classNames' put: 'MCPLiveTypingProbe';
 		yourself)) at: 'MCPLiveTypingProbe'! !
 
@@ -90,10 +90,10 @@ sendsOfTheProbeCaller
 		at: 'selector' put: 'mcpCaller';
 		yourself)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 sourceAnswerOfTheProbe
 
-	^(self jsonAnswerOf: MCPModelStructureTools methodSourceToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName with: (Dictionary new
 		at: 'methods' put: 'MCPLiveTypingProbe>>mcpHold:';
 		yourself)) at: 'MCPLiveTypingProbe>>#mcpHold:'! !
 

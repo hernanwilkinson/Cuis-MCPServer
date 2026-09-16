@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:22:41 am'!
-'Description Move a method between sides over a scope with its senders redirected'!
-!provides: 'MCPServerTests' 1 74!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:18 pm'!
+'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
+!provides: 'MCPServerTests' 1 75!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1414,18 +1414,18 @@ testSubjectMethodDefinitionStep
 		step: MCPModelStructureTools defineMethodsToolName
 		with: (self arguments: 'methods' being: methods)! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 testSubjectMethodSourceStep
 
 	^self
-		step: MCPModelStructureTools methodSourceToolName
+		step: MCPModelStructureTools methodSourcesToolName
 		with: (self arguments: 'methods' being: 'MCPTestSubject>>saludo')! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
 unknownClassMethodDeletionStep
 
 	^self
-		step: MCPModelStructureTools deleteMethodToolName
+		step: MCPModelStructureTools deleteMethodsToolName
 		with: (self arguments: 'className' being: 'MCPNoSuchClass' and: 'selectors' being: 'saludo')! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
@@ -1647,7 +1647,7 @@ testACategoryHoldingNoMethodIsLeftOut
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: OrderedDictionary new! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
 testClassDefinitionAnswersEveryClassNamed
 
 	| answer |
@@ -1655,23 +1655,23 @@ testClassDefinitionAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName
+	answer := self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject' 'MCPTestSubjectChild').
 	self assert: ((answer at: 'MCPTestSubjectChild') at: 'superclass') equals: 'MCPTestSubject'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
 testClassDefinitionAnswersTheSuperclassOfTheClass
 
 	self defineTestSubjectClass.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classDefinitionToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') at: 'superclass')
 		equals: 'Object'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
 testClassSourceAnswersEveryClassNamed
 
 	| answer |
@@ -1679,14 +1679,14 @@ testClassSourceAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+	answer := self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject').
 
 	self assert: answer size equals: 2.
 	self assert: ((answer at: 'MCPTestSubjectChild') at: 'definition') equals: (Smalltalk classNamed: 'MCPTestSubjectChild') definition.
 	self assert: ((answer at: 'MCPTestSubject') at: 'definition') equals: self createdClassInTest definition! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:00 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
 testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 
 	| answer |
@@ -1696,7 +1696,7 @@ testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource category: 'saludos'.
 	self createdClassInTest comment: 'Un sujeto de prueba'.
 
-	answer := (self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+	answer := (self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject'.
 
 	self assert: (answer at: 'definition') equals: self createdClassInTest definition.
@@ -1709,7 +1709,7 @@ testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 		assert: (((answer at: 'classSide') at: 'methods') at: 'saludos')
 		equals: (OrderedDictionary new at: 'saludoDeClase' put: self subjectClassSideMethodSource; yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:56:01 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
 testClassSourceNamedByAClassSideAnswersTheWholeClass
 
 	| answer |
@@ -1717,25 +1717,25 @@ testClassSourceNamedByAClassSideAnswersTheWholeClass
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classSourceToolName
+	answer := self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject class').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject').
 	self assert: (((answer at: 'MCPTestSubject') at: 'methods') at: 'saludos') keys asArray equals: #('saludo')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 1:57:18 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
 testClassSourceOfAnUnknownClassFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools classSourceToolName
+			callTool: MCPModelStructureTools classSourcesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject, NoSuchClassAtAll') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPClassProperty classNotFoundErrorDescriptionFor: 'NoSuchClassAtAll'))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:41 pm (UTC)'!
 testHierarchyAnswersEveryClassNamed
 
 	| answer |
@@ -1743,20 +1743,20 @@ testHierarchyAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools hierarchyToolName
+	answer := self jsonAnswerOf: MCPModelStructureTools hierarchiesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject').
 
 	self assert: answer keys asArray equals: #('MCPTestSubjectChild' 'MCPTestSubject').
 	self assert: (answer at: 'MCPTestSubjectChild') asArray equals: #('MCPTestSubjectChild' 'MCPTestSubject' 'Object' 'ProtoObject')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:41 pm (UTC)'!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
 
 	self defineTestSubjectClass.
 
 	self
 		assert: ((self
-			jsonAnswerOf: MCPModelStructureTools hierarchyToolName
+			jsonAnswerOf: MCPModelStructureTools hierarchiesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') asArray
 		equals: #('MCPTestSubject' 'Object' 'ProtoObject')! !
 
@@ -1813,7 +1813,7 @@ testTheSourceOfEveryMethodOfAClassIsAnsweredUnderTheCategoryItIsFiledIn
 			at: 'despedidas' put: (OrderedDictionary new at: 'despedida' put: self subjectFarewellMethodSource; yourself);
 			yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 11/Sep/2026, 2:16:49 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 testMethodSourceAnswersEveryMethodNamed
 
 	| answer |
@@ -1822,39 +1822,39 @@ testMethodSourceAnswersEveryMethodNamed
 	self defineTestSubjectMethod.
 	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools methodSourceToolName
+	answer := self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName
 		with: (self arguments: 'methods' being: 'MCPTestSubject class>>#saludoDeClase, MCPTestSubject>>saludo').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject class>>#saludoDeClase' 'MCPTestSubject>>#saludo').
 	self assert: ((answer at: 'MCPTestSubject class>>#saludoDeClase') at: 'source') equals: self subjectClassSideMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools methodSourceToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName
 			with: (self arguments: 'methods' being: 'MCPTestSubject>>saludo')) at: 'MCPTestSubject>>#saludo') at: 'source')
 		equals: self subjectMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 testMethodSourceOfAMethodNotWrittenAsClassAndSelectorFails
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodSourceToolName
+			callTool: MCPModelStructureTools methodSourcesToolName
 			with: (self arguments: 'methods' being: 'MCPTestSubject saludo') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPMethodsProperty notAMethodNameErrorDescriptionFor: 'MCPTestSubject saludo'))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 11/Sep/2026, 2:16:49 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 testMethodSourceOfAnUnknownClassFails
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodSourceToolName
+			callTool: MCPModelStructureTools methodSourcesToolName
 			with: (self arguments: 'methods' being: 'NoSuchClassAtAll>>anything') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
@@ -1875,7 +1875,7 @@ testListCategoriesIncludesTheCategoryOfTheServer
 
 	self assert: ((self jsonAnswerOf: MCPModelStructureTools listCategoriesToolName) includes: MCPServer category)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 16/Sep/2026, 2:42:32 pm (UTC)'!
 testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 
 	self defineTestSubjectClass.
@@ -1884,18 +1884,18 @@ testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 	^''¡Hola!!''' category: 'saludos'.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject class')) at: 'MCPTestSubject class') at: 'saludos')
 		equals: #('saludoDeClase')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 16/Sep/2026, 2:42:32 pm (UTC)'!
 testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') at: 'saludos')
 		equals: #('saludo')! !
 
@@ -2109,25 +2109,25 @@ testDefineClassWithoutADefinitionFails
 
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 16/Sep/2026, 2:42:49 pm (UTC)'!
 testDeleteClassRemovesEveryClassNamed
 
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools deleteClassToolName
+		assert: (self jsonAnswerOf: MCPModelStructureTools deleteClassesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject'))
 		equals: #('MCPTestSubjectChild' 'MCPTestSubject').
 	self assert: (Smalltalk classNamed: 'MCPTestSubjectChild') isNil.
 	self assert: self createdClassInTest isNil! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 16/Sep/2026, 2:42:49 pm (UTC)'!
 testDeleteClassRemovesTheClassFromTheSystem
 
 	self defineTestSubjectClass.
 
-	client callTool: MCPModelStructureTools deleteClassToolName with: (self arguments: 'classNames' being: 'MCPTestSubject').
+	client callTool: MCPModelStructureTools deleteClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject').
 
 	self assert: self createdClassInTest isNil! !
 
@@ -2236,7 +2236,7 @@ testDefineMethodsWithoutMethodsFails
 		withMessageText: (self serverErrorTextFor:
 			(self propertyNamed: 'methods' of: MCPModelStructureTools defineMethodsToolName) notProvidedErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
 testDeleteMethodRemovesEveryMethodNamed
 
 	self defineTestSubjectClass.
@@ -2244,31 +2244,31 @@ testDeleteMethodRemovesEveryMethodNamed
 	self defineTestSubjectFarewellIn: 'saludos'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools deleteMethodToolName
+		assert: (self jsonAnswerOf: MCPModelStructureTools deleteMethodsToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo, despedida'))
 		equals: #('MCPTestSubject>>#saludo' 'MCPTestSubject>>#despedida').
 	self deny: (self createdClassInTest includesSelector: #saludo).
 	self deny: (self createdClassInTest includesSelector: #despedida)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
 testDeleteMethodRemovesTheMethodFromTheClass
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
-	client callTool: MCPModelStructureTools deleteMethodToolName with:
+	client callTool: MCPModelStructureTools deleteMethodsToolName with:
 		(self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo').
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
 testDeleteMethodWithASelectorTheClassDoesNotImplementRemovesNothing
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
 	self
-		should: [ client callTool: MCPModelStructureTools deleteMethodToolName with:
+		should: [ client callTool: MCPModelStructureTools deleteMethodsToolName with:
 			(self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo, noSuchSelector') ]
 		raise: Error
 		withExceptionDo: [ :anError |
@@ -4110,7 +4110,7 @@ testSendersOfAnswersEverySelectorNamed
 		assert: (self methodsFoundBy: MCPSearchTools sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe, mcpOtherProbe') under: 'mcpOtherProbe')
 		equals: #('MCPTestSubject mcpProbeCaller')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 16/Sep/2026, 2:42:56 pm (UTC)'!
 testReferencesToAClassAnswerEveryMethodThatNamesIt
 
 	self defineTestSubjectClass.
@@ -4120,7 +4120,7 @@ testReferencesToAClassAnswerEveryMethodThatNamesIt
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeNamingItsClass' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools referencesToClassToolName with: (self arguments: 'classNames' being: 'MCPTestSubject') under: 'MCPTestSubject')
+		assert: (self methodsFoundBy: MCPSearchTools referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject') under: 'MCPTestSubject')
 		equals: #('MCPTestSubject mcpProbeNamingItsClass')! !
 
 !MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 8/Sep/2026, 9:40:23 pm (UTC)'!
@@ -4198,7 +4198,7 @@ testReferencesToAnInstanceVariableTheClassDoesNotHaveFails
 			(MCPServer instanceVariableNotFoundErrorDescriptionFor: 'noSuchVariable' in: self createdClassInTest))
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 16/Sep/2026, 2:42:56 pm (UTC)'!
 testReferencesToClassesAnswerEveryClassNamed
 
 	self defineTestSubjectClass.
@@ -4209,7 +4209,7 @@ testReferencesToClassesAnswerEveryClassNamed
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeNamingItsClass' asSymbol }.
 
 	self
-		assert: (self jsonAnswerOf: MCPSearchTools referencesToClassToolName with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild')) keys asArray
+		assert: (self jsonAnswerOf: MCPSearchTools referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild')) keys asArray
 		equals: #('MCPTestSubject' 'MCPTestSubjectChild')! !
 
 !MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
@@ -4411,17 +4411,17 @@ testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
 
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:26 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 16/Sep/2026, 2:43:00 pm (UTC)'!
 testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
 
 	self defineTestCaseProbe.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoryToolName
+		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoriesToolName
 			with: (self arguments: 'categoryNames' being: self classCategoryOfTestData))
 		equals: #(1 1 1)! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:27:24 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 16/Sep/2026, 2:43:00 pm (UTC)'!
 testRunningTheTestsOfSeveralClassCategoriesRunsThemAsOneSuite
 
 	classCategories add: self otherClassCategoryOfTestData.
@@ -4436,7 +4436,7 @@ testRunningTheTestsOfSeveralClassCategoriesRunsThemAsOneSuite
 	self assert: true'.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoryToolName
+		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoriesToolName
 			with: (self arguments: 'categoryNames' being: self classCategoryOfTestData, ', ', self otherClassCategoryOfTestData))
 		equals: #(2 1 1)! !
 
@@ -4569,11 +4569,11 @@ argumentsForClassNamed: aClassName selector: aSelector
 		yourself
 ! !
 
-!MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 11:23:50 pm (UTC)'!
+!MCPMethodPropertyTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
 toolTakingAMethod
 
 	^MCPPluggableTool
-		named: 'smalltalk_probe'
+		named: 'probe'
 		describedBy: 'A tool that takes a method.'
 		properties: { MCPMethodProperty
 			classDescribedBy: 'Name of the class that implements it'
@@ -4654,11 +4654,11 @@ errorOf: aJsonAnswer
 	^(self parsed: aJsonAnswer) at: 'error'
 ! !
 
-!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!
+!MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:41:53 pm (UTC)'!
 evaluateRequestWithIdentifier: anIdentifier code: aCode
 
 	^'{"jsonrpc":"2.0","id":', anIdentifier printString,
-		',"method":"tools/call","params":{"name":"smalltalk_evaluate","arguments":{"code":"', aCode, '"}}}', self lineEnd
+		',"method":"tools/call","params":{"name":"evaluate","arguments":{"code":"', aCode, '"}}}', self lineEnd
 ! !
 
 !MCPTransportTextTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 1:21:30 pm (UTC)'!

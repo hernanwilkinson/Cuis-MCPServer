@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8163] on 11 September 2026 at 12:12:22 pm'!
-'Description Take several items in every reading and removing tool'!
-!provides: 'MCPServerLiveTyping' 1 25!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:29 pm'!
+'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
+!provides: 'MCPServerLiveTyping' 1 26!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -214,10 +214,10 @@ valueWithArguments: anArguments
 
 	^Json render: answer! !
 
-!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:25 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 16/Sep/2026, 2:42:13 pm (UTC)'!
 decoratedToolName
 
-	^MCPModelStructureTools classDefinitionToolName! !
+	^MCPModelStructureTools classDefinitionsToolName! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 7:01:09 pm (UTC)'!
 description
@@ -260,10 +260,10 @@ variableTypeNamesOf: aMethod
 
 	^typesByVariable! !
 
-!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:31 pm (UTC)'!
+!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
 decoratedToolName
 
-	^MCPModelStructureTools methodSourceToolName! !
+	^MCPModelStructureTools methodSourcesToolName! !
 
 !MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 8/Sep/2026, 11:14:48 pm (UTC)'!
 addToolsTo: anMCPServer
@@ -407,40 +407,40 @@ variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
 ! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 actualImplementorsOfToolName
 
-	^'smalltalk_actual_implementors_of'! !
+	^'actual_implementors_of'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 actualSendersOfToolName
 
-	^'smalltalk_actual_senders_of'! !
+	^'actual_senders_of'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 8/Sep/2026, 11:14:42 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 messageSendsOfMethodToolName
 
-	^'smalltalk_message_sends_of_method'! !
+	^'message_sends_of_method'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:18 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 returnTypesOfMethodToolName
 
-	^'smalltalk_return_types_of_method'! !
+	^'return_types_of_method'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 typesOfEveryInstanceVariableToolName
 
-	^'smalltalk_types_of_instance_variables'! !
+	^'types_of_instance_variables'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 typesOfInstanceVariableToolName
 
-	^'smalltalk_types_of_instance_variable'! !
+	^'types_of_instance_variable'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 typesOfMethodVariableToolName
 
-	^'smalltalk_types_of_method_variable'! !
+	^'types_of_method_variable'! !
 
 !MCPLiveTypingTools class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 7:00:38 pm (UTC)'!
 howTypesAreListedDescription

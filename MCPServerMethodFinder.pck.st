@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 9:13:14 pm'!
-'Description Drop Tool from the name of every property of a tool'!
-!provides: 'MCPServerMethodFinder' 1 4!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:39 pm'!
+'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
+!provides: 'MCPServerMethodFinder' 1 5!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinder!
@@ -73,7 +73,7 @@ addToolsTo: anMCPServer
 
 	anMCPServer addTool: self findMessagesByExampleTool! !
 
-!MCPMethodFinderTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:06 pm (UTC)'!
+!MCPMethodFinderTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
 findMessagesByExampleToolName
 
-	^'smalltalk_find_messages_by_example'! !
+	^'find_messages_by_example'! !

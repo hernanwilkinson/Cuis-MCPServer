@@ -28,10 +28,10 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## MCP tool findings (fixed on the way)
 
-- [x] **`smalltalk_refactor_extract_method` refused a piece using a variable unless `argumentNames`
+- [x] **`refactor_extract_method` refused a piece using a variable unless `argumentNames`
   was sent**, although the property is optional: the asked names were counted against the
   parameters even when none were asked. Fixed in `MCPRefactoringTools>>namesRenaming:asAskedIn:`.
-- [x] **`smalltalk_refactor_add_parameter` failed with `String>>isKeyword` on a keyword selector**:
+- [x] **`refactor_add_parameter` failed with `String>>isKeyword` on a keyword selector**:
   the keyword reached `AddParameter` as a string, and the only test added to a unary selector.
   Fixed: the keyword property answers a symbol; test added for a keyword selector.
 
@@ -152,6 +152,6 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 - [ ] **`Warning>>defaultAction` opens a `Debugger` and waits.** Any `Warning` a tool does not
   handle (a `RefactoringWarning` before this session, and still any other `Warning`, e.g. from
-  `smalltalk_evaluate`) blocks that MCP request until someone proceeds it in the image or the
+  `evaluate`) blocks that MCP request until someone proceeds it in the image or the
   1800 s timeout ends it. `RefactoringWarning` is handled now by `MCPRefactoringTool`; the
   general case is open, and it cannot be a blanket `on: Warning` because of the entry above.

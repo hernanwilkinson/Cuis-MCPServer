@@ -211,7 +211,7 @@ server is reached with `MCPServer allInstances`, or kept from `run` as above.
 Each line stands alone:
 
 ```json
-{"session":"da6f7c2e-…","sequence":12,"at":"2026-09-09T16:02:11-03:00","tool":"smalltalk_method_source","arguments":{"className":"MCPServer","selector":"responseTo:"},"milliseconds":3,"isError":false,"answer":"{\"source\": …}"}
+{"session":"da6f7c2e-…","sequence":12,"at":"2026-09-09T16:02:11-03:00","tool":"method_sources","arguments":{"className":"MCPServer","selector":"responseTo:"},"milliseconds":3,"isError":false,"answer":"{\"source\": …}"}
 ```
 
 | Field | |
@@ -237,9 +237,11 @@ jq -s 'group_by(.tool) | map({tool: .[0].tool, calls: length, ms: (map(.millisec
 
 ## Tools by package
 
+The tool names carry no server prefix: a client names the server it configured, and shows the tools under it, as in `mcp__Cuis__evaluate`. A tool that takes several items is named in plural, `class_definitions`, `method_sources`, `delete_methods`, and one that takes a single item in singular.
+
 Every tool that takes a `className` also takes the class side, named the way it prints:
-`MCPServer class`. Always save with `smalltalk_save_image`: evaluating `Smalltalk saveImage`
-through `smalltalk_evaluate` blocks the server. A tool that fails answers an error whose text
+`MCPServer class`. Always save with `save_image`: evaluating `Smalltalk saveImage`
+through `evaluate` blocks the server. A tool that fails answers an error whose text
 starts with the class of the exception, as in `Error: Class not found: Foo`.
 
 A package that adds tools subclasses `MCPToolGroup`; one that adds to the tools of another package
@@ -260,11 +262,11 @@ Requires `WebClient`, `JSON` and `OSProcess`. The server, the transports and the
 
 #### Reading and writing code
 
-`smalltalk_class_source` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `smalltalk_method_sources_of_class` and `smalltalk_method_sources_in_category` one side or one category, all much cheaper than a call per method. Every tool that reads or removes takes several classes (`classNames`), methods (`methods`, as `Class>>selector`) or selectors (`selectors`), separated by commas, and answers under each one's name; a class or method that is not there fails the whole call before anything is done.
-`smalltalk_define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
+`class_sources` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `method_sources_of_class` and `method_sources_in_category` one side or one category, all much cheaper than a call per method. Every tool that reads or removes takes several classes (`classNames`), methods (`methods`, as `Class>>selector`) or selectors (`selectors`), separated by commas, and answers under each one's name; a class or method that is not there fails the whole call before anything is done.
+`define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
 
 <!-- tools MCPServer MCPModelStructureTools -->
-##### `smalltalk_class_definition`
+##### `class_definitions`
 
 Read the definition of several classes in one call: for each, its superclass, its instance and class variables, its selectors and its comment.
 
@@ -272,7 +274,7 @@ Read the definition of several classes in one call: for each, its superclass, it
 | --- | --- | --- |
 | `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
-##### `smalltalk_class_organization`
+##### `class_organizations`
 
 List, for each class named, its method categories, each with the selectors filed under it, in the order the class holds them. Name the class side the way it prints, as in MCPServer class.
 
@@ -280,7 +282,7 @@ List, for each class named, its method categories, each with the selectors filed
 | --- | --- | --- |
 | `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
-##### `smalltalk_class_source`
+##### `class_sources`
 
 Read whole classes in one call. For each class named: its definition as it is written, its comment, the source of every method of its instance side under its selector and grouped by category, and under classSide the definition and the methods of its class side. A class side named answers the whole class. A category holding no method is left out.
 
@@ -288,7 +290,7 @@ Read whole classes in one call. For each class named: its definition as it is wr
 | --- | --- | --- |
 | `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
-##### `smalltalk_classes_in_category`
+##### `classes_in_category`
 
 List all classes in a specific category.
 
@@ -296,7 +298,7 @@ List all classes in a specific category.
 | --- | --- | --- |
 | `category` | required | Name of the category |
 
-##### `smalltalk_classify_methods`
+##### `classify_methods`
 
 File methods of a class under a method category, making the category when the class does not have it yet and taking away the ones they left behind when nothing else is filed under them. Answers where each method was filed before, which is what nothing says once it has moved.
 
@@ -306,7 +308,7 @@ File methods of a class under a method category, making the category when the cl
 | `selectors` | required | Selectors of the methods to file, separated by commas |
 | `category` | required | Name of the method category to file them under |
 
-##### `smalltalk_define_class`
+##### `define_class`
 
 Define a new class or modify an existing class definition.
 
@@ -314,7 +316,7 @@ Define a new class or modify an existing class definition.
 | --- | --- | --- |
 | `definition` | required | Full class definition expression |
 
-##### `smalltalk_define_methods`
+##### `define_methods`
 
 Define or modify several methods in one call, each on its class and under its category. Every method is compiled whatever happens to the others, and the answer says for each one, in the order sent, whether it was defined and its selector, or why it was not.
 
@@ -325,7 +327,7 @@ Define or modify several methods in one call, each on its class and under its ca
 | `methods[].source` | required | Full method source including selector |
 | `methods[].category` | optional | Optional method category. Defaults to as yet unclassified |
 
-##### `smalltalk_delete_class`
+##### `delete_classes`
 
 Remove several classes from the system in one call, in the order named, and answer the ones removed.
 
@@ -333,7 +335,7 @@ Remove several classes from the system in one call, in the order named, and answ
 | --- | --- | --- |
 | `classNames` | required | Names of the classes to remove, separated by commas |
 
-##### `smalltalk_delete_method`
+##### `delete_methods`
 
 Remove several methods of a class in one call, and answer the ones removed. A selector the class does not implement fails the whole call before anything is removed.
 
@@ -342,7 +344,7 @@ Remove several methods of a class in one call, and answer the ones removed. A se
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 | `selectors` | required | Selectors of the methods to remove, separated by commas |
 
-##### `smalltalk_hierarchy`
+##### `hierarchies`
 
 Answer, for each class named, the class and all its superclasses, from the class up to ProtoObject.
 
@@ -350,11 +352,11 @@ Answer, for each class named, the class and all its superclasses, from the class
 | --- | --- | --- |
 | `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
 
-##### `smalltalk_list_categories`
+##### `list_categories`
 
 List all system categories.
 
-##### `smalltalk_list_classes`
+##### `list_classes`
 
 List all classes in the system, optionally filtered by prefix.
 
@@ -362,7 +364,7 @@ List all classes in the system, optionally filtered by prefix.
 | --- | --- | --- |
 | `prefix` | optional | Optional prefix to filter class names |
 
-##### `smalltalk_method_source`
+##### `method_sources`
 
 Read the source code of several methods in one call, each under its name as Class>>#selector, in the source field.
 
@@ -370,7 +372,7 @@ Read the source code of several methods in one call, each under its name as Clas
 | --- | --- | --- |
 | `methods` | required | The methods, written as Class>>selector and separated by commas. A class side is named the way it prints, as in MCPServer class>>startUp: |
 
-##### `smalltalk_method_sources_in_category`
+##### `method_sources_in_category`
 
 Read the source of every method a class files under one of its method categories, each under its selector, so that what a category says is read at once instead of a method at a time. Name the class side the way it prints, as in MCPServer class.
 
@@ -379,7 +381,7 @@ Read the source of every method a class files under one of its method categories
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 | `category` | required | Name of the method category |
 
-##### `smalltalk_method_sources_of_class`
+##### `method_sources_of_class`
 
 Read the source of every method of a class, each under its selector and grouped by the method category it is filed under, in the order the class holds its categories, so that a whole class is read at once. A category holding no method is left out. Name the class side the way it prints, as in MCPServer class.
 
@@ -387,7 +389,7 @@ Read the source of every method of a class, each under its selector and grouped 
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 
-##### `smalltalk_methods_in_category`
+##### `methods_in_category`
 
 List the selectors a class files under one of its method categories. Name the class side the way it prints, as in MCPServer class.
 
@@ -396,7 +398,7 @@ List the selectors a class files under one of its method categories. Name the cl
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 | `category` | required | Name of the method category |
 
-##### `smalltalk_subclasses`
+##### `subclasses`
 
 Answer, for each class named, its direct subclasses.
 
@@ -408,10 +410,10 @@ Answer, for each class named, its direct subclasses.
 
 #### Search
 
-`smalltalk_search_selectors` is `MessageNames`: it tells whether a message doing what is about to be written already has a name, which is worth asking before writing it.
+`search_selectors` is `MessageNames`: it tells whether a message doing what is about to be written already has a name, which is worth asking before writing it.
 
 <!-- tools MCPServer MCPSearchTools -->
-##### `smalltalk_implementors_of`
+##### `implementors_of`
 
 List the methods that implement each of several selectors, under the selector, in its methods field.
 
@@ -419,15 +421,7 @@ List the methods that implement each of several selectors, under the selector, i
 | --- | --- | --- |
 | `selectors` | required | Selectors the methods implement, separated by commas |
 
-##### `smalltalk_references_to_class`
-
-List the methods that refer to each of several classes, under the class name, in its methods field.
-
-| Parameter | | |
-| --- | --- | --- |
-| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
-
-##### `smalltalk_references_to_class_variable`
+##### `references_to_class_variable`
 
 List the methods that refer to a class variable. A subclass sees the class variables of its superclass, so the methods of every subclass are listed too.
 
@@ -436,7 +430,15 @@ List the methods that refer to a class variable. A subclass sees the class varia
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 | `variableName` | required | Name of the class variable |
 
-##### `smalltalk_references_to_instance_variable`
+##### `references_to_classes`
+
+List the methods that refer to each of several classes, under the class name, in its methods field.
+
+| Parameter | | |
+| --- | --- | --- |
+| `classNames` | required | Names of the classes, separated by commas. A class side is named the way it prints, as in MCPServer class |
+
+##### `references_to_instance_variable`
 
 List the methods that read or write an instance variable. A subclass sees the instance variables of its superclass, so the methods of every subclass are listed too.
 
@@ -445,7 +447,7 @@ List the methods that read or write an instance variable. A subclass sees the in
 | `className` | required | Name of the class that has the instance variable |
 | `variableName` | required | Name of the instance variable |
 
-##### `smalltalk_search_selectors`
+##### `search_selectors`
 
 List the selectors that contain a text, which tells whether a message doing what is about to be written already has a name. A * in the text matches any text and a # any character, and several texts can be sent separated by semicolons.
 
@@ -453,7 +455,7 @@ List the selectors that contain a text, which tells whether a message doing what
 | --- | --- | --- |
 | `text` | required | Text the selector contains |
 
-##### `smalltalk_search_source`
+##### `search_source`
 
 List the methods whose source code contains a text, case sensitively. Class comments are searched too, and answered as the selector Comment.
 
@@ -461,7 +463,7 @@ List the methods whose source code contains a text, case sensitively. Class comm
 | --- | --- | --- |
 | `text` | required | Text the source code contains |
 
-##### `smalltalk_senders_of`
+##### `senders_of`
 
 List the methods that send each of several selectors, under the selector, in its methods field. A method that writes the selector but sends it to something else is one of them, because the text is all this looks at.
 
@@ -473,10 +475,10 @@ List the methods that send each of several selectors, under the selector, in its
 
 #### Image
 
-`smalltalk_batch` calls several tools in one call, in the order given, and answers one line per step, so that reading a class and then defining, or defining and then running the tests, take one turn instead of two. A step that fails answers its error and the batch goes on, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, since they would work over what it did not do. The call log records each step under its own tool, and then the batch.
+`batch` calls several tools in one call, in the order given, and answers one line per step, so that reading a class and then defining, or defining and then running the tests, take one turn instead of two. A step that fails answers its error and the batch goes on, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, since they would work over what it did not do. The call log records each step under its own tool, and then the batch.
 
 <!-- tools MCPServer MCPImageTools -->
-##### `smalltalk_batch`
+##### `batch`
 
 Call several tools in one call, in the order given, and answer one line per step: its number, the tool and what it answered, or the error it failed with. Reads and changes go together, so that reading a class and then defining, or defining and then running the tests, take one call. A step that fails does not stop the ones after it, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, because they would work over what it did not do. Each step is logged as a call of its own tool.
 
@@ -486,7 +488,7 @@ Call several tools in one call, in the order given, and answer one line per step
 | `steps[].tool` | required | Name of the tool to call, as it is advertised |
 | `steps[].arguments` | optional | The arguments of the tool, as they would be sent to it on its own. A tool that takes none is called without them |
 
-##### `smalltalk_evaluate`
+##### `evaluate`
 
 Evaluate arbitrary Smalltalk code and return the result.
 
@@ -494,11 +496,11 @@ Evaluate arbitrary Smalltalk code and return the result.
 | --- | --- | --- |
 | `code` | required | Smalltalk code to evaluate |
 
-##### `smalltalk_save_image`
+##### `save_image`
 
 Save the Smalltalk image to disk.
 
-##### `smalltalk_screenshot`
+##### `screenshot`
 
 Write what the image looks like right now to a JPEG file and answer the name of the file, so that a change to something on screen can be looked at instead of guessed at.
 
@@ -510,17 +512,17 @@ Write what the image looks like right now to a JPEG file and answer the name of 
 
 #### Packages
 
-A package is what the image writes to a `.pck.st` file. `smalltalk_unsaved_packages` answers the
+A package is what the image writes to a `.pck.st` file. `unsaved_packages` answers the
 ones a change left to write out, which is what to ask after changing code. A package is written
 only when it knows its file: one that was never saved, or whose image was moved away from where it
-was saved, does not know one, so `smalltalk_save_package` reports it instead of opening a dialog
-that no request can answer, and `smalltalk_change_package_file_name` is how the file is named.
+was saved, does not know one, so `save_package` reports it instead of opening a dialog
+that no request can answer, and `change_package_file_name` is how the file is named.
 
-`smalltalk_package_of_method` is not `smalltalk_package_of_class` of its class: a method filed
+`package_of_method` is not `package_of_class` of its class: a method filed
 under a category naming a package extends that package and belongs to it.
 
 <!-- tools MCPServer MCPPackageTools -->
-##### `smalltalk_change_package_description`
+##### `change_package_description`
 
 Change what a package describes itself as, which is the line its file carries as its header. Changing it leaves the package with changes to write out.
 
@@ -529,7 +531,7 @@ Change what a package describes itself as, which is the line its file carries as
 | `packageName` | required | Name of the package |
 | `description` | required | What the package describes itself as |
 
-##### `smalltalk_change_package_file_name`
+##### `change_package_file_name`
 
 Name the file a package is written to, and answer it. A package that was never written, or whose image was moved away from where it was written, does not know one and cannot be saved until it is told.
 
@@ -538,7 +540,7 @@ Name the file a package is written to, and answer it. A package that was never w
 | `packageName` | required | Name of the package |
 | `fileName` | required | Absolute path of the .pck.st file the package is written to |
 
-##### `smalltalk_change_package_requirements`
+##### `change_package_requirements`
 
 Change the packages a package requires, replacing the ones it required with the ones named, and answer what it requires now. Each requirement asks for any version.
 
@@ -547,7 +549,7 @@ Change the packages a package requires, replacing the ones it required with the 
 | `packageName` | required | Name of the package |
 | `requiredPackageNames` | required | Names of the packages it requires, separated by commas. An empty text leaves it requiring nothing |
 
-##### `smalltalk_list_packages`
+##### `list_packages`
 
 List the code packages installed in the image, each with what it describes itself as and whether it holds changes its file does not have yet, optionally filtered by prefix.
 
@@ -555,7 +557,7 @@ List the code packages installed in the image, each with what it describes itsel
 | --- | --- | --- |
 | `prefix` | optional | Optional prefix to filter package names |
 
-##### `smalltalk_package_definition`
+##### `package_definition`
 
 Read the definition of a code package: what it describes itself as, the file it is written to, whether the image holds changes that file does not, what it requires, and the system categories and classes it holds.
 
@@ -563,7 +565,7 @@ Read the definition of a code package: what it describes itself as, the file it 
 | --- | --- | --- |
 | `packageName` | required | Name of the package |
 
-##### `smalltalk_package_of_class`
+##### `package_of_class`
 
 Answer the package a class belongs to, which is the one a change to the class leaves with changes to write out.
 
@@ -571,7 +573,7 @@ Answer the package a class belongs to, which is the one a change to the class le
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 
-##### `smalltalk_package_of_method`
+##### `package_of_method`
 
 Answer the package a method belongs to, which is the package of its class unless it is filed under a method category naming another one, as an extension of a package is.
 
@@ -580,7 +582,7 @@ Answer the package a method belongs to, which is the package of its class unless
 | `className` | required | Name of the class that implements the method |
 | `selector` | required | Selector of the method |
 
-##### `smalltalk_save_package`
+##### `save_package`
 
 Write a package to its file and answer the name of the file it was written to.
 
@@ -588,7 +590,7 @@ Write a package to its file and answer the name of the file it was written to.
 | --- | --- | --- |
 | `packageName` | required | Name of the package |
 
-##### `smalltalk_unsaved_packages`
+##### `unsaved_packages`
 
 List the packages that hold changes their file does not have yet, which are the ones a change to the image left to be written out.
 
@@ -596,10 +598,10 @@ List the packages that hold changes their file does not have yet, which are the 
 
 #### Tests
 
-Each of these answers how many tests passed, failed and signalled an error, and names the ones that failed apart from the ones that signalled. A class that is not a test case class contributes the tests that exercise it, so `smalltalk_run_tests_for_classes` with `MCPServer` runs what covers it.
+Each of these answers how many tests passed, failed and signalled an error, and names the ones that failed apart from the ones that signalled. A class that is not a test case class contributes the tests that exercise it, so `run_tests_for_classes` with `MCPServer` runs what covers it.
 
 <!-- tools MCPServer MCPTestRunningTools -->
-##### `smalltalk_run_test_class`
+##### `run_test_class`
 
 Run every test of a test case class and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.
 
@@ -607,7 +609,7 @@ Run every test of a test case class and answer how many tests passed, failed and
 | --- | --- | --- |
 | `className` | required | Name of the test case class |
 
-##### `smalltalk_run_test_method`
+##### `run_test_method`
 
 Run one test and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.
 
@@ -616,7 +618,7 @@ Run one test and answer how many tests passed, failed and signalled an error, al
 | `className` | required | Name of the class that implements the method |
 | `selector` | required | Selector of the method |
 
-##### `smalltalk_run_tests_for_classes`
+##### `run_tests_for_classes`
 
 Run the tests of several classes as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A class that is not a test case class contributes the tests that exercise it.
 
@@ -624,7 +626,7 @@ Run the tests of several classes as one suite and answer how many tests passed, 
 | --- | --- | --- |
 | `classNames` | required | Names of the classes, separated by commas |
 
-##### `smalltalk_run_tests_in_category`
+##### `run_tests_in_categories`
 
 Run every test of the test case classes of several class categories as one suite and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled. A category holding no test case class contributes the tests that exercise the classes it does hold.
 
@@ -636,38 +638,38 @@ Run every test of the test case classes of several class categories as one suite
 
 #### Debugging
 
-`smalltalk_evaluate_to_debug_on_error` leaves a debugger open when the expression fails, and the rest of these drive it; the stepping ones answer the print string of the top of the stack. Always send `smalltalk_finish_debugging` when no more debugging is needed.
+`evaluate_to_debug_on_error` leaves a debugger open when the expression fails, and the rest of these drive it; the stepping ones answer the print string of the top of the stack. Always send `finish_debugging` when no more debugging is needed.
 
 <!-- tools MCPServer MCPDebugTools -->
-##### `smalltalk_debugger_proceed`
+##### `debugger_proceed`
 
 It does a proceed on the debugger, that means running the debugging procees to the end
 
-##### `smalltalk_debugger_restart`
+##### `debugger_restart`
 
 It does a restart on the debugger, that means restarting the current execution context, that is thisContext
 
-##### `smalltalk_debugger_stepinto`
+##### `debugger_stepinto`
 
-It does a step into on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack
+It does a step into on the debugger created by evaluate_to_debug_on_error. Returns the print string of the top of the stack
 
-##### `smalltalk_debugger_stepover`
+##### `debugger_stepover`
 
-It does a step over on the debugger created by smalltalk_evaluate_to_debug_on_error. Returns the print string of the top of the stack
+It does a step over on the debugger created by evaluate_to_debug_on_error. Returns the print string of the top of the stack
 
-##### `smalltalk_debugger_through`
+##### `debugger_through`
 
-It does a thought on the debugger created by smalltalk_evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack
+It does a thought on the debugger created by evaluate_to_debug_on_error. Doing a through means going inside of the next block closure. If the next instruction is not a block closure it is the same as doind a step over. Returns the print string of the top of the stack
 
-##### `smalltalk_evaluate_to_debug_on_error`
+##### `evaluate_to_debug_on_error`
 
-Evaluate arbitrary Smalltalk code, return the result if no error, return the string 'Error: ' with the exception description and install a debugger to debug the error using the tools smalltalk_debugger_stepinto, smalltalk_debugger_stepover, smalltalk_debugger_through, smalltalk_debugger_proceed, smalltalk_debugger_restart, smalltalk_finish_debugging.
+Evaluate arbitrary Smalltalk code, return the result if no error, return the string 'Error: ' with the exception description and install a debugger to debug the error using the tools debugger_stepinto, debugger_stepover, debugger_through, debugger_proceed, debugger_restart, finish_debugging.
 
 | Parameter | | |
 | --- | --- | --- |
 | `code` | required | Smalltalk code to evaluate |
 
-##### `smalltalk_finish_debugging`
+##### `finish_debugging`
 
 It clean ups all the debugging session. It should always be sent when no more debugging is needed
 
@@ -718,7 +720,7 @@ implement the same selector, and renaming it across the image renames both. Live
 `actual` scope, which tells them apart — see [MCPServerLiveTypingRefactorings](#mcpserverlivetypingrefactorings).
 
 <!-- tools MCPServer MCPRefactoringTools -->
-##### `smalltalk_refactor_add_as_subclass_responsibility`
+##### `refactor_add_as_subclass_responsibility`
 
 Declare a method of a class as the responsibility of its subclasses, adding it to the superclass as a subclassResponsibility.
 
@@ -727,7 +729,7 @@ Declare a method of a class as the responsibility of its subclasses, adding it t
 | `className` | required | Name of the class that implements it |
 | `selector` | required | Selector of the method |
 
-##### `smalltalk_refactor_add_instance_variable`
+##### `refactor_add_instance_variable`
 
 Add an instance variable to a class.
 
@@ -736,7 +738,7 @@ Add an instance variable to a class.
 | `className` | required | Name of the class to add the instance variable to |
 | `variableName` | required | Name of the instance variable to add |
 
-##### `smalltalk_refactor_add_parameter`
+##### `refactor_add_parameter`
 
 Add a parameter to a selector, giving every sender the scope takes in the value to pass. A unary selector needs no keyword; a keyword one is told which keyword to add and where.
 
@@ -750,7 +752,7 @@ Add a parameter to a selector, giving every sender the scope takes in the value 
 | `parameterIndex` | optional | Position for the new keyword, counting from one. Defaults to the first |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_change_keywords_order`
+##### `refactor_change_keywords_order`
 
 Reorder the keywords of a selector, moving the arguments of every sender the scope takes in with them.
 
@@ -761,7 +763,7 @@ Reorder the keywords of a selector, moving the arguments of every sender the sco
 | `newSelector` | required | Selector with the same keywords in the order wanted |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_extract_as_parameter`
+##### `refactor_extract_as_parameter`
 
 Turn a piece of a method into a parameter of it, giving every sender the scope takes in the piece to pass. The piece is named by the text it is written with, or by the interval it occupies.
 
@@ -775,7 +777,7 @@ Turn a piece of a method into a parameter of it, giving every sender the scope t
 | `stop` | optional | Last character of the piece |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_extract_method`
+##### `refactor_extract_method`
 
 Extract a piece of a method into a method of its own and send it instead. The piece is named by the text it is written with, or by the interval it occupies. Only code that is the same as the piece is replaced, and how far it is looked for is what replacing says.
 
@@ -790,7 +792,7 @@ Extract a piece of a method into a method of its own and send it instead. The pi
 | `stop` | optional | Last character of the piece |
 | `replacing` | optional | Which pieces the new message replaces: selection for the one named, method for every piece of that method that is the same code, class for every piece of that class, hierarchy for every piece of that class and of all its subclasses. Defaults to selection |
 
-##### `smalltalk_refactor_extract_method_from_similar_code`
+##### `refactor_extract_method_from_similar_code`
 
 Extract a piece of a method into a method of its own and send it wherever code like it is written, whatever differs between them becoming a parameter of it. Unlike extracting a method, the code it replaces is not the same as the piece named, so the new selector takes one keyword for each part that varies.
 
@@ -804,7 +806,7 @@ Extract a piece of a method into a method of its own and send it wherever code l
 | `start` | optional | First character of the piece, counting from one. Sent instead of the text |
 | `stop` | optional | Last character of the piece |
 
-##### `smalltalk_refactor_extract_to_temporary`
+##### `refactor_extract_to_temporary`
 
 Extract a piece of a method into a temporary of it. The piece is named by the text it is written with, or by the interval it occupies. Replacing all of them replaces every piece that is the same expression, which is found in the parse tree and so does not include a comment or a string saying the same.
 
@@ -818,7 +820,7 @@ Extract a piece of a method into a temporary of it. The piece is named by the te
 | `stop` | optional | Last character of the piece |
 | `replaceAll` | optional | Whether every piece that is the same expression is replaced, true or false. Defaults to replacing only the one named |
 
-##### `smalltalk_refactor_inline_method`
+##### `refactor_inline_method`
 
 Replace the sends of a method by what the method does: every send the scope takes in, or one send alone when it is named by the method it is written in and by the text of its selector there, or the interval that selector occupies. The text has to fall on the selector of the send and not on its receiver. A send inside the method being inlined is left alone.
 
@@ -834,7 +836,7 @@ Replace the sends of a method by what the method does: every send the scope take
 | `stop` | optional | Last character of it |
 | `removeMethod` | optional | Whether the method is taken away once its sends are inlined, true or false |
 
-##### `smalltalk_refactor_inline_temporary_variable`
+##### `refactor_inline_temporary_variable`
 
 Replace a use of a temporary by the value assigned to it. The use is named by the text it is written with, or by the interval it occupies when the text is written more than once.
 
@@ -847,7 +849,7 @@ Replace a use of a temporary by the value assigned to it. The use is named by th
 | `start` | optional | First character of the use, counting from one. Sent instead of the text |
 | `stop` | optional | Last character of the use |
 
-##### `smalltalk_refactor_insert_superclass`
+##### `refactor_insert_superclass`
 
 Insert a new class between a class and its superclass.
 
@@ -856,7 +858,7 @@ Insert a new class between a class and its superclass.
 | `className` | required | Name of the class to insert the new one above |
 | `newClassName` | required | Name of the class to insert above it |
 
-##### `smalltalk_refactor_move_to_instance_or_class_method`
+##### `refactor_move_to_instance_or_class_method`
 
 Move a method from the instance side of a class to its class side, or back, together with the implementors on the same side the scope takes in around the class of the method, and redirect the senders the scope takes in: an instance method sending it to self sends it to self class once it is a class method, and one sending it to self class, or to the class by name, sends it to self once it is an instance method, or to a new instance of the class when it is not one itself. A sender the scope leaves out, or one sending it to anything else, is left as it is.
 
@@ -866,7 +868,7 @@ Move a method from the instance side of a class to its class side, or back, toge
 | `selector` | required | Selector of the method to move |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_push_down_instance_variable`
+##### `refactor_push_down_instance_variable`
 
 Move an instance variable of a class down to its subclasses.
 
@@ -875,7 +877,7 @@ Move an instance variable of a class down to its subclasses.
 | `className` | required | Name of the class that has the instance variable |
 | `variableName` | required | Name of the instance variable to push down |
 
-##### `smalltalk_refactor_push_down_method_to_one_subclass`
+##### `refactor_push_down_method_to_one_subclass`
 
 Move a method down into one subclass of the class that implements it.
 
@@ -885,7 +887,7 @@ Move a method down into one subclass of the class that implements it.
 | `selector` | required | Selector of the method to push down |
 | `subclassName` | required | Name of the subclass to push it down to |
 
-##### `smalltalk_refactor_push_down_method_to_subclasses`
+##### `refactor_push_down_method_to_subclasses`
 
 Copy a method down into every subclass of the class that implements it.
 
@@ -894,7 +896,7 @@ Copy a method down into every subclass of the class that implements it.
 | `className` | required | Name of the class that implements it |
 | `selector` | required | Selector of the method to push down |
 
-##### `smalltalk_refactor_push_up_instance_variable`
+##### `refactor_push_up_instance_variable`
 
 Move an instance variable of a class up to its superclass.
 
@@ -903,7 +905,7 @@ Move an instance variable of a class up to its superclass.
 | `className` | required | Name of the class that has the instance variable |
 | `variableName` | required | Name of the instance variable to push up |
 
-##### `smalltalk_refactor_push_up_method`
+##### `refactor_push_up_method`
 
 Move a method up to the superclass of the class that implements it. The methods of that class it sends to itself, which the superclass does not implement, can go up with it, and a sibling class implementing the same method the same way can lose its copy.
 
@@ -914,7 +916,7 @@ Move a method up to the superclass of the class that implements it. The methods 
 | `pushingUpDependantMethods` | optional | Whether the methods of the class this one sends to itself, directly or through them, and the superclass does not implement, are pushed up with it, true or false |
 | `removingEquivalentMethodsFromSiblings` | optional | Whether a sibling class that implements a pushed up method the same way loses its copy, true or false |
 
-##### `smalltalk_refactor_remove_instance_variable`
+##### `refactor_remove_instance_variable`
 
 Remove an instance variable from a class.
 
@@ -923,7 +925,7 @@ Remove an instance variable from a class.
 | `className` | required | Name of the class that has the instance variable |
 | `variableName` | required | Name of the instance variable to remove |
 
-##### `smalltalk_refactor_remove_parameter`
+##### `refactor_remove_parameter`
 
 Remove a parameter from a selector, in the implementors and the senders the scope takes in. It is refused when an implementor still uses the parameter.
 
@@ -935,7 +937,7 @@ Remove a parameter from a selector, in the implementors and the senders the scop
 | `parameterIndex` | optional | Position of the parameter, counting from one. Defaults to the first |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_remove_unreferenced_instance_variables`
+##### `refactor_remove_unreferenced_instance_variables`
 
 Remove every instance variable of a class that no method reads or writes.
 
@@ -943,7 +945,7 @@ Remove every instance variable of a class that no method reads or writes.
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 
-##### `smalltalk_refactor_rename_class`
+##### `refactor_rename_class`
 
 Rename a class, in every method that names it.
 
@@ -952,7 +954,7 @@ Rename a class, in every method that names it.
 | `className` | required | Name of the class to rename |
 | `newClassName` | required | Name to rename it to |
 
-##### `smalltalk_refactor_rename_global`
+##### `refactor_rename_global`
 
 Rename a global, in every method that names it.
 
@@ -961,7 +963,7 @@ Rename a global, in every method that names it.
 | `globalName` | required | Name of the global to rename |
 | `newGlobalName` | required | Name to rename it to |
 
-##### `smalltalk_refactor_rename_instance_variable`
+##### `refactor_rename_instance_variable`
 
 Rename an instance variable of a class, in every method that uses it.
 
@@ -971,7 +973,7 @@ Rename an instance variable of a class, in every method that uses it.
 | `variableName` | required | Name of the instance variable to rename |
 | `newVariableName` | required | Name to rename it to |
 
-##### `smalltalk_refactor_rename_selector`
+##### `refactor_rename_selector`
 
 Rename a selector, in the implementors and the senders the scope takes in around the class of the method named.
 
@@ -982,7 +984,7 @@ Rename a selector, in the implementors and the senders the scope takes in around
 | `newSelector` | required | Selector to rename it to |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_rename_temporary`
+##### `refactor_rename_temporary`
 
 Rename a temporary or an argument of a method, in every use it has inside it.
 
@@ -993,7 +995,7 @@ Rename a temporary or an argument of a method, in every use it has inside it.
 | `variableName` | required | Name of the temporary to rename |
 | `newVariableName` | required | Name to rename it to |
 
-##### `smalltalk_refactor_safely_remove_class`
+##### `refactor_safely_remove_class`
 
 Remove a class, refusing when something still refers to it.
 
@@ -1001,7 +1003,7 @@ Remove a class, refusing when something still refers to it.
 | --- | --- | --- |
 | `className` | required | Name of the class to remove |
 
-##### `smalltalk_refactor_temporary_to_instance_variable`
+##### `refactor_temporary_to_instance_variable`
 
 Turn a temporary of a method into an instance variable of its class.
 
@@ -1022,7 +1024,7 @@ expecting `#(1 3)` answers `#(1 2 3 4) select: [:aSmallInteger | aSmallInteger o
 `reject:` that sends `even`.
 
 <!-- tools MCPServerMethodFinder MCPMethodFinderTools -->
-##### `smalltalk_find_messages_by_example`
+##### `find_messages_by_example`
 
 List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection that is not empty, the enumerating messages taking a block are looked for as well, the block being built from a message its elements understand, so a receiver of #(1 2 3 4) expecting #(1 3) answers select: along with the block it needs.
 
@@ -1042,12 +1044,12 @@ class they all inherit from, or by `any` when the only one they share is `Object
 `can be nil` when nil was assigned too. Code that has not run yet has no types.
 
 What LiveTyping saw tells a send of a selector to an object of a class from a send of the same
-name to anything else, which is what *actual* means here: `smalltalk_actual_senders_of` answers
+name to anything else, which is what *actual* means here: `actual_senders_of` answers
 the methods that really send a method — the ones a refactoring of it has to change — and
-`smalltalk_actual_implementors_of` the methods a send to an object of a class could really reach.
+`actual_implementors_of` the methods a send to an object of a class could really reach.
 
 <!-- tools MCPServerLiveTyping MCPLiveTypingTools -->
-##### `smalltalk_actual_implementors_of`
+##### `actual_implementors_of`
 
 List the implementors of a selector in the hierarchy of a class, which are the methods a send of it to an object of that class could really reach: the ones implemented by the class and by every subclass of the one highest up among its superclasses that implements it. The class does not have to implement the selector itself. What a send written in a method reaches is asked with the message sends of the method instead, because its receiver may have held classes of different hierarchies.
 
@@ -1057,7 +1059,7 @@ List the implementors of a selector in the hierarchy of a class, which are the m
 | `selector` | required | Selector that is sent |
 | `includingPossible` | optional | Whether a class that answers the selector nowhere is listed too, saying so, true or false |
 
-##### `smalltalk_actual_senders_of`
+##### `actual_senders_of`
 
 List the methods that really send a method: the ones LiveTyping saw sending its selector to an object of the class that implements it, or of one of its subclasses, which are the senders a refactoring of the method has to change. A method that writes the same selector but was seen sending it to anything else is not one of them, which is what tells this apart from listing the senders of a selector.
 
@@ -1067,7 +1069,7 @@ List the methods that really send a method: the ones LiveTyping saw sending its 
 | `selector` | required | Selector of the method |
 | `includingPossible` | optional | Whether the sends LiveTyping could only guess at, whose receiver it never saw hold anything or saw incompletely, are listed too, true or false |
 
-##### `smalltalk_message_sends_of_method`
+##### `message_sends_of_method`
 
 List every message send written in a method, in the order they are written, each with the classes LiveTyping saw its receiver hold, the methods the send really reaches, and the classes the send answered. The methods reached are the implementors of the selector in the hierarchy of each class the receiver was seen holding, classes that need not share a hierarchy, because a send in source code reaches whatever its receiver turned out to be. A send to something LiveTyping never saw hold anything reaches no method here, and a send the compiler inlines, such as ifTrue:, is not listed. A list of types is led by the class they all inherit from, or by any when the only one they share is Object, and ends with can be nil when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.
 
@@ -1077,7 +1079,7 @@ List every message send written in a method, in the order they are written, each
 | `selector` | required | Selector of the method |
 | `sentSelector` | optional | Selector of the sends to list. Without it every send of the method is listed |
 
-##### `smalltalk_return_types_of_method`
+##### `return_types_of_method`
 
 List the classes a method has answered while the image ran. The name self means it answered its receiver. A list of types is led by the class they all inherit from, or by any when the only one they share is Object, and ends with can be nil when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.
 
@@ -1086,7 +1088,7 @@ List the classes a method has answered while the image ran. The name self means 
 | `className` | required | Name of the class that implements the method |
 | `selector` | required | Selector of the method |
 
-##### `smalltalk_types_of_instance_variable`
+##### `types_of_instance_variable`
 
 List the classes an instance variable has held, as LiveTyping saw them while the image ran. A variable of code that has not run yet holds none. A list of types is led by the class they all inherit from, or by any when the only one they share is Object, and ends with can be nil when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.
 
@@ -1095,7 +1097,7 @@ List the classes an instance variable has held, as LiveTyping saw them while the
 | `className` | required | Name of the class that has the instance variable |
 | `variableName` | required | Name of the instance variable |
 
-##### `smalltalk_types_of_instance_variables`
+##### `types_of_instance_variables`
 
 List, for every instance variable of a class, the classes it has held while the image ran. A list of types is led by the class they all inherit from, or by any when the only one they share is Object, and ends with can be nil when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.
 
@@ -1103,7 +1105,7 @@ List, for every instance variable of a class, the classes it has held while the 
 | --- | --- | --- |
 | `className` | required | Name of the class, or of its class side as in MCPServer class |
 
-##### `smalltalk_types_of_method_variable`
+##### `types_of_method_variable`
 
 List the classes a parameter or a temporary of a method has held while the image ran. A list of types is led by the class they all inherit from, or by any when the only one they share is Object, and ends with can be nil when nil was assigned too. A capitalized name is a class and a lowercase one is a mark. A variable that held a single class is listed as that class alone.
 
@@ -1119,10 +1121,10 @@ List the classes a parameter or a temporary of a method has held while the image
 
 | Tool | With LiveTyping |
 | --- | --- |
-| `smalltalk_method_source` | Answers, under each method, `returns` and `variables` next to `source`: the classes the method answered, and the ones each parameter, temporary and instance variable of its class held |
-| `smalltalk_class_definition` | Answers, under each class, `instanceVariableTypes`: the classes each instance variable held |
-| `smalltalk_senders_of` | Answers, under each selector, `actual` next to `methods`: the ones LiveTyping saw really sending the selector to an object of the class named in the new optional `className`, or of one of its subclasses; without a class, to an object of any class that implements it. A method in `methods` and not in `actual` writes the selector for something else |
-| `smalltalk_implementors_of` | Takes an optional `className` and answers, under each selector in `actual`, the implementors in the hierarchy of that class — the ones a send to an object of it could really reach |
+| `method_sources` | Answers, under each method, `returns` and `variables` next to `source`: the classes the method answered, and the ones each parameter, temporary and instance variable of its class held |
+| `class_definitions` | Answers, under each class, `instanceVariableTypes`: the classes each instance variable held |
+| `senders_of` | Answers, under each selector, `actual` next to `methods`: the ones LiveTyping saw really sending the selector to an object of the class named in the new optional `className`, or of one of its subclasses; without a class, to an object of any class that implements it. A method in `methods` and not in `actual` writes the selector for something else |
+| `implementors_of` | Takes an optional `className` and answers, under each selector in `actual`, the implementors in the hierarchy of that class — the ones a send to an object of it could really reach |
 
 ### MCPServerLiveTypingRefactorings
 
@@ -1137,12 +1139,12 @@ the default when the package is loaded:
 
 | Tool | Under `actual` |
 | --- | --- |
-| `smalltalk_refactor_rename_selector` | Renames the implementors and the senders LiveTyping saw |
-| `smalltalk_refactor_change_keywords_order` | Reorders them |
-| `smalltalk_refactor_remove_parameter` | Removes it from them |
-| `smalltalk_refactor_add_parameter` | Gives the value to the senders it saw |
-| `smalltalk_refactor_extract_as_parameter` | Gives the piece to the senders it saw |
-| `smalltalk_refactor_inline_method` | Inlines every send it saw really reaching an object of the class that implements the method. A send named by `senderClassName` and `senderSelector` is inlined alone whatever the scope |
+| `refactor_rename_selector` | Renames the implementors and the senders LiveTyping saw |
+| `refactor_change_keywords_order` | Reorders them |
+| `refactor_remove_parameter` | Removes it from them |
+| `refactor_add_parameter` | Gives the value to the senders it saw |
+| `refactor_extract_as_parameter` | Gives the piece to the senders it saw |
+| `refactor_inline_method` | Inlines every send it saw really reaching an object of the class that implements the method. A send named by `senderClassName` and `senderSelector` is inlined alone whatever the scope |
 
 Any other scope is answered by the tool as it is without LiveTyping, so `scope: system` still
 renames everything.
@@ -1153,7 +1155,7 @@ Requires `MCPServer` and `ExtraRefactorings` (from Cuis-Smalltalk-Refactoring): 
 that make new classes and move code between classes.
 
 <!-- tools MCPServerExtraRefactoring MCPExtraRefactoringTools -->
-##### `smalltalk_refactor_extract_class`
+##### `refactor_extract_class`
 
 Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.
 
@@ -1165,7 +1167,7 @@ Extract instance variables and methods of a class into a new class of its own, w
 | `variableNames` | optional | Names of the instance variables to extract, separated by commas |
 | `selectors` | optional | Selectors of the methods to extract, separated by commas |
 
-##### `smalltalk_refactor_extract_parameter_object`
+##### `refactor_extract_parameter_object`
 
 Gather some of the parameters of a method into an object of a new class, which the method then takes in their place, in the senders the scope takes in. The parameters are named, not numbered: where each one stands is what the method already says.
 
@@ -1179,7 +1181,7 @@ Gather some of the parameters of a method into an object of a new class, which t
 | `category` | optional | Class category to make the new class in. Defaults to the one of the class it came from |
 | `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
-##### `smalltalk_refactor_extract_to_method_object`
+##### `refactor_extract_to_method_object`
 
 Turn a method into an object of a new class of its own, which answers what the method did when it is sent the selector it is evaluated with. Everything the method uses is held by the new object: each parameter of the method, each instance variable of its class it reads, each global it names that is not in the system yet, and its receiver when it sends to itself; and the object is created with a message that takes all of them.
 
@@ -1194,7 +1196,7 @@ Turn a method into an object of a new class of its own, which answers what the m
 | `instanceVariableNames` | optional | The instance variable the new object holds each thing the method uses in, as pairs of the form variable=instanceVariable separated by commas, self among the variables when the method sends to itself. One left out is held under its own name, and self as receiver |
 | `instanceCreationMessage` | optional | The message the new object is created with, as pairs of the form keyword=variable separated by commas, in the order the keywords are sent, one for each thing the method uses. A third part, keyword=variable=parameter, names the parameter of that keyword; without it the parameter is named after the instance variable with an article. Left out to take each in turn under the name of its instance variable: self first, then the parameters of the method, then the instance variables of its class |
 
-##### `smalltalk_refactor_move_instance_variable`
+##### `refactor_move_instance_variable`
 
 Move an instance variable to another class, which the class it is moved from reaches through an instance variable of its own.
 
@@ -1205,7 +1207,7 @@ Move an instance variable to another class, which the class it is moved from rea
 | `targetClassName` | required | Name of the class to move it to |
 | `accessingThrough` | required | Name of the instance variable that holds the class it is moved to |
 
-##### `smalltalk_refactor_move_method`
+##### `refactor_move_method`
 
 Move a method to the class of the object it will be sent to, which the class it is moved from reaches through the receiver named: a variable of its own or of the method, or a global. A class is a global, so a method moved to a class becomes a class method of it. When the moved method still needs what it was moved from, it is given as a parameter named here.
 
@@ -1228,9 +1230,9 @@ Requires `MCPServer`, `MCPServerExtraRefactoring`, `MCPServerLiveTypingRefactori
 
 | Tool | With LiveTyping |
 | --- | --- |
-| `smalltalk_refactor_extract_parameter_object` | Takes `actual` and `actualAndPossible` as the scope, `actual` being the default, like the six above |
-| `smalltalk_refactor_move_method` | Takes a `scope`: send `actual` to move the method to the class LiveTyping saw the variable named as `receiver` hold, which needs no `targetClassName`; send nothing to move it to the class named there, or to the class of the global named as receiver |
-| `smalltalk_refactor_move_instance_variable` | Takes a `scope`: send `actual` to move the variable to the class LiveTyping saw `accessingThrough` hold, which needs no `targetClassName` |
+| `refactor_extract_parameter_object` | Takes `actual` and `actualAndPossible` as the scope, `actual` being the default, like the six above |
+| `refactor_move_method` | Takes a `scope`: send `actual` to move the method to the class LiveTyping saw the variable named as `receiver` hold, which needs no `targetClassName`; send nothing to move it to the class named there, or to the class of the global named as receiver |
+| `refactor_move_instance_variable` | Takes a `scope`: send `actual` to move the variable to the class LiveTyping saw `accessingThrough` hold, which needs no `targetClassName` |
 
 ## Tests
 
@@ -1238,7 +1240,7 @@ Each package has a test package next to it, listed in [Loading the server](#load
 They run a server over a mock transport and a mock client that speaks real JSON-RPC to it, so
 every tool is exercised the way a real client would, and each test class builds its server with
 only the tool groups and decorators it tests. Run them from the image, or through the server:
-`smalltalk_run_tests_in_category` with `MCPServerTests, MCPServerLiveTypingTests,
+`run_tests_in_categories` with `MCPServerTests, MCPServerLiveTypingTests,
 MCPServerLiveTypingRefactoringsTests, MCPServerExtraRefactoringTest,
 MCPServerExtraLiveTypingRefactoringsTests, MCPServerMethodFinderTests` runs all six as one suite.
 

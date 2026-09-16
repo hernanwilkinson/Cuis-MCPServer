@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:15 pm'!
-'Description Answer a refactoring warning and go on through the accepted ones'!
-!provides: 'MCPServerExtraRefactoring' 1 17!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:23 pm'!
+'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
+!provides: 'MCPServerExtraRefactoring' 1 18!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
@@ -183,30 +183,30 @@ moveMethodRefactoringFor: aMethod to: aTargetClassName through: aReceiverName pa
 		accessingThrough: aReceiverName
 		parameterNeeded: (self class extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractClassToolName
 
-	^'smalltalk_refactor_extract_class'! !
+	^'refactor_extract_class'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:30 pm (UTC)'!
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 extractParameterObjectToolName
 
-	^'smalltalk_refactor_extract_parameter_object'! !
+	^'refactor_extract_parameter_object'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 extractToMethodObjectToolName
 
-	^'smalltalk_refactor_extract_to_method_object'! !
+	^'refactor_extract_to_method_object'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 moveInstanceVariableToolName
 
-	^'smalltalk_refactor_move_instance_variable'! !
+	^'refactor_move_instance_variable'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 1:26:43 pm (UTC)'!
+!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 moveMethodToolName
 
-	^'smalltalk_refactor_move_method'! !
+	^'refactor_move_method'! !
 
 !MCPExtraRefactoringTools class methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:05:26 am (UTC)'!
 extraParameterNamed: aParameterName keyword: aKeyword
