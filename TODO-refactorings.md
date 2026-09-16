@@ -5,7 +5,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## MoveToInstanceOrClassMethod
 
-- [ ] **Senders on the side the method leaves are not rewritten.** `moveMethod` recompiles the
+- [x] **Senders on the side the method leaves are not rewritten.** Done in the image: `MoveToInstanceOrClassMethod for:implementors:senders:` takes a scope like rename selector, moves every implementor on the same side and redirects the senders (`self` ↔ `self class`, the class by name to `self` or `X new`, `X new` to `X`); with LiveTyping, any receiver it saw hold the instance or the class. The applier shows the implementors and senders windows (`MoveToInstanceOrClassMethodTest` 06–24, `MoveToInstanceOrClassMethodInActualScopeTest`). `moveMethod` recompiles the
   same source on the other side and removes the original; a `self foo` sender left behind on
   the instance side breaks (`MessageNotUnderstood`). Seen moving
   `MCPRefactoringTool>>acceptedWarningsPropertyName` to the class side:
@@ -14,7 +14,7 @@ Errors and shortcomings found in the refactorings while driving them through the
   Fix: rewrite `self foo` → `self class foo` in the instance side when moving up, and
   `self class foo` → `self foo` on the class side when moving down; the same for senders in
   other classes that name the class (`Foo new foo` / `Foo foo`) is harder and may stay a warning.
-- [ ] **A moved method whose body sends `self class bar`** ends up on the class side sending
+- [x] **A moved method whose body sends `self class bar`** Done in the image: the body is retargeted so every `self` send keeps reaching the method its side resolved: `self class bar` → `self bar` going up, `self bar` → `self class bar` going down when the sides resolve `bar` differently, and a body going up that sends to itself something the class side resolves differently is refused (`MoveToInstanceOrClassMethodTest` 25–33). Originally: ends up on the class side sending
   `self class bar` to the metaclass. Not hit, but it is the mirror of the case above.
 
 ## PushUpMethod
