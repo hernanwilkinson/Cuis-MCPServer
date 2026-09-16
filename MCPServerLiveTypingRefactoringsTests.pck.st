@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:29 pm'!
-'Description Answer a refactoring warning and go on through the accepted ones'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 16!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:23:33 am'!
+'Description Move a method between sides over a scope with its senders redirected'!
+!provides: 'MCPServerLiveTypingRefactoringsTests' 1 17!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
@@ -264,6 +264,20 @@ testInliningTakesTheActualScopeThroughTheToolThatWorksOverAScope
 	self deny: (self sourceOfTheCaller includesSubstring: 'self mcpProbe' caseSensitive: true).
 	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
 
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 16/Sep/2026, 12:09:58 am (UTC)'!
+testMovingToClassSideInActualScopeRedirectsSendsItSaw
+
+	self compileTheProbeAndItsCaller.
+
+	self apply: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName inActualScopeWith: (Dictionary new
+		at: 'className' put: probeClass name;
+		at: 'selector' put: 'mcpProbe';
+		yourself).
+
+	self assert: (probeClass class includesSelector: 'mcpProbe' asSymbol).
+	self assert: (self sourceOfTheCaller includesSubstring: 'self class mcpProbe' caseSensitive: true).
+	self assert: (self sourceOfTheCaller includesSubstring: 'anythingElse mcpProbe' caseSensitive: true)! !
+
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 2/Sep/2026, 6:44:42 pm (UTC)'!
 testRemovingAParameterInTheActualScopeChangesTheSendsItSaw
 
@@ -307,7 +321,7 @@ MCPLiveTypingRefactoringProbe>>#mcpRenamed
 1 method removed:
 MCPLiveTypingRefactoringProbe>>#mcpProbe'! !
 
-!MCPLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:59 pm (UTC)'!
+!MCPLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 16/Sep/2026, 12:02:51 am (UTC)'!
 toolDecoratorClasses
 
 	^{
@@ -316,7 +330,8 @@ toolDecoratorClasses
 		MCPAddParameterInActualScopeDecorator.
 		MCPRemoveParameterInActualScopeDecorator.
 		MCPExtractAsParameterInActualScopeDecorator.
-		MCPInlineMethodInActualScopeDecorator }! !
+		MCPInlineMethodInActualScopeDecorator.
+		MCPMoveToInstanceOrClassMethodInActualScopeDecorator }! !
 
 !MCPLiveTypingRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:57 pm (UTC)'!
 toolGroupClasses

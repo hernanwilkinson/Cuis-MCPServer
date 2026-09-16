@@ -858,12 +858,13 @@ Insert a new class between a class and its superclass.
 
 ##### `smalltalk_refactor_move_to_instance_or_class_method`
 
-Move a method from the instance side of a class to its class side, or back.
+Move a method from the instance side of a class to its class side, or back, together with the implementors on the same side the scope takes in around the class of the method, and redirect the senders the scope takes in: an instance method sending it to self sends it to self class once it is a class method, and one sending it to self class, or to the class by name, sends it to self once it is an instance method, or to a new instance of the class when it is not one itself. A sender the scope leaves out, or one sending it to anything else, is left as it is.
 
 | Parameter | | |
 | --- | --- | --- |
 | `className` | required | Name of the class that implements it |
 | `selector` | required | Selector of the method to move |
+| `scope` | optional | Where the sends to change are looked for: `class`, `hierarchy`, `category`, `hierarchyAndCategories` or `system` — see [Refactoring scope](#refactoring-scope). Defaults to `system` |
 
 ##### `smalltalk_refactor_push_down_instance_variable`
 

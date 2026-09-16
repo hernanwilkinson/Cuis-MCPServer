@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 3:28:22 pm'!
-'Description Answer a refactoring warning and go on through the accepted ones'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 20!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:23:04 am'!
+'Description Move a method between sides over a scope with its senders redirected'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 21!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -56,6 +56,16 @@ MCPActualScopeRefactoringDecorator subclass: #MCPInlineMethodInActualScopeDecora
 MCPInlineMethodInActualScopeDecorator class
 	instanceVariableNames: ''!
 
+!classDefinition: #MCPMoveToInstanceOrClassMethodInActualScopeDecorator category: #MCPServerLiveTypingRefactorings!
+MCPActualScopeRefactoringDecorator subclass: #MCPMoveToInstanceOrClassMethodInActualScopeDecorator
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MCPServerLiveTypingRefactorings'!
+!classDefinition: 'MCPMoveToInstanceOrClassMethodInActualScopeDecorator class' category: #MCPServerLiveTypingRefactorings!
+MCPMoveToInstanceOrClassMethodInActualScopeDecorator class
+	instanceVariableNames: ''!
+
 !classDefinition: #MCPRemoveParameterInActualScopeDecorator category: #MCPServerLiveTypingRefactorings!
 MCPActualScopeRefactoringDecorator subclass: #MCPRemoveParameterInActualScopeDecorator
 	instanceVariableNames: ''
@@ -83,6 +93,9 @@ I let a refactoring tool that works over a scope work over the one LiveTyping sa
 A client that names the actual scope is asking for what only LiveTyping can tell: which sends of the selector really reached an object of the class that implements it. Every other scope is what the tool I decorate already knows, and it is the one that answers.
 
 I am how a client gets both without knowing two tool names. The tool of my own is offered on its own too, so that what each of them changes can be told apart.!
+
+!MCPMoveToInstanceOrClassMethodInActualScopeDecorator commentStamp: '<historical>' prior: 0!
+I let the tool that moves a method between the instance and the class side redirect the senders LiveTyping saw.!
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:21:27 pm (UTC)'!
 definition
@@ -506,6 +519,41 @@ decoratedToolName
 actualScopeOnlyDescription
 
 	^'Send actual to inline every send LiveTyping saw really reaching an object of the class that implements the selector, which needs neither senderClassName nor senderSelector nor the text of the send. Send nothing to inline the one send named by those'! !
+
+!MCPMoveToInstanceOrClassMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 16/Sep/2026, 12:02:23 am (UTC)'!
+properties
+
+	^{ MCPMethodProperty
+		classDescribedBy: 'Name of the class that implements it'
+		selectorDescribedBy: 'Selector of the method to move' }! !
+
+!MCPMoveToInstanceOrClassMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 16/Sep/2026, 12:02:23 am (UTC)'!
+applyInActualScopeWith: anArguments
+
+	^self withValuesFrom: anArguments do: [ :aMethod |
+		(MCPRefactoringApplier applying: (self
+			refactoringMoving: aMethod
+			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
+
+!MCPMoveToInstanceOrClassMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+refactoringMoving: aMethod keepingPossibleSends: isKeepingPossibleSends
+
+	^self
+		refactoringOn: aMethod selector
+		in: aMethod methodClass
+		using: (MoveToInstanceOrClassMethod classMovingFrom: aMethod methodClass)
+		keepingPossibleSends: isKeepingPossibleSends
+		builtWith: [ :implementors :senders |
+			MoveToInstanceOrClassMethod
+				for: aMethod
+				implementors: implementors
+				senders: senders
+				withPossibleMessageSends: isKeepingPossibleSends ]! !
+
+!MCPMoveToInstanceOrClassMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 16/Sep/2026, 12:02:22 am (UTC)'!
+decoratedToolName
+
+	^MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName! !
 
 !MCPRemoveParameterInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:07:30 am (UTC)'!
 properties

@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 15 September 2026 at 8:29:14 pm'!
-'Description Call several tools in one call with smalltalk_batch'!
-!provides: 'MCPServer' 1 84!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:22:19 am'!
+'Description Move a method between sides over a scope with its senders redirected'!
+!provides: 'MCPServer' 1 85!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3678,41 +3678,46 @@ notInAnyPackageDescription
 
 	^'It is not in any package'! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 1:45:08 pm (UTC)'!
-implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName using: aRefactoringClass
 
 	aScopeName caseOf: {
-		[ 'class' ] -> [ ScopedRefactoring
+		[ 'class' ] -> [ aRefactoringClass
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			forClassAndMetaOf: aClass ].
-		[ 'hierarchy' ] -> [ ScopedRefactoring
+		[ 'hierarchy' ] -> [ aRefactoringClass
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			inHierarchyOf: aClass ].
-		[ 'category' ] -> [ ScopedRefactoring
+		[ 'category' ] -> [ aRefactoringClass
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			inCategory: aClass category
 			organizedBy: smalltalk organization ].
-		[ 'hierarchyAndCategories' ] -> [ ScopedRefactoring
+		[ 'hierarchyAndCategories' ] -> [ aRefactoringClass
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			inCategoriesAndHierarchyOf: aClass
 			organizedBy: smalltalk organization ].
-		[ 'system' ] -> [ ScopedRefactoring
+		[ 'system' ] -> [ aRefactoringClass
 			addImplementorsOf: aSelector
 			to: anImplementorsCollection
 			andSendersTo: aSendersCollection
 			inSystem: smalltalk ] }
 		otherwise: [ self error: (self class unknownScopeErrorDescriptionFor: aScopeName) ]! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 1:45:11 pm (UTC)'!
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 refactoringOn: aMethod within: aScopeName builtWith: aBlock
+
+	^self refactoringOn: aMethod within: aScopeName using: ScopedRefactoring builtWith: aBlock! !
+
+!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+refactoringOn: aMethod within: aScopeName using: aRefactoringClass builtWith: aBlock
 
 	| implementors senders |
 
@@ -3723,7 +3728,8 @@ refactoringOn: aMethod within: aScopeName builtWith: aBlock
 		andSenders: senders
 		of: aMethod selector
 		around: aMethod methodClass
-		when: aScopeName.
+		when: aScopeName
+		using: aRefactoringClass.
 
 	^aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ])! !
 
@@ -4422,16 +4428,22 @@ addAsSubclassResponsibilityRefactoringTool
 		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (AddAsSubclassResponsibility for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 moveToInstanceOrClassMethodRefactoringTool
 
 	^MCPRefactoringTool
 		named: self class moveToInstanceOrClassMethodRefactoringToolName
-		describedBy: 'Move a method from the instance side of a class to its class side, or back.'
-		properties: { MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to move' }
-		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (MoveToInstanceOrClassMethod for: aMethod) ]
-
-! !
+		describedBy: 'Move a method from the instance side of a class to its class side, or back, together with the implementors on the same side the scope takes in around the class of the method, and redirect the senders the scope takes in: an instance method sending it to self sends it to self class once it is a class method, and one sending it to self class, or to the class by name, sends it to self once it is an instance method, or to a new instance of the class when it is not one itself. A sender the scope leaves out, or one sending it to anything else, is left as it is.'
+		properties: {
+			MCPMethodProperty classDescribedBy: 'Name of the class that implements it' selectorDescribedBy: 'Selector of the method to move'.
+			self scopeProperty }
+		executingWith: [ :aMethod :aScopeName |
+			MCPRefactoringApplier applyReportingChanges: (self
+				refactoringOn: aMethod
+				within: aScopeName
+				using: (MoveToInstanceOrClassMethod classMovingFrom: aMethod methodClass)
+				builtWith: [ :implementors :senders |
+					MoveToInstanceOrClassMethod for: aMethod implementors: implementors senders: senders ]) ]! !
 
 !MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownMethodToOneSubclassRefactoringTool

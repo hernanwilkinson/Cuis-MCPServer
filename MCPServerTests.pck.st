@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 15 September 2026 at 8:29:20 pm'!
-'Description Call several tools in one call with smalltalk_batch'!
-!provides: 'MCPServerTests' 1 73!
+'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:22:41 am'!
+'Description Move a method between sides over a scope with its senders redirected'!
+!provides: 'MCPServerTests' 1 74!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -3121,6 +3121,25 @@ MCPTestSubject class>>#mcpProbe
 MCPTestSubject>>#mcpProbe'
 ! !
 
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 16/Sep/2026, 11:26:39 am (UTC)'!
+testMoveToInstanceOrClassMethodRefactoringMovesImplementorsInScope
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+	self defineTestSubjectSiblingImplementingProbe.
+
+	self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'scope' being: 'system').
+
+	self assert: (self createdClassInTest class includesSelector: 'mcpProbe' asSymbol).
+	self assert: ((Smalltalk classNamed: 'MCPTestSibling') class includesSelector: 'mcpProbe' asSymbol).
+	self deny: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
+
 !MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
 testMoveToInstanceOrClassMethodRefactoringMovesItToTheClassSide
 
@@ -3135,6 +3154,38 @@ testMoveToInstanceOrClassMethodRefactoringMovesItToTheClassSide
 	self assert: (self createdClassInTest class includesSelector: 'mcpProbe' asSymbol).
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)
 ! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 16/Sep/2026, 11:26:39 am (UTC)'!
+testMoveToInstanceOrClassMethodRefactoringRedirectsSendersInScope
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^42'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpCaller
+
+	^self mcpProbe'.
+	self defineTestSubjectSiblingImplementingProbe.
+	self defineMethodIn: 'MCPTestSibling' source: 'mcpCaller
+
+	^self mcpProbe'.
+
+	self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'scope' being: 'hierarchy').
+
+	self
+		assert: (self createdClassInTest sourceCodeAt: #mcpCaller) asString
+		equals: 'mcpCaller
+
+	^self class mcpProbe'.
+	self
+		assert: ((Smalltalk classNamed: 'MCPTestSibling') sourceCodeAt: #mcpCaller) asString
+		equals: 'mcpCaller
+
+	^self mcpProbe'! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
 testPushDownMethodToOneSubclassRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
