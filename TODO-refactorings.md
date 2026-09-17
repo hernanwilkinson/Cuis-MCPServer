@@ -112,16 +112,16 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## MoveMethod (ExtraRefactorings)
 
-- [ ] **Moving through a global keeps the global in the moved body.** Moving
+- [x] **Moving through a global keeps the global in the moved body.** Done: `CodeForNodeToMove>>visitLiteralVariableNode:` asks first whether the literal is the variable moved through and writes `self` (`MoveMethodTest` 702, 703). Moving
   `MCPRefactoringToolGroup>>applyReportingChanges:` with `MCPRefactoringApplier` as the
   receiver produced `MCPRefactoringApplier class>>applyReportingChanges:` whose body is still
   `^(MCPRefactoringApplier applying: aRefactoring) applyReportingChanges`; it should be
   `self applying: aRefactoring`, the way a send through an instance variable becomes a send to
   `self`.
-- [ ] **The moved method loses its category.** It is filed under `as yet unclassified` in the
+- [x] **The moved method loses its category.** Done: `CodeForNodeToMoveResult>>compileInTargetClassUnder:` compiles it under the category it came from (`MoveMethodTest` 800, 801). It was filed under `as yet unclassified` in the
   target class (`MCPRefactoringApplier class`); the source method was in `applying`.
   Fix: classify it under the category it came from, creating it in the target when needed.
-- [ ] **The delegation left behind is not formatted.** It is compiled as
+- [x] **The delegation left behind is not formatted.** Done: `MoveMethod>>replaceMethodForDelegation` writes the empty line and no period (`MoveMethodTest` 802), and the generated getters, setters and `CHANGE_ME_super_` collaborations go through `CodeForNodeToMove>>sourceOfMethod:returning:` with the same layout. It was compiled as
   `applyReportingChanges: aRefactoring\n\t^MCPRefactoringApplier applyReportingChanges: aRefactoring.`
   — no empty line after the selector and a trailing period.
   Fix: `selector\n\n\t^receiver selector` like every other generated method.
