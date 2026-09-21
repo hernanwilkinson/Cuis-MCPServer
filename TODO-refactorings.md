@@ -133,8 +133,22 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## Refactorings that compile before they declare
 
-- [ ] **`PushUpMethod`, `ExtractMethod` and `TemporaryToInstanceVariable` signal
-  `UndeclaredVariableWarning` while applying.** They compile a method that names a variable
+- [x] **`PushUpMethod`, `ExtractMethod` and `TemporaryToInstanceVariable` signal
+  `UndeclaredVariableWarning` while applying.** Done in the image. Declaring first is not
+  possible: the class builder refuses a variable a subclass already declares, and
+  `AddInstanceVariable` refuses a name a method uses as a temporary. So the step that leaves the
+  name undeclared runs under `Refactoring>>ignoringUndeclared:during:`, which resumes the warning
+  of that name with `false`, keeping it out of `Undeclared`, and the declaration that follows
+  compiles the methods again: `TransferInstanceVariable>>removeInstanceVariableFrom:` for
+  `PushUpInstanceVariable` (which `PushUpMethod` uses) and `PushDownInstanceVariable`, and
+  `TemporaryToInstanceVariable>>apply`. `ExtractMethod` does not compile early: it parses the
+  extracted piece on its own to look at its shape, where the arguments and temporaries of the
+  method are not declared, so those parses resume every such warning with `false`
+  (`ExtractMethodNewMethodSourceCode>>sourceCodeToExtractParsed`,
+  `ExtractMethodCodeModifier>>parsed:`). `PushUpInstanceVariableTest` 06, `PushUpMethodTest` 29,
+  `PushDownInstanceVariableTest` 04, `TemporaryToInstanceVariableTest` 13, `ExtractMethodTest`
+  168; the fixtures of `ExtractMethodTest` 116 and 159 and `ExtractMethodFinderTest` 56 and 57
+  used a variable nobody declared and now declare it. Originally: they compile a method that names a variable
   before the variable is declared where it is compiled (the instance variable pushed up after
   the method, the temporary turned into an instance variable after the method that used it is
   recompiled, the extracted method with its parameters), and only work because
@@ -150,7 +164,16 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 ## Warnings and headless clients
 
-- [ ] **`Warning>>defaultAction` opens a `Debugger` and waits.** Any `Warning` a tool does not
+- [x] **`Warning>>defaultAction` opens a `Debugger` and waits.** Done:
+  `MCPServer>>answerOf:ifInterrupted:` handles `Error, Warning` for a request and for each step
+  of a batch, and answers the client the ones that wait for someone at the image; the ones that
+  go on by themselves are passed to their default action. Each exception says which it is with
+  `waitsForUser` (`*MCPServer`): `true` for `Error` and `Warning`, `false` for
+  `UndeclaredVariableWarning`, `suppressed not` for `SimulationSideEffectWarning`. The six tests
+  of the entry above pass with the handler in place (`MCPImageToolsTest`:
+  `testEvaluationSignallingWarningFailsWithIt`,
+  `testStepSignallingWarningAnswersItAndBatchGoesOn`,
+  `testEvaluationNamingUndeclaredVariableGoesOn`). Originally: any `Warning` a tool does not
   handle (a `RefactoringWarning` before this session, and still any other `Warning`, e.g. from
   `evaluate`) blocks that MCP request until someone proceeds it in the image or the
   1800 s timeout ends it. `RefactoringWarning` is handled now by `MCPRefactoringTool`; the

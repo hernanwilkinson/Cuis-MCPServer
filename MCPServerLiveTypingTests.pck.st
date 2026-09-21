@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:34 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServerLiveTypingTests' 1 18!
+'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:16 pm'!
+'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
+!provides: 'MCPServerLiveTypingTests' 1 19!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -249,6 +249,27 @@ testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 			yourself))
 		equals: (Dictionary new at: 'held' put: #('SmallInteger'); yourself)
 ! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:49:26 pm (UTC)'!
+testStepNamingDecoratedToolWithClientPrefixRunsDecorator
+
+	| aServer step answer |
+
+	aServer := MCPServer
+		servingOver: MCPTransportMock new
+		smalltalk: Smalltalk
+		providing: MCPServer defaultToolGroupClasses
+		decoratedBy: (Array with: MCPMethodTypesDecorator).
+	step := Dictionary new
+		at: 'tool' put: 'mcp__Cuis__' , MCPMethodTypesDecorator decoratedToolName;
+		at: 'arguments' put: (self arguments: 'methods' being: 'Object>>yourself');
+		yourself.
+
+	answer := aServer
+		executeTool: MCPImageTools batchToolName
+		arguments: (self arguments: 'steps' being: { step }).
+
+	self assert: (answer includesSubString: '"returns"')! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
 testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach

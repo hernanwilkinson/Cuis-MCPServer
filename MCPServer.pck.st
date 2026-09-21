@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:12 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServer' 1 86!
+'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:09 pm'!
+'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
+!provides: 'MCPServer' 1 88!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -753,10 +753,24 @@ initializeOf: someSteps runningIn: anMCPServer
 	lines := OrderedCollection new.
 	isStopped := false! !
 
-!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 2:03:34 pm (UTC)'!
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
 execute: aStep
 
-	^server executeTool: aStep toolName arguments: aStep arguments! !
+	^[ server executeTool: aStep toolName arguments: aStep arguments ]
+		on: Error
+		do: [ :anError |
+			(self isUnknownTool: anError of: aStep)
+				ifTrue: [ anError return: (self executeToolEndingNameOf: aStep) ]
+				ifFalse: [ anError pass ]]! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
+executeToolEndingNameOf: aStep
+
+	"A client can name a tool with the prefix it puts to it, as in mcp__Cuis__evaluate."
+
+	^server
+		executeTool: (server longestToolNameEnding: aStep toolName)
+		arguments: aStep arguments! !
 
 !MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 7:26:43 pm (UTC)'!
 goOnOrStopAfter: aStep answering: anAnswer
@@ -772,14 +786,19 @@ goOnOrStopAfter: aStep failingWith: anError
 		ifTrue: [ self stopAt: aStep with: anError printString ]
 		ifFalse: [ self addLine: (aStep descriptionAnswering: anError printString) ]! !
 
-!MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 2:06:07 pm (UTC)'!
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
+isUnknownTool: anError of: aStep
+
+	^anError messageText = (server class unknownToolErrorDescriptionFor: aStep toolName)! !
+
+!MCPBatch methodsFor: 'running - private' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
 run: aStep
 
 	isStopped ifTrue: [ ^self addLine: aStep descriptionNotRun ].
 
-	[ self goOnOrStopAfter: aStep answering: (self execute: aStep) ]
-		on: Error
-		do: [ :anError | self goOnOrStopAfter: aStep failingWith: anError ]! !
+	server
+		answerOf: [ self goOnOrStopAfter: aStep answering: (self execute: aStep) ]
+		ifInterrupted: [ :anInterruption | self goOnOrStopAfter: aStep failingWith: anInterruption ]! !
 
 !MCPBatch methodsFor: 'running - private' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
 stopAt: aStep with: aText
@@ -812,7 +831,7 @@ addLine: aText
 
 	lines add: (lines size + 1) printString , '. ' , aText! !
 
-!MCPBatch class methodsFor: 'instance creation' stamp: 'HAW 15/Sep/2026, 1:55:45 pm (UTC)'!
+!MCPBatch class methodsFor: 'instance creation' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
 of: someSteps runningIn: anMCPServer
 
 	^self new initializeOf: someSteps runningIn: anMCPServer! !
@@ -1584,6 +1603,19 @@ stop
 	running := false.
 	transport stopServingRequests! !
 
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
+answerOf: aBlock ifInterrupted: anInterruptionBlock
+
+	"An error or a warning left to its default action opens a debugger and waits for someone at the
+	image, which a client cannot see. The ones that go on by themselves are left to do so."
+
+	^aBlock
+		on: Error, Warning
+		do: [ :anInterruption |
+			anInterruption waitsForUser
+				ifTrue: [ anInterruptionBlock value: anInterruption ]
+				ifFalse: [ anInterruption pass ]]! !
+
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:05:34 pm (UTC)'!
 dispatch: aMethod with: aParams ifNone: aNoneBlock
 
@@ -1594,18 +1626,17 @@ dispatch: aMethod with: aParams ifNone: aNoneBlock
 	
 	^aNoneBlock value! !
 
-!MCPServer methodsFor: 'request handling' stamp: 'HAW 9/Sep/2026, 3:33:10 pm (UTC)'!
+!MCPServer methodsFor: 'request handling' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
 handleMethod: aMethod with: aParams identifiedAs: anId 
 
-	^[ | methodResult |
-		methodResult := self 
-			dispatch: aMethod 
-			with: aParams 
-			ifNone: [ ^self methodNotFoundResponseFor: anId on: aMethod].
-		self successResponseFor: anId result: methodResult ]
-		on: Error
-		do: [ :anError | self internalErrorResponseFor: anId withError: anError ].
-	! !
+	^self
+		answerOf: [ | methodResult |
+			methodResult := self 
+				dispatch: aMethod 
+				with: aParams 
+				ifNone: [ ^self methodNotFoundResponseFor: anId on: aMethod].
+			self successResponseFor: anId result: methodResult ]
+		ifInterrupted: [ :anInterruption | self internalErrorResponseFor: anId withError: anInterruption ]! !
 
 !MCPServer methodsFor: 'request handling' stamp: 'HAW 19/Aug/2026, 9:02:12 pm (UTC)'!
 handleNotification: aMethod with: aParams
@@ -1762,6 +1793,17 @@ executeTool: aToolName arguments: anArguments
 		of: aToolName
 		with: anArguments! !
 
+!MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Sep/2026, 2:49:40 pm (UTC)'!
+longestToolNameEnding: aCalledName
+
+	| endingNames |
+
+	endingNames := tools keys select: [ :aToolName | aCalledName endsWith: aToolName ].
+
+	^endingNames
+		ifEmpty: [ aCalledName ]
+		ifNotEmpty: [ :potentialNames | potentialNames detectMax: [ :aToolName | aToolName size ]]! !
+
 !MCPServer methodsFor: 'tool dispatch' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
 signalUnknownTool: aToolName
 
@@ -1783,11 +1825,22 @@ addProvidedTools
 
 	toolGroupClasses do: [ :eachToolGroupClass | (eachToolGroupClass for: smalltalk) addToolsTo: self ]! !
 
-!MCPServer methodsFor: 'tool installation' stamp: 'HAW 24/Aug/2026, 12:58:40 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 20/Sep/2026, 12:48:20 pm (UTC)'!
 addTool: aTool
 
-	tools at: aTool name put: aTool
-! !
+	"A tool called with the prefix a client puts to its name is the one with the longest name ending
+	the name called, so only two tools of the same name would leave it undecided. A decorator takes
+	the place of the tool it decorates under the same name, and does not come through here."
+
+	self assertHasNoToolNamed: aTool name.
+
+	tools at: aTool name put: aTool! !
+
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 20/Sep/2026, 12:48:20 pm (UTC)'!
+assertHasNoToolNamed: aToolName
+
+	(tools includesKey: aToolName) ifTrue: [
+		self error: (self class toolAlreadyAddedErrorDescriptionFor: aToolName) ]! !
 
 !MCPServer methodsFor: 'tool installation' stamp: 'HAW 27/Aug/2026, 7:45:51 pm (UTC)'!
 decorateToolNamed: aToolName with: aDecoratorClass
@@ -1808,15 +1861,15 @@ decorateTools
 			decorateToolNamed: eachDecoratorClass decoratedToolName 
 			with: eachDecoratorClass ]! !
 
-!MCPServer methodsFor: 'testing' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
+!MCPServer methodsFor: 'testing' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
 stopsBatch: aToolName whenAnswering: anAnswer
 
-	^(self toolNamed: aToolName) stopsBatchWhenAnswering: anAnswer ! !
+	^(self toolNamed: (self longestToolNameEnding: aToolName)) stopsBatchWhenAnswering: anAnswer ! !
 
-!MCPServer methodsFor: 'testing' stamp: 'HAW 15/Sep/2026, 7:33:52 pm (UTC)'!
+!MCPServer methodsFor: 'testing' stamp: 'HAW 21/Sep/2026, 3:07:04 pm (UTC)'!
 stopsBatchWhenFails: aToolName 
 
-	^(self toolNamed: aToolName ifAbsent: [ ^false ]) stopsBatchWhenFails ! !
+	^(self toolNamed: (self longestToolNameEnding: aToolName) ifAbsent: [ ^false ]) stopsBatchWhenFails ! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: 'HAW 24/Aug/2026, 1:55:35 pm (UTC)'!
 servingOver: aTransport
@@ -1889,6 +1942,11 @@ instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass
 parseErrorDescription
 
 	^'Parse error'! !
+
+!MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 20/Sep/2026, 12:48:20 pm (UTC)'!
+toolAlreadyAddedErrorDescriptionFor: aToolName
+
+	^'There is already a tool named ', aToolName! !
 
 !MCPServer class methodsFor: 'error descriptions' stamp: 'HAW 21/Aug/2026, 6:14:03 pm (UTC)'!
 unknownToolErrorDescriptionFor: aToolName
@@ -6354,6 +6412,21 @@ withoutLineBreaks
 
 	^(self copyWithout: Character cr) copyWithout: Character lf! !
 
+!Warning methodsFor: '*MCPServer' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
+waitsForUser
+
+	^true! !
+
+!UndeclaredVariableWarning methodsFor: '*MCPServer' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
+waitsForUser
+
+	^false! !
+
+!SimulationSideEffectWarning methodsFor: '*MCPServer' stamp: 'HAW 20/Sep/2026, 12:22:04 am (UTC)'!
+waitsForUser
+
+	^self suppressed not! !
+
 !RefactoringWarning methodsFor: '*MCPServer' stamp: 'HAW 9/Sep/2026, 3:24:25 pm (UTC)'!
 descriptionForClient
 
@@ -6364,6 +6437,11 @@ descriptionForClient
 
 	^self messageText , ' in ' ,
 		(', ' join: (references collect: [ :eachReference | eachReference classAndSelector ]) asSortedCollection)! !
+
+!Error methodsFor: '*MCPServer' stamp: 'HAW 20/Sep/2026, 12:21:49 am (UTC)'!
+waitsForUser
+
+	^true! !
 
 !UISupervisor class methodsFor: '*MCPServer' stamp: 'HAW 28/Aug/2026, 6:40:03 pm (UTC)'!
 waitToDone: aBlock

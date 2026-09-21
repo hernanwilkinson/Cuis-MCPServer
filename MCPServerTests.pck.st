@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:18 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServerTests' 1 75!
+'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:13 pm'!
+'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
+!provides: 'MCPServerTests' 1 77!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -697,6 +697,11 @@ serverErrorTextFor: anErrorDescription
 
 	^'Error: ', anErrorDescription! !
 
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Sep/2026, 12:20:49 am (UTC)'!
+serverWarningTextFor: aWarningDescription
+
+	^'Warning: ', aWarningDescription! !
+
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:47:50 am (UTC)'!
 smalltalkForTheServer
 
@@ -1197,6 +1202,20 @@ testEvaluateDecodesNonAsciiCharacters
 
 	self assert: (self evaluate: '''é'' size') equals: '1'! !
 
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:20:49 am (UTC)'!
+testEvaluationNamingUndeclaredVariableGoesOn
+
+	[ self assert: (self evaluate: 'MCPProbeUndeclaredName isNil') equals: 'true' ]
+		ensure: [ Undeclared removeKey: #MCPProbeUndeclaredName ifAbsent: [] ]! !
+
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:20:49 am (UTC)'!
+testEvaluationSignallingWarningFailsWithIt
+
+	self
+		should: [ self evaluate: 'self notify: ''probe''' ]
+		raise: Error
+		withMessageText: (self serverWarningTextFor: 'probe')! !
+
 !MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
 testSavingTheImageAnswersTheNameOfTheImageItSaved
 
@@ -1274,6 +1293,11 @@ childProbePushUpStep
 		step: MCPRefactoringTools pushUpMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe')! !
 
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
+clientPrefixed: aToolName
+
+	^'mcp__Cuis__' , aToolName! !
+
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
 defineTestSubjectChildReadingAnInstanceVariable
 
@@ -1336,6 +1360,13 @@ methodNotFoundErrorText
 notRunLine: aNumber of: aToolName
 
 	^self line: aNumber of: aToolName answering: 'not run'! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
+prefixedEvaluationStepOf: aCode
+
+	^self
+		step: (self clientPrefixed: MCPImageTools evaluateToolName)
+		with: (self arguments: 'code' being: aCode)! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 recordCallsInMemory
@@ -1432,6 +1463,11 @@ unknownClassMethodDeletionStep
 unknownToolErrorTextFor: aToolName
 
 	^self serverErrorTextFor: (MCPServer unknownToolErrorDescriptionFor: aToolName)! !
+
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 20/Sep/2026, 12:20:34 am (UTC)'!
+warningEvaluationStep
+
+	^self evaluationStepOf: 'self notify: ''probe'''! !
 
 !MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
 testAppliedRefactoringLetsBatchGoOn
@@ -1557,6 +1593,50 @@ testRefactoringStoppedAtWarningStopsBatch
 			with: self instanceVariableWarningNotApplied.
 		self notRunLine: 2 of: MCPImageTools evaluateToolName }.
 	self assertSideEffectStepDidNotRun! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+testStepNamingToolWithClientPrefixIsLoggedAsCalledAndUnderOwnTool
+
+	self linesOfRunning: { self prefixedEvaluationStepOf: '7' }.
+
+	self assert: self recordedToolNames equals: {
+		self clientPrefixed: MCPImageTools evaluateToolName.
+		MCPImageTools evaluateToolName.
+		MCPImageTools batchToolName }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+testStepNamingToolWithClientPrefixRunsIt
+
+	| lines |
+
+	lines := self linesOfRunning: { self prefixedEvaluationStepOf: '7' }.
+
+	self assert: lines equals: {
+		self line: 1 of: (self clientPrefixed: MCPImageTools evaluateToolName) answering: '7' }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 20/Sep/2026, 12:20:49 am (UTC)'!
+testStepSignallingWarningAnswersItAndBatchGoesOn
+
+	| lines |
+
+	lines := self linesOfRunning: {
+		self warningEvaluationStep.
+		self evaluationStepOf: '7' }.
+
+	self assert: lines equals: {
+		self evaluationLine: 1 answering: (self serverWarningTextFor: 'probe').
+		self evaluationLine: 2 answering: '7' }! !
+
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+testStepWithClientPrefixRunsLongestToolNameEndingIt
+
+	| calledName lines |
+
+	calledName := self clientPrefixed: MCPRefactoringTools pushDownMethodToSubclassesRefactoringToolName.
+
+	lines := self linesOfRunning: { self step: calledName }.
+
+	self assert: (lines first beginsWith: (self stoppingLine: 1 of: calledName with: ''))! !
 
 !MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
 testStepWithoutArgumentsCallsToolWithNone
@@ -4301,6 +4381,18 @@ testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
 			with: MCPImageTools screenshotToolName
 			with: MCPImageTools saveImageToolName
 			with: MCPImageTools batchToolName)! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
+testAddingToolAlreadyAddedFails
+
+	| evaluateTool |
+
+	evaluateTool := server toolNamed: MCPImageTools evaluateToolName.
+
+	self
+		should: [ server addTool: evaluateTool ]
+		raise: Error
+		withMessageText: (MCPServer toolAlreadyAddedErrorDescriptionFor: MCPImageTools evaluateToolName)! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 testCallingAnUnknownToolFails
