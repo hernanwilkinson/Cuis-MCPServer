@@ -69,7 +69,7 @@ Errors and shortcomings found in the refactorings while driving them through the
   on the selector line is left as written (`ExtractMethodTest` 161 added, 152 corrected).
   **The space after the return stays**: `^ ` is the convention of the whole suite (the sender
   gets `^ self m2` too) and of ~100 expectations — a decision, not a defect fix.
-- [ ] **The extracted method is written with a space after the return.** Extracting the class-side dictionary out of `MCPModelStructureTools>>classSourceOf:`
+- [x] **The extracted method is written with a space after the return.** Closed on 2026-09-22: the space stays, since `^ ` is how the Cuis printer itself writes a return; the indentation half was done earlier. Originally: extracting the class-side dictionary out of `MCPModelStructureTools>>classSourceOf:`
   produced `^ OrderedDictionary new` and the cascade lines with three tabs instead of two — the
   indentation of the piece where it stood, kept as it was, plus a tab. Fix: `^` without a space,
   and re-indent the piece so its first line starts at one tab.
