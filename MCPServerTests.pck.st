@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:13 pm'!
-'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
-!provides: 'MCPServerTests' 1 77!
+'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 3:50:27 pm'!
+'Description Cover extracting similar code that differs inside the uses of its own temporary'!
+!provides: 'MCPServerTests' 1 78!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -4107,6 +4107,45 @@ testAWarningAboutReferencesNamesTheMethodsThatHoldThem
 		equals: (MCPRefactoringTool notAppliedDescriptionFor:
 			(SafelyRemoveClass warningMessageForReferencesToNames: { self createdClassInTest }) , ' in MCPTestSibling>>#mcpReferrer').
 	self assert: self createdClassInTest notNil! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 22/Sep/2026, 4:15:19 pm (UTC)'!
+testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTemporary
+
+	| probeSource |
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpSalesTo: aCustomer
+
+	^{ aCustomer }'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| salesToAda salesToAlan |
+
+	salesToAda := self mcpSalesTo: 1.
+	self assert: 1 equals: salesToAda size.
+	self assert: 1 equals: (salesToAda count: [ :aProduct | aProduct = 1 ]).
+
+	salesToAlan := self mcpSalesTo: 2.
+	self assert: 1 equals: salesToAlan size.
+	self assert: 1 equals: (salesToAlan count: [ :aProduct | aProduct = 2 ])'.
+
+	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpAssertOneSaleTo:matching:'
+			and: 'argumentNames' being: 'aCustomer,aCondition')
+				at: 'text' put: 'salesToAda := self mcpSalesTo: 1.
+	self assert: 1 equals: salesToAda size.
+	self assert: 1 equals: (salesToAda count: [ :aProduct | aProduct = 1 ]).';
+				yourself).
+
+	probeSource := self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol.
+	self assert: (probeSource includesSubstring: 'self mcpAssertOneSaleTo: 1 matching: [ :aProduct | aProduct = 1 ]' caseSensitive: true).
+	self assert: (probeSource includesSubstring: 'self mcpAssertOneSaleTo: 2 matching: [ :aProduct | aProduct = 2 ]' caseSensitive: true).
+	self deny: (probeSource includesSubstring: 'salesToAda size' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpAssertOneSaleTo:matching:' asSymbol)
+		includesSubstring: 'salesToAda count: aCondition' caseSensitive: true)! !
 
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 9:37:51 pm (UTC)'!
 answerToEverySearch: someMethods
