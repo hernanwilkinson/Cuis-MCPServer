@@ -49,7 +49,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 - [x] **Keeps the implementor's indentation on the lines of a multi-line statement.** Done in the image: the lines after the first of each inlined statement are re-based from the implementor's indentation to that of the sender line (`MessageNodeReference>>lineIndentation`, `InlineMethodTest>>test39`). Inlining a cascade written at one tab into a sender line at two tabs left `add: 1;` at two tabs instead of three.
 
-- [ ] **Refuses a method with an early return.** `MCPServer>>handleRequest:` answered `^nil` from an
+- [ ] **Not going to implement: refuses a method with an early return.** Tried on 2026-09-21 and undone: rewriting the method into its single-return equivalent (a guard as `ifTrue:ifFalse:`, a lookup as `at:ifPresent:ifAbsent:` with the temporary as block argument) took three classes and some forty methods for two shapes, too complex for what it is worth. The refactoring keeps refusing with *Method to inline has more than one possible return value*; rewrite the method by hand first. Originally: `MCPServer>>handleRequest:` answered `^nil` from an
   `ifAbsent:` block and its value at the end; inlining it fails with *Method to inline has more
   than one possible return value*. It had to be rewritten as a single `at:ifPresent:ifAbsent:`
   expression by hand before the refactoring would take it. An early return that is the last
