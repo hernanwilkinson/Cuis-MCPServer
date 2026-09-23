@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:04:38 pm'!
-'Description Extract similar code repeating an expression in several places as one parameter'!
-!provides: 'MCPServerTests' 1 79!
+'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:43:50 pm'!
+'Description Cover extracting similar code that differs in a measure next to its own temporaries'!
+!provides: 'MCPServerTests' 1 80!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -4107,6 +4107,50 @@ testAWarningAboutReferencesNamesTheMethodsThatHoldThem
 		equals: (MCPRefactoringTool notAppliedDescriptionFor:
 			(SafelyRemoveClass warningMessageForReferencesToNames: { self createdClassInTest }) , ' in MCPTestSibling>>#mcpReferrer').
 	self assert: self createdClassInTest notNil! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 23/Sep/2026, 12:15:00 am (UTC)'!
+testExtractMethodFromSimilarCodeParameterizesTheWholeMeasureNextToItsOwnTemporaries
+
+	| probeSource |
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpSectorOf: aLength
+
+	^Dictionary new'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| sector |
+
+	sector := self mcpSectorOf: 24 * 1000.
+	sector at: #schumacher put: 12.95 * 1000.
+	sector at: #hamilton put: 13 * 1000.
+	^sector'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpOther
+
+	| sector |
+
+	sector := self mcpSectorOf: 24 * 1000.
+	sector at: #schumacher put: 12.9 * 1000.
+	sector at: #hamilton put: 13 * 1000.
+	^sector'.
+
+	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpSectorWithSchumacherAt:'
+			and: 'argumentNames' being: 'aPosition')
+				at: 'text' put: 'sector := self mcpSectorOf: 24 * 1000.
+	sector at: #schumacher put: 12.95 * 1000.
+	sector at: #hamilton put: 13 * 1000.';
+				yourself).
+
+	probeSource := self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol.
+	self assert: (probeSource includesSubstring: 'self mcpSectorWithSchumacherAt: 12.95 * 1000' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOther' asSymbol)
+		includesSubstring: 'self mcpSectorWithSchumacherAt: 12.9 * 1000' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpSectorWithSchumacherAt:' asSymbol)
+		includesSubstring: 'sector at: #schumacher put: aPosition' caseSensitive: true)! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 22/Sep/2026, 4:15:19 pm (UTC)'!
 testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTemporary
