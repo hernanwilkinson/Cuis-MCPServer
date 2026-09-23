@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 3:50:27 pm'!
-'Description Cover extracting similar code that differs inside the uses of its own temporary'!
-!provides: 'MCPServerTests' 1 78!
+'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:04:38 pm'!
+'Description Extract similar code repeating an expression in several places as one parameter'!
+!provides: 'MCPServerTests' 1 79!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -4146,6 +4146,44 @@ testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTem
 	self deny: (probeSource includesSubstring: 'salesToAda size' caseSensitive: true).
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpAssertOneSaleTo:matching:' asSymbol)
 		includesSubstring: 'salesToAda count: aCondition' caseSensitive: true)! !
+
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 22/Sep/2026, 10:01:23 pm (UTC)'!
+testExtractMethodFromSimilarCodeTakesTheSameExpressionDifferingInSeveralPlacesAsOneParameter
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpRegister: aNumber
+
+	^aNumber'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	self mcpRegister: 1.
+	self mcpRegister: 1.
+	self mcpRegister: 2'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpOther
+
+	self mcpRegister: 3.
+	self mcpRegister: 3.
+	self mcpRegister: 2'.
+
+	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpRegisterTwice:'
+			and: 'argumentNames' being: 'aNumber')
+				at: 'text' put: 'self mcpRegister: 1.
+	self mcpRegister: 1.
+	self mcpRegister: 2';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'self mcpRegisterTwice: 1' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOther' asSymbol)
+		includesSubstring: 'self mcpRegisterTwice: 3' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpRegisterTwice:' asSymbol)
+		includesSubstring: 'self mcpRegister: aNumber.
+	self mcpRegister: aNumber.
+	self mcpRegister: 2' caseSensitive: true)! !
 
 !MCPSearchToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 9:37:51 pm (UTC)'!
 answerToEverySearch: someMethods

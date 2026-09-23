@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:09 pm'!
-'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
-!provides: 'MCPServer' 1 88!
+'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:04:36 pm'!
+'Description Extract similar code repeating an expression in several places as one parameter'!
+!provides: 'MCPServer' 1 89!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3975,38 +3975,6 @@ extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgum
 			withArgumentNames: (self namesRenaming: parameters asAskedIn: someArgumentNames))
 		replacements: replacements)! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
-extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
-
-	"Extract the code the interval covers into a method of its own and send it wherever code
-	like it is written, whatever differs between them becoming a parameter. The finder says
-	which pieces are alike, and which of the nodes to parameterize it could not account for."
-
-	| trimmedInterval finder notParameterizable |
-
-	trimmedInterval := anInterval trimToMatchExpressionOn: aMethodReference sourceCode.
-	ExtractMethodNewMethod assertCanApplyRefactoringOn: aMethodReference at: trimmedInterval.
-
-	finder := ExtractMethodReplacementsFinder ofCodeIn: trimmedInterval at: aMethodReference.
-	finder value.
-	finder useParameterizedToChangeReplacements.
-
-	notParameterizable := (ExtractMethodParametersDetector
-		valueFor: aMethodReference notOptimizedMethodNode
-		at: trimmedInterval)
-			reject: [ :eachParseNode |
-				finder anyParameterizableNodeIncludes: eachParseNode at: trimmedInterval in: aMethodReference ].
-
-	finder acceptParamReplacementsWithNodesToParameterized: notParameterizable to: aMessage.
-
-	^MCPRefactoringApplier applyReportingChanges: (ExtractMethod
-		newDefinition: (self
-			newMethodFor: aMessage
-			using: finder extractedCodeOrAnyParameterizableReplacement
-			notParameterizing: notParameterizable)
-		replacements: finder replacements)
-! !
-
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:51:54 pm (UTC)'!
 extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval replacingAll: shouldReplaceAll
 
@@ -4099,37 +4067,6 @@ namesRenaming: someParameters asAskedIn: someArgumentNames
 		eachParameter name = eachAskedName ifFalse: [ renamedNames at: eachParameter name put: eachAskedName ] ].
 
 	^renamedNames! !
-
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
-newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: someParseNodes
-
-	"Build the new method the way the applier does for parameterized code. The pieces that
-	vary become its parameters, and the nodes that could not be parameterized are added by
-	the ranges they cover inside the piece being extracted."
-
-	| parameterizableNodes replacementInterval replacementMethod |
-
-	parameterizableNodes := aParameterizableReplacement parameterizableNodesWithInterval.
-	replacementInterval := aParameterizableReplacement intervalToExtract.
-	replacementMethod := aParameterizableReplacement methodToExtractFrom methodReference.
-
-	someParseNodes do: [ :eachParseNode |
-		| sourceRanges |
-		sourceRanges := replacementMethod methodNode completeSourceRangesOf: eachParseNode ifAbsent: [ #() ].
-		parameterizableNodes addAll: (sourceRanges
-			select: [ :eachRange |
-				(replacementInterval includesAllOf: eachRange)
-					and: [ parameterizableNodes noneSatisfy: [ :eachNode | eachNode value includesAllOf: eachRange ] ] ]
-			thenCollect: [ :eachRange | eachParseNode -> eachRange ]) ].
-
-	^ExtractMethodNewMethod
-		fromInterval: replacementInterval
-		of: replacementMethod
-		to: aMessage
-		categorizedAs: replacementMethod category
-		withArgumentNames: Dictionary new
-		withParameterizableNodes: parameterizableNodes
-! !
 
 !MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 11:55:19 am (UTC)'!
 pushUpRefactoringFor: aMethod pushingUpDependants: shouldPushUpDependants removingEquivalents: shouldRemoveEquivalents
@@ -4718,6 +4655,73 @@ extractMethodRefactoringTool
 				named: aNewSelector
 				withArgumentNames: someArgumentNames
 				replacing: aReplacing ]! !
+
+!MCPRefactoringTools methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
+extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
+
+	"Extract the code the interval covers into a method of its own and send it wherever code
+	like it is written, whatever differs between them becoming a parameter. The finder says
+	which pieces are alike, and which of the nodes to parameterize it could not account for."
+
+	| trimmedInterval finder notParameterizable |
+
+	trimmedInterval := anInterval trimToMatchExpressionOn: aMethodReference sourceCode.
+	ExtractMethodNewMethod assertCanApplyRefactoringOn: aMethodReference at: trimmedInterval.
+
+	finder := ExtractMethodReplacementsFinder ofCodeIn: trimmedInterval at: aMethodReference.
+	finder value.
+	finder useParameterizedToChangeReplacements.
+
+	notParameterizable := (ExtractMethodParametersDetector
+		valueFor: aMethodReference notOptimizedMethodNode
+		at: trimmedInterval)
+			reject: [ :eachParseNode |
+				finder anyParameterizableNodeIncludes: eachParseNode at: trimmedInterval in: aMethodReference ].
+
+	finder acceptParamReplacementsWithNodesToParameterized: notParameterizable to: aMessage.
+
+	^MCPRefactoringApplier applyReportingChanges: (ExtractMethod
+		newDefinition: (self
+			newMethodFor: aMessage
+			using: finder extractedCodeOrAnyParameterizableReplacement
+			notParameterizing: notParameterizable
+			sharedAs: finder parameterSharing)
+		replacements: finder replacements)
+! !
+
+!MCPRefactoringTools methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
+newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: someParseNodes sharedAs: aParameterSharing
+
+	"Build the new method the way the applier does for parameterized code. The pieces that
+	vary become its parameters, the ones the finder saw repeated alike in every piece sharing one,
+	and the nodes that could not be parameterized are added by the ranges they cover inside the
+	piece being extracted."
+
+	| parameterizableNodes replacementInterval replacementMethod parameterSharing |
+
+	parameterizableNodes := aParameterizableReplacement parameterizableNodesWithInterval.
+	replacementInterval := aParameterizableReplacement intervalToExtract.
+	replacementMethod := aParameterizableReplacement methodToExtractFrom methodReference.
+
+	someParseNodes do: [ :eachParseNode |
+		| sourceRanges |
+		sourceRanges := replacementMethod methodNode completeSourceRangesOf: eachParseNode ifAbsent: [ #() ].
+		parameterizableNodes addAll: (sourceRanges
+			select: [ :eachRange |
+				(replacementInterval includesAllOf: eachRange)
+					and: [ parameterizableNodes noneSatisfy: [ :eachNode | eachNode value includesAllOf: eachRange ] ] ]
+			thenCollect: [ :eachRange | eachParseNode -> eachRange ]) ].
+	parameterSharing := aParameterSharing , (aParameterSharing size + 1 to: parameterizableNodes size) asArray.
+
+	^ExtractMethodNewMethod
+		fromInterval: replacementInterval
+		of: replacementMethod
+		to: aMessage
+		categorizedAs: replacementMethod category
+		withArgumentNames: Dictionary new
+		withParameterizableNodes: parameterizableNodes
+		sharedAs: parameterSharing
+! !
 
 !MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 noMessageSendErrorDescriptionIn: aCompiledMethod at: anIndex
