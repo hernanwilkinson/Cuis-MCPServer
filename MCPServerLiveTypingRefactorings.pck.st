@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 10:23:04 am'!
-'Description Move a method between sides over a scope with its senders redirected'!
-!provides: 'MCPServerLiveTypingRefactorings' 1 21!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 12:04:32 pm'!
+'Description Refuse the arguments a tool does not declare'!
+!provides: 'MCPServerLiveTypingRefactorings' 1 22!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactorings!
@@ -160,13 +160,19 @@ valueWithArguments: anArguments
 		ifTrue: [ self decoratee resultOf: [ self applyInActualScopeWith: anArguments ] handlingWarningsIn: anArguments ]
 		ifFalse: [ self decoratee valueWithArguments: anArguments ]! !
 
-!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:31:52 pm (UTC)'!
+!MCPActualScopeRefactoringDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 12:26:22 pm (UTC)'!
 valuesFrom: anArguments
 
-	^(self properties 
-		inject: OrderedCollection new 
-		into: [ :someValues :eachProperty |
-			eachProperty addValueFrom: anArguments to: someValues ]) asArray! !
+	"The scope and the accepted warnings are read by me and by the tool I decorate, not by the block
+	that applies the refactoring, so they are kept from the properties it takes."
+
+	| blockArguments |
+
+	blockArguments := anArguments copy.
+	blockArguments removeKey: MCPRefactoringToolGroup scopePropertyName ifAbsent: [].
+	blockArguments removeKey: MCPRefactoringTool acceptedWarningsPropertyName ifAbsent: [].
+
+	^(MCPDeclaredProperties of: self properties) valuesFrom: blockArguments! !
 
 !MCPActualScopeRefactoringDecorator methodsFor: 'properties' stamp: 'HAW 2/Sep/2026, 8:52:31 pm (UTC)'!
 addedProperties
