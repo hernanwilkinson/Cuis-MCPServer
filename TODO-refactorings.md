@@ -30,7 +30,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 
 - [x] **`refactor_extract_method` refused a piece using a variable unless `argumentNames`
   was sent**, although the property is optional: the asked names were counted against the
-  parameters even when none were asked. Fixed in `MCPRefactoringTools>>namesRenaming:asAskedIn:`.
+  parameters even when none were asked. Fixed in `MCPBaseRefactoringToolBox>>namesRenaming:asAskedIn:`.
 - [x] **`refactor_add_parameter` failed with `String>>isKeyword` on a keyword selector**:
   the keyword reached `AddParameter` as a string, and the only test added to a unary selector.
   Fixed: the keyword property answers a symbol; test added for a keyword selector.
@@ -40,7 +40,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 - [x] **Leaves a period after the inlined statement.** Done in the image (`InlineMethod>>replaceRange:withNewSourceCode:inMethod:` drops the copied period when a `]`, a period or the end of the source follows and the sender had none; `InlineMethodTest` 34 and 35, seven expectations corrected). Inside a block the result is
   `[ :aMethod | MCPRefactoringApplier applyReportingChanges: (...). ]`, and a returned
   statement ends with `^... .` at the end of the method. Seen in the 32 senders of the eight
-  `applying` methods of `MCPRefactoringToolGroup` inlined in the `hierarchy` scope. Harmless
+  `applying` methods of `MCPRefactoringToolBox` inlined in the `hierarchy` scope. Harmless
   to the compiler, but every inlined method has to be cleaned by hand.
   Fix: when the replaced send is the last statement of its block or method, do not add the
   period (or take the one the original statement had, and only that one).
@@ -113,7 +113,7 @@ Errors and shortcomings found in the refactorings while driving them through the
 ## MoveMethod (ExtraRefactorings)
 
 - [x] **Moving through a global keeps the global in the moved body.** Done: `CodeForNodeToMove>>visitLiteralVariableNode:` asks first whether the literal is the variable moved through and writes `self` (`MoveMethodTest` 702, 703). Moving
-  `MCPRefactoringToolGroup>>applyReportingChanges:` with `MCPRefactoringApplier` as the
+  `MCPRefactoringToolBox>>applyReportingChanges:` with `MCPRefactoringApplier` as the
   receiver produced `MCPRefactoringApplier class>>applyReportingChanges:` whose body is still
   `^(MCPRefactoringApplier applying: aRefactoring) applyReportingChanges`; it should be
   `self applying: aRefactoring`, the way a send through an instance variable becomes a send to

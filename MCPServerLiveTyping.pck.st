@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:29 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServerLiveTyping' 1 26!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:53 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerLiveTyping' 1 27!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'LiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTyping!
@@ -46,14 +46,14 @@ MCPToolDecorator subclass: #MCPMethodTypesDecorator
 MCPMethodTypesDecorator class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPLiveTypingTools category: #MCPServerLiveTyping!
-MCPToolGroup subclass: #MCPLiveTypingTools
+!classDefinition: #MCPLiveTypingToolBox category: #MCPServerLiveTyping!
+MCPToolBox subclass: #MCPLiveTypingToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerLiveTyping'!
-!classDefinition: 'MCPLiveTypingTools class' category: #MCPServerLiveTyping!
-MCPLiveTypingTools class
+!classDefinition: 'MCPLiveTypingToolBox class' category: #MCPServerLiveTyping!
+MCPLiveTypingToolBox class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPMessageSend category: #MCPServerLiveTyping!
@@ -76,7 +76,7 @@ I add to the methods that write a selector the ones LiveTyping saw really sendin
 !MCPMethodTypesDecorator commentStamp: '<historical>' prior: 0!
 I add to the source of a method the classes LiveTyping saw it answer and saw its parameters and temporaries hold while the image ran.!
 
-!MCPLiveTypingTools commentStamp: '<historical>' prior: 0!
+!MCPLiveTypingToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that read the type information LiveTyping gathers.
 
 Types here are what was seen and not what was declared: they are the classes a variable held, a parameter was sent or a method answered while the image ran, so code that has not run yet has none.!
@@ -116,18 +116,18 @@ actualImplementorNamesOf: aSelector in: aClassName
 
 ! !
 
-!MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPActualImplementorsDecorator methodsFor: 'implementors' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 add: aClassName actualImplementorsTo: anAnswer from: anArguments
 
-	(MCPToolGroup namesFrom: (anArguments at: MCPSearchTools selectorsPropertyName)) do: [ :eachSelector |
+	(MCPToolBox namesFrom: (anArguments at: MCPSearchToolBox selectorsPropertyName)) do: [ :eachSelector |
 		(anAnswer at: eachSelector)
 			at: 'actual'
 			put: (self actualImplementorNamesOf: eachSelector asSymbol in: aClassName) ]! !
 
-!MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:01 pm (UTC)'!
+!MCPActualImplementorsDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 decoratedToolName
 
-	^MCPSearchTools implementorsOfToolName! !
+	^MCPSearchToolBox implementorsOfToolName! !
 
 !MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 addedProperties
@@ -144,13 +144,13 @@ description
 	^self decoratee description ,
 		' The answer also carries, in actual, the ones LiveTyping saw really sending it to an object of the class named, or of one of its subclasses; without a class, to an object of any class that implements it. They are the senders a refactoring of the selector has to change. A method in methods and not in actual writes the selector for something else.'! !
 
-!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPActualSendersDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 valueWithArguments: anArguments
 
 	| answer |
 
 	answer := self decorateeAnswerFor: anArguments.
-	(MCPToolGroup namesFrom: (anArguments at: MCPSearchTools selectorsPropertyName)) do: [ :eachSelector |
+	(MCPToolBox namesFrom: (anArguments at: MCPSearchToolBox selectorsPropertyName)) do: [ :eachSelector |
 		(answer at: eachSelector)
 			at: 'actual'
 			put: (self actualSenderNamesOf: eachSelector asSymbol from: anArguments) ].
@@ -181,10 +181,10 @@ implementorsOf: aSelector in: aClassName
 				reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]
 ! !
 
-!MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 1:47:18 pm (UTC)'!
+!MCPActualSendersDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 decoratedToolName
 
-	^MCPSearchTools sendersOfToolName! !
+	^MCPSearchToolBox sendersOfToolName! !
 
 !MCPInstanceVariableTypesDecorator methodsFor: 'types' stamp: 'HAW 1/Sep/2026, 7:00:10 pm (UTC)'!
 instanceVariableTypeNamesOf: aClass
@@ -194,12 +194,12 @@ instanceVariableTypeNamesOf: aClass
 
 	^aClass instanceVariablesTypes describedTypesNamesByVariable! !
 
-!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 7:01:13 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 description
 
 	^self decoratee description ,
 		' The answer also carries, in instanceVariableTypes, the classes LiveTyping saw each instance variable hold while the image ran. A variable of code that has not run holds none.',
-		MCPLiveTypingTools howTypesAreListedDescription! !
+		MCPLiveTypingToolBox howTypesAreListedDescription! !
 
 !MCPInstanceVariableTypesDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 valueWithArguments: anArguments
@@ -214,17 +214,17 @@ valueWithArguments: anArguments
 
 	^Json render: answer! !
 
-!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 16/Sep/2026, 2:42:13 pm (UTC)'!
+!MCPInstanceVariableTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 decoratedToolName
 
-	^MCPModelStructureTools classDefinitionsToolName! !
+	^MCPModelStructureToolBox classDefinitionsToolName! !
 
-!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 7:01:09 pm (UTC)'!
+!MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 description
 
 	^self decoratee description ,
 		' The answer also carries what LiveTyping saw while the image ran: the classes the method answered, in returns, and in variables the ones held by each parameter and temporary of it and by each instance variable of its class. A method that has not run has none of either.',
-		MCPLiveTypingTools howTypesAreListedDescription! !
+		MCPLiveTypingToolBox howTypesAreListedDescription! !
 
 !MCPMethodTypesDecorator methodsFor: 'tool' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 valueWithArguments: anArguments
@@ -260,12 +260,12 @@ variableTypeNamesOf: aMethod
 
 	^typesByVariable! !
 
-!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPMethodTypesDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 decoratedToolName
 
-	^MCPModelStructureTools methodSourcesToolName! !
+	^MCPModelStructureToolBox methodSourcesToolName! !
 
-!MCPLiveTypingTools methodsFor: 'tools' stamp: 'HAW 8/Sep/2026, 11:14:48 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tools' stamp: 'HAW 8/Sep/2026, 11:14:48 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -277,7 +277,7 @@ addToolsTo: anMCPServer
 		addTool: self actualImplementorsOfTool;
 		addTool: self messageSendsOfMethodTool! !
 
-!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 8/Sep/2026, 11:14:46 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'reading types' stamp: 'HAW 8/Sep/2026, 11:14:46 pm (UTC)'!
 messageSendsOf: aMethod named: aSentSelector
 
 	| sends |
@@ -288,13 +288,13 @@ messageSendsOf: aMethod named: aSentSelector
 		ifEmpty: [ sends ]
 		ifNotEmpty: [ sends select: [ :eachSend | eachSend selector = aSentSelector asSymbol ] ]! !
 
-!MCPLiveTypingTools methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'reading types' stamp: 'HAW 25/Aug/2026, 10:37:32 am (UTC)'!
 renderMethodReferences: someMethodReferences
 
 	^Json render: ((someMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort)
 ! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:12 am (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:12 am (UTC)'!
 actualImplementorsOfTool
 
 	"The class and the selector are two properties here and not a method property, because the
@@ -314,7 +314,7 @@ actualImplementorsOfTool
 				ifTrue: [ implementors ]
 				ifFalse: [ implementors reject: [ :eachImplementor | eachImplementor isKindOf: NotImplementedMethod ] ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:09 am (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:09 am (UTC)'!
 actualSendersOfTool
 
 	^MCPPluggableTool
@@ -330,7 +330,7 @@ actualSendersOfTool
 				ifTrue: [ sureAndPossibleSenders first , sureAndPossibleSenders second ]
 				ifFalse: [ sureAndPossibleSenders first ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:14 am (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 2:08:14 am (UTC)'!
 messageSendsOfMethodTool
 
 	^MCPPluggableTool
@@ -346,12 +346,12 @@ messageSendsOfMethodTool
 		executingWith: [ :aMethod :aSentSelector |
 			Json render: ((self messageSendsOf: aMethod named: aSentSelector) collect: [ :eachSend | eachSend description ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:19 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 7:00:19 pm (UTC)'!
 renderTypeNames: aTypeInfo
 
 	^Json render: aTypeInfo describedTypesNames! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 returnTypesOfMethodTool
 
 	^MCPPluggableTool
@@ -361,7 +361,7 @@ returnTypesOfMethodTool
 		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self renderTypeNames: aMethod returnTypeInfo ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 typesOfEveryInstanceVariableTool
 
 	^MCPPluggableTool
@@ -372,7 +372,7 @@ typesOfEveryInstanceVariableTool
 		executingWith: [ :aClass |
 			Json render: aClass instanceVariablesTypes describedTypesNamesByVariable ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:16 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:16 pm (UTC)'!
 typesOfInstanceVariableTool
 
 	^MCPPluggableTool
@@ -385,7 +385,7 @@ typesOfInstanceVariableTool
 				typeInfoOf: aVariableName
 				ifAbsent: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ]) ]! !
 
-!MCPLiveTypingTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPLiveTypingToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 typesOfMethodVariableTool
 
 	^MCPPluggableTool
@@ -400,49 +400,49 @@ typesOfMethodVariableTool
 				typeInfoOfVariableNamed: aVariableName
 				ifAbsent: [ self error: (self class variableNotFoundErrorDescriptionFor: aVariableName in: aMethod) ]) ]! !
 
-!MCPLiveTypingTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 variableNotFoundErrorDescriptionFor: aVariableName in: aCompiledMethod
 
 	^'Variable not found: ', aVariableName, ' in ',
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
 ! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 actualImplementorsOfToolName
 
 	^'actual_implementors_of'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 actualSendersOfToolName
 
 	^'actual_senders_of'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 messageSendsOfMethodToolName
 
 	^'message_sends_of_method'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 returnTypesOfMethodToolName
 
 	^'return_types_of_method'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 typesOfEveryInstanceVariableToolName
 
 	^'types_of_instance_variables'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:04 pm (UTC)'!
 typesOfInstanceVariableToolName
 
 	^'types_of_instance_variable'! !
 
-!MCPLiveTypingTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 typesOfMethodVariableToolName
 
 	^'types_of_method_variable'! !
 
-!MCPLiveTypingTools class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 7:00:38 pm (UTC)'!
+!MCPLiveTypingToolBox class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 7:00:38 pm (UTC)'!
 howTypesAreListedDescription
 
 	"Answer how a client reads a list of types, which every tool and decorator that answers one

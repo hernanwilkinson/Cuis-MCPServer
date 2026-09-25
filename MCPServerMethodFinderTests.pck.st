@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8158] on 7 September 2026 at 6:45:12 pm'!
-'Description Let each test declare the tools its server has'!
-!provides: 'MCPServerMethodFinderTests' 1 4!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:24 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerMethodFinderTests' 1 5!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerMethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
@@ -74,28 +74,28 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:26 pm (UTC)'!
+!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:54 pm (UTC)'!
 expressionsFoundWith: anArguments
 
-	^(self jsonAnswerOf: MCPMethodFinderTools findMessagesByExampleToolName with: anArguments)
+	^(self jsonAnswerOf: MCPMethodFinderToolBox findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'expression' ]
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 messagesFoundWith: anArguments
 
 	"Answer the name of each message the finder found, which is what names it in the image."
 
-	^(self jsonAnswerOf: MCPMethodFinderTools findMessagesByExampleToolName with: anArguments)
+	^(self jsonAnswerOf: MCPMethodFinderToolBox findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
 ! !
+
+!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPMethodFinderToolBox }! !
 
 !MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:22 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:19 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPMethodFinderTools }! !

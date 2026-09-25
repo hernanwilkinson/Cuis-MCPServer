@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 21 September 2026 at 12:21:16 pm'!
-'Description Answer a warning to the client and find the tool of a batch step by the end of its name'!
-!provides: 'MCPServerLiveTypingTests' 1 19!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:57 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerLiveTypingTests' 1 20!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerLiveTyping' nil nil nil!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
@@ -67,50 +67,50 @@ defineProbeHierarchy
 	^childClass
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 definitionAnswerOfTheProbe
 
-	^(self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPModelStructureToolBox classDefinitionsToolName with: (Dictionary new
 		at: 'classNames' put: 'MCPLiveTypingProbe';
 		yourself)) at: 'MCPLiveTypingProbe'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 sendersAnswerOfTheProbeSelector
 
-	^(self jsonAnswerOf: MCPSearchTools sendersOfToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPSearchToolBox sendersOfToolName with: (Dictionary new
 		at: 'selectors' put: 'mcpAnswered';
 		at: 'className' put: 'MCPLiveTypingProbe';
 		yourself)) at: 'mcpAnswered'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 11:17:12 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 sendsOfTheProbeCaller
 
-	^self jsonAnswerOf: MCPLiveTypingTools messageSendsOfMethodToolName with: (Dictionary new
+	^self jsonAnswerOf: MCPLiveTypingToolBox messageSendsOfMethodToolName with: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		at: 'selector' put: 'mcpCaller';
 		yourself)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 sourceAnswerOfTheProbe
 
-	^(self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName with: (Dictionary new
+	^(self jsonAnswerOf: MCPModelStructureToolBox methodSourcesToolName with: (Dictionary new
 		at: 'methods' put: 'MCPLiveTypingProbe>>mcpHold:';
 		yourself)) at: 'MCPLiveTypingProbe>>#mcpHold:'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpNeverImplemented';
 			yourself))
 		equals: #().
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpNeverImplemented';
 			at: 'includingPossible' put: 'true';
@@ -119,13 +119,13 @@ testAClassThatAnswersTheSelectorNowhereIsLeftOutUnlessAskedFor
 
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testAMethodThatAnswersItsReceiverSaysSo
 
 	probeClass new mcpAnswerSelf.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools returnTypesOfMethodToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox returnTypesOfMethodToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswerSelf';
 			yourself))
@@ -170,7 +170,7 @@ testASendToSomethingLiveTypingNeverSawReachesNoMethod
 	self assert: (sendToAnythingElse at: 'receiverTypes') isEmpty.
 	self assert: (sendToAnythingElse at: 'implementors') isEmpty! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:41 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 testAServerAnswersTheToolUnwrappedWhenItIsGivenNoDecorator
 
 	| aServer |
@@ -178,13 +178,13 @@ testAServerAnswersTheToolUnwrappedWhenItIsGivenNoDecorator
 	aServer := MCPServer
 		servingOver: MCPTransportMock new
 		smalltalk: Smalltalk
-		providing: MCPServer defaultToolGroupClasses
+		providing: MCPServer defaultToolBoxClasses
 		decoratedBy: #().
 
 	self deny: ((aServer toolNamed: MCPMethodTypesDecorator decoratedToolName) description
-		includesSubString: MCPLiveTypingTools howTypesAreListedDescription)! !
+		includesSubString: MCPLiveTypingToolBox howTypesAreListedDescription)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 8:05:39 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 testAServerAnswersTheToolWrappedByTheDecoratorItIsGiven
 
 	| aServer |
@@ -192,44 +192,44 @@ testAServerAnswersTheToolWrappedByTheDecoratorItIsGiven
 	aServer := MCPServer
 		servingOver: MCPTransportMock new
 		smalltalk: Smalltalk
-		providing: MCPServer defaultToolGroupClasses
+		providing: MCPServer defaultToolBoxClasses
 		decoratedBy: (Array with: MCPMethodTypesDecorator).
 
 	self assert: ((aServer toolNamed: MCPMethodTypesDecorator decoratedToolName) description
-		includesSubString: MCPLiveTypingTools howTypesAreListedDescription)! !
+		includesSubString: MCPLiveTypingToolBox howTypesAreListedDescription)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testAVariableThatHeldNilSaysSoAtTheEndOfItsTypes
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: nil.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: (Array with: 'SmallInteger' with: VariableTypeInfo canBeNilMark)! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testAnInstanceVariableThatHeldNothingHasNoTypes
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: #()
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 
 	| withPossible |
 
 	self defineProbeHierarchy.
 
-	withPossible := self jsonAnswerOf: MCPLiveTypingTools actualSendersOfToolName with: (Dictionary new
+	withPossible := self jsonAnswerOf: MCPLiveTypingToolBox actualSendersOfToolName with: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		at: 'selector' put: 'mcpAnswered';
 		at: 'includingPossible' put: 'true';
@@ -238,19 +238,19 @@ testAskingForThePossibleSendersListsTheOnesOnlyGuessedAt
 	self assert: withPossible size equals: 2
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testEveryInstanceVariableOfAClassIsAnsweredWithTheClassesItHeld
 
 	probeClass new mcpHold: 42.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfEveryInstanceVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfEveryInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself))
 		equals: (Dictionary new at: 'held' put: #('SmallInteger'); yourself)
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:49:26 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 testStepNamingDecoratedToolWithClientPrefixRunsDecorator
 
 	| aServer step answer |
@@ -258,7 +258,7 @@ testStepNamingDecoratedToolWithClientPrefixRunsDecorator
 	aServer := MCPServer
 		servingOver: MCPTransportMock new
 		smalltalk: Smalltalk
-		providing: MCPServer defaultToolGroupClasses
+		providing: MCPServer defaultToolBoxClasses
 		decoratedBy: (Array with: MCPMethodTypesDecorator).
 	step := Dictionary new
 		at: 'tool' put: 'mcp__Cuis__' , MCPMethodTypesDecorator decoratedToolName;
@@ -266,31 +266,31 @@ testStepNamingDecoratedToolWithClientPrefixRunsDecorator
 		yourself.
 
 	answer := aServer
-		executeTool: MCPImageTools batchToolName
+		executeTool: MCPImageToolBox batchToolName
 		arguments: (self arguments: 'steps' being: { step }).
 
 	self assert: (answer includesSubString: '"returns"')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheActualImplementorsAreTheOnesTheSelectorCouldReallyReach
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools actualImplementorsOfToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox actualImplementorsOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswered';
 			yourself))
 		equals: #('MCPLiveTypingProbe mcpAnswered' 'MCPLiveTypingProbeChild mcpAnswered')
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheActualSendersAreTheOnesSeenSendingItToThisClass
 
 	self defineProbeHierarchy.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools actualSendersOfToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox actualSendersOfToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpAnswered';
 			yourself))
@@ -313,17 +313,17 @@ testTheDefinitionOfAClassIsStillAnsweredWhenTheTypesAreAddedToIt
 
 	self assert: (self definitionAnswerOfTheProbe at: 'superclass') equals: 'Object'! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testTheImplementorsOfASelectorAreNotNarrowedWhenNoClassIsNamed
 
 	self defineProbeHierarchy.
 
 	self
-		deny: (((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
+		deny: (((self jsonAnswerOf: MCPSearchToolBox implementorsOfToolName with: (Dictionary new
 			at: 'selectors' put: 'mcpAnswered';
 			yourself)) at: 'mcpAnswered') includesKey: 'actual')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 11/Sep/2026, 2:17:04 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 
 	"The stranger writes the same selector and is in no hierarchy with the probe, so a send to
@@ -342,18 +342,18 @@ testTheImplementorsOfASelectorCarryTheOnesASendToAClassCanReach
 	^3' classified: 'probing'.
 
 	self
-		deny: ((((self jsonAnswerOf: MCPSearchTools implementorsOfToolName with: (Dictionary new
+		deny: ((((self jsonAnswerOf: MCPSearchToolBox implementorsOfToolName with: (Dictionary new
 			at: 'selectors' put: 'mcpAnswered';
 			at: 'className' put: 'MCPLiveTypingProbe';
 			yourself)) at: 'mcpAnswered') at: 'actual') includes: 'MCPLiveTypingStranger mcpAnswered')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheReturnTypesOfAMethodAreTheClassesItAnswered
 
 	probeClass new mcpHold: 42.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools returnTypesOfMethodToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox returnTypesOfMethodToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpHold:';
 			yourself))
@@ -386,7 +386,7 @@ testTheSendsOfAMethodAreListedWithTheirReceiverInTheOrderTheyAreWritten
 		assert: (self sendsOfTheProbeCaller collect: [ :eachSend | eachSend at: 'receiver' ])
 		equals: #('self' 'anythingElse')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:17:16 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheSendsOfAMethodCanBeNarrowedToOneSelector
 
 	| narrowedSends |
@@ -395,7 +395,7 @@ testTheSendsOfAMethodCanBeNarrowedToOneSelector
 
 	^self mcpAnswerSelf printString' classified: 'probing'.
 
-	narrowedSends := self jsonAnswerOf: MCPLiveTypingTools messageSendsOfMethodToolName with: (Dictionary new
+	narrowedSends := self jsonAnswerOf: MCPLiveTypingToolBox messageSendsOfMethodToolName with: (Dictionary new
 		at: 'className' put: 'MCPLiveTypingProbe';
 		at: 'selector' put: 'mcpTwoSends';
 		at: 'sentSelector' put: 'printString';
@@ -442,7 +442,7 @@ testTheSourceOfAMethodIsStillAnsweredWhenTheTypesAreAddedToIt
 		equals: (probeClass sourceCodeAt: #mcpHold:) asString
 ! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 8/Sep/2026, 11:15:40 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheToolsAreOfferedByEveryServer
 
 	| serverWithEveryTool |
@@ -451,51 +451,56 @@ testTheToolsAreOfferedByEveryServer
 
 	self assert: ((serverWithEveryTool toolDefinitions collect: [ :eachDefinition | eachDefinition at: 'name' ])
 		includesAllOf: {
-			MCPLiveTypingTools typesOfInstanceVariableToolName.
-			MCPLiveTypingTools typesOfEveryInstanceVariableToolName.
-			MCPLiveTypingTools typesOfMethodVariableToolName.
-			MCPLiveTypingTools returnTypesOfMethodToolName.
-			MCPLiveTypingTools messageSendsOfMethodToolName })! !
+			MCPLiveTypingToolBox typesOfInstanceVariableToolName.
+			MCPLiveTypingToolBox typesOfEveryInstanceVariableToolName.
+			MCPLiveTypingToolBox typesOfMethodVariableToolName.
+			MCPLiveTypingToolBox returnTypesOfMethodToolName.
+			MCPLiveTypingToolBox messageSendsOfMethodToolName })! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheTypesOfAParameterAreTheClassesItWasSent
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: 'a string'.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfMethodVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfMethodVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'selector' put: 'mcpHold:';
 			at: 'variableName' put: 'anObject';
 			yourself))
 		equals: (Array with: VariableTypeInfo anyTypeMark with: 'SmallInteger' with: 'String')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheTypesOfAVariableAreLedByTheClassTheyAllInheritFrom
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: 1000000000000000000000.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: #('Integer' 'LargePositiveInteger' 'SmallInteger')! !
 
-!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 7/Sep/2026, 10:00:35 pm (UTC)'!
+!MCPLiveTypingToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 testTheTypesOfAnInstanceVariableAreTheClassesItHeld
 
 	probeClass new mcpHold: 42.
 	probeClass new mcpHold: 'a string'.
 
 	self
-		assert: (self jsonAnswerOf: MCPLiveTypingTools typesOfInstanceVariableToolName with: (Dictionary new
+		assert: (self jsonAnswerOf: MCPLiveTypingToolBox typesOfInstanceVariableToolName with: (Dictionary new
 			at: 'className' put: 'MCPLiveTypingProbe';
 			at: 'variableName' put: 'held';
 			yourself))
 		equals: (Array with: VariableTypeInfo anyTypeMark with: 'SmallInteger' with: 'String')! !
+
+!MCPLiveTypingToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox. MCPSearchToolBox. MCPLiveTypingToolBox }! !
 
 !MCPLiveTypingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:51 pm (UTC)'!
 toolDecoratorClasses
@@ -505,11 +510,6 @@ toolDecoratorClasses
 		MCPInstanceVariableTypesDecorator.
 		MCPActualSendersDecorator.
 		MCPActualImplementorsDecorator }! !
-
-!MCPLiveTypingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:49 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools. MCPSearchTools. MCPLiveTypingTools }! !
 
 !MCPLiveTypingToolsTest class methodsFor: 'test data' stamp: 'HAW 24/Aug/2026, 11:39:00 pm (UTC)'!
 classCategoryOfTestData

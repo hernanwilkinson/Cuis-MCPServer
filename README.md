@@ -244,7 +244,7 @@ Every tool that takes a `className` also takes the class side, named the way it 
 through `evaluate` blocks the server. A tool that fails answers an error whose text
 starts with the class of the exception, as in `Error: Class not found: Foo`.
 
-A package that adds tools subclasses `MCPToolGroup`; one that adds to the tools of another package
+A package that adds tools subclasses `MCPToolBox`; one that adds to the tools of another package
 subclasses `MCPToolDecorator`, names the tool it decorates, and a server wraps that tool with it
 once every tool is in place — neither package names the other, and a decorator whose tool is not
 loaded decorates nothing. A server is built with every group and decorator loaded, or with the
@@ -265,7 +265,7 @@ Requires `WebClient`, `JSON` and `OSProcess`. The server, the transports and the
 `class_sources` reads whole classes in one call — definition, comment and every method of both sides, grouped by category — and `method_sources_of_class` and `method_sources_in_category` one side or one category, all much cheaper than a call per method. Every tool that reads or removes takes several classes (`classNames`), methods (`methods`, as `Class>>selector`) or selectors (`selectors`), separated by commas, and answers under each one's name; a class or method that is not there fails the whole call before anything is done.
 `define_methods` defines several methods in one call, on any classes and under any categories, and answers what happened to each one; a method that does not compile does not stop the ones after it.
 
-<!-- tools MCPServer MCPModelStructureTools -->
+<!-- tools MCPServer MCPModelStructureToolBox -->
 ##### `class_definitions`
 
 Read the definition of several classes in one call: for each, its superclass, its instance and class variables, its selectors and its comment.
@@ -412,7 +412,7 @@ Answer, for each class named, its direct subclasses.
 
 `search_selectors` is `MessageNames`: it tells whether a message doing what is about to be written already has a name, which is worth asking before writing it.
 
-<!-- tools MCPServer MCPSearchTools -->
+<!-- tools MCPServer MCPSearchToolBox -->
 ##### `implementors_of`
 
 List the methods that implement each of several selectors, under the selector, in its methods field.
@@ -477,7 +477,7 @@ List the methods that send each of several selectors, under the selector, in its
 
 `batch` calls several tools in one call, in the order given, and answers one line per step, so that reading a class and then defining, or defining and then running the tests, take one turn instead of two. A step that fails answers its error and the batch goes on, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, since they would work over what it did not do. The call log records each step under its own tool, and then the batch.
 
-<!-- tools MCPServer MCPImageTools -->
+<!-- tools MCPServer MCPImageToolBox -->
 ##### `batch`
 
 Call several tools in one call, in the order given, and answer one line per step: its number, the tool and what it answered, or the error it failed with. Reads and changes go together, so that reading a class and then defining, or defining and then running the tests, take one call. A step that fails does not stop the ones after it, except a refactoring: the steps after a refactoring that fails or stops at a warning are not run, because they would work over what it did not do. Each step is logged as a call of its own tool.
@@ -521,7 +521,7 @@ that no request can answer, and `change_package_file_name` is how the file is na
 `package_of_method` is not `package_of_class` of its class: a method filed
 under a category naming a package extends that package and belongs to it.
 
-<!-- tools MCPServer MCPPackageTools -->
+<!-- tools MCPServer MCPPackageToolBox -->
 ##### `change_package_description`
 
 Change what a package describes itself as, which is the line its file carries as its header. Changing it leaves the package with changes to write out.
@@ -632,7 +632,7 @@ List the packages that hold changes their file does not have yet, which are the 
 
 Each of these answers how many tests passed, failed and signalled an error, and names the ones that failed apart from the ones that signalled. A class that is not a test case class contributes the tests that exercise it, so `run_tests_for_classes` with `MCPServer` runs what covers it.
 
-<!-- tools MCPServer MCPTestRunningTools -->
+<!-- tools MCPServer MCPTestRunningToolBox -->
 ##### `run_test_class`
 
 Run every test of a test case class and answer how many tests passed, failed and signalled an error, along with the name of each one that failed and each one that signalled.
@@ -672,7 +672,7 @@ Run every test of the test case classes of several class categories as one suite
 
 `evaluate_to_debug_on_error` leaves a debugger open when the expression fails, and the rest of these drive it; the stepping ones answer the print string of the top of the stack. Always send `finish_debugging` when no more debugging is needed.
 
-<!-- tools MCPServer MCPDebugTools -->
+<!-- tools MCPServer MCPDebugToolBox -->
 ##### `debugger_proceed`
 
 It does a proceed on the debugger, that means running the debugging procees to the end
@@ -751,7 +751,7 @@ The scope matters most where the type does not say who the receiver is: two unre
 implement the same selector, and renaming it across the image renames both. LiveTyping adds the
 `actual` scope, which tells them apart — see [MCPServerLiveTypingRefactorings](#mcpserverlivetypingrefactorings).
 
-<!-- tools MCPServer MCPRefactoringTools -->
+<!-- tools MCPServer MCPBaseRefactoringToolBox -->
 ##### `refactor_add_as_subclass_responsibility`
 
 Declare a method of a class as the responsibility of its subclasses, adding it to the superclass as a subclassResponsibility.
@@ -1055,7 +1055,7 @@ image already implements, which is worth asking before writing something new. As
 expecting `#(1 3)` answers `#(1 2 3 4) select: [:aSmallInteger | aSmallInteger odd]` and the
 `reject:` that sends `even`.
 
-<!-- tools MCPServerMethodFinder MCPMethodFinderTools -->
+<!-- tools MCPServerMethodFinder MCPMethodFinderToolBox -->
 ##### `find_messages_by_example`
 
 List the messages that answer an expected result when sent to a receiver, which tells whether the image already implements something before it is written. The receiver, the arguments and the expected result are sent as Smalltalk expressions. When the receiver is a collection that is not empty, the enumerating messages taking a block are looked for as well, the block being built from a message its elements understand, so a receiver of #(1 2 3 4) expecting #(1 3) answers select: along with the block it needs.
@@ -1080,7 +1080,7 @@ name to anything else, which is what *actual* means here: `actual_senders_of` an
 the methods that really send a method — the ones a refactoring of it has to change — and
 `actual_implementors_of` the methods a send to an object of a class could really reach.
 
-<!-- tools MCPServerLiveTyping MCPLiveTypingTools -->
+<!-- tools MCPServerLiveTyping MCPLiveTypingToolBox -->
 ##### `actual_implementors_of`
 
 List the implementors of a selector in the hierarchy of a class, which are the methods a send of it to an object of that class could really reach: the ones implemented by the class and by every subclass of the one highest up among its superclasses that implements it. The class does not have to implement the selector itself. What a send written in a method reaches is asked with the message sends of the method instead, because its receiver may have held classes of different hierarchies.
@@ -1186,7 +1186,7 @@ renames everything.
 Requires `MCPServer` and `ExtraRefactorings` (from Cuis-Smalltalk-Refactoring): the refactorings
 that make new classes and move code between classes.
 
-<!-- tools MCPServerExtraRefactoring MCPExtraRefactoringTools -->
+<!-- tools MCPServerExtraRefactoring MCPExtraRefactoringToolBox -->
 ##### `refactor_extract_class`
 
 Extract instance variables and methods of a class into a new class of its own, which the class they came from reaches through a new instance variable.

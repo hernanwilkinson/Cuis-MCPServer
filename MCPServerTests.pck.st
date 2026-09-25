@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 12:03:06 pm'!
-'Description Read what a package holds: its classes, its methods, its extensions and its source'!
-!provides: 'MCPServerTests' 1 82!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:49 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerTests' 1 83!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -192,7 +192,7 @@ Saving me writes nothing to disk. I count how many times I was asked to save, wh
 !MCPToolsTest commentStamp: '<historical>' prior: 0!
 I am the fixture a test of the tools a server serves runs in: a server over a mock transport and a mock client sending it requests the way a real one does, with no socket in between.
 
-I hold no test of my own. Each group of tools is tested by a subclass of mine, and the classes and methods a test makes are made through the server, in a class category I take away when the test ends.!
+I hold no test of my own. Each box of tools is tested by a subclass of mine, and the classes and methods a test makes are made through the server, in a class category I take away when the test ends.!
 
 !MCPDebuggingToolsTest commentStamp: '<historical>' prior: 0!
 I test the seven tools that drive a debugger.
@@ -219,7 +219,7 @@ I am the tests of MCPRefactoringTools, the refactorings that come with the image
 I am the tests of MCPSearchTools, which look through the image for who sends, who implements, what names a class or a variable, and what already answers a result.!
 
 !MCPServerToolsTest commentStamp: '<historical>' prior: 0!
-I am the tests of the tools a server serves itself rather than through a group of them, which are evaluating code and running tests, and of the protocol it answers.!
+I am the tests of the tools a server serves itself rather than through a box of them, which are evaluating code and running tests, and of the protocol it answers.!
 
 !MCPTransportTextTest commentStamp: '<historical>' prior: 0!
 I test MCPTransportText by serving it a script of requests and reading what it writes out.
@@ -577,7 +577,7 @@ registerClassCategoryOfTestData
 
 	classCategories add: self classCategoryOfTestData! !
 
-!MCPToolsTest methodsFor: 'running' stamp: 'HAW 7/Sep/2026, 8:49:09 pm (UTC)'!
+!MCPToolsTest methodsFor: 'running' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 setUp
 
 	"Serve a server over a mock transport, so a mock client can send it requests the way a real
@@ -592,7 +592,7 @@ setUp
 	server := self serverClass
 		servingOver: transport
 		smalltalk: self smalltalkForTheServer
-		providing: self toolGroupClasses
+		providing: self toolBoxClasses
 		decoratedBy: self toolDecoratorClasses.
 	transport serveRequestsFor: server.
 	client := MCPMockClient sendingThrough: transport! !
@@ -657,38 +657,38 @@ createdClassInTest
 	^Smalltalk classNamed: 'MCPTestSubject'
 ! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineClassWith: aDefinition
 
-	^client callTool: MCPModelStructureTools defineClassToolName with: (self arguments: 'definition' being: aDefinition)
+	^client callTool: MCPModelStructureToolBox defineClassToolName with: (self arguments: 'definition' being: aDefinition)
 ! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineMethodIn: aClassName source: aSource
 
-	^client callTool: MCPModelStructureTools defineMethodsToolName with:
+	^client callTool: MCPModelStructureToolBox defineMethodsToolName with:
 		(self arguments: 'methods' being: { self methodIn: aClassName source: aSource })! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineMethodIn: aClassName source: aSource category: aMethodCategory
 
-	^client callTool: MCPModelStructureTools defineMethodsToolName with:
+	^client callTool: MCPModelStructureToolBox defineMethodsToolName with:
 		(self arguments: 'methods' being: { self methodIn: aClassName source: aSource category: aMethodCategory })! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineTestSubjectClass
 
-	^client callTool: MCPModelStructureTools defineClassToolName with: (self arguments: 'definition' being: self subjectClassDefinition)! !
+	^client callTool: MCPModelStructureToolBox defineClassToolName with: (self arguments: 'definition' being: self subjectClassDefinition)! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineTestSubjectMethod
 
 	^self defineMethodIn: 'MCPTestSubject' source: self subjectMethodSource! !
 
-!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineTestSubjectSubclass
 
-	^client callTool: MCPModelStructureTools defineClassToolName with: (self arguments: 'definition' being: self subjectSubclassDefinition)! !
+	^client callTool: MCPModelStructureToolBox defineClassToolName with: (self arguments: 'definition' being: self subjectSubclassDefinition)! !
 
 !MCPToolsTest methodsFor: 'test support' stamp: 'HAW 20/Aug/2026, 9:31:50 pm (UTC)'!
 definitionOf: aClassName subclassOf: aSuperclassName
@@ -788,13 +788,13 @@ toolNamed: aToolName
 
 	^server toolNamed: aToolName! !
 
-!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:07 pm (UTC)'!
-toolDecoratorClasses
+!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
 
 	^self subclassResponsibility! !
 
-!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:06 pm (UTC)'!
-toolGroupClasses
+!MCPToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:07 pm (UTC)'!
+toolDecoratorClasses
 
 	^self subclassResponsibility! !
 
@@ -828,15 +828,15 @@ isAbstract
 
 	^self hasSubclasses ! !
 
+!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPImageToolBox. MCPModelStructureToolBox }! !
+
 !MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 9/Sep/2026, 9:05:45 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPCallLogTest methodsFor: 'tools under test' stamp: 'HAW 15/Sep/2026, 1:56:57 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPImageTools. MCPModelStructureTools }! !
 
 !MCPCallLogTest methodsFor: 'running' stamp: 'HAW 10/Sep/2026, 5:16:42 pm (UTC)'!
 setUp
@@ -851,20 +851,20 @@ tearDown
 	self probeLogFileName asFileEntry exists ifTrue: [ self probeLogFileName asFileEntry delete ].
 	super tearDown! !
 
-!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 15/Sep/2026, 11:23:25 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineTwoTestSubjectMethods
 
 	self defineTestSubjectClass.
 	client
-		callTool: MCPModelStructureTools defineMethodsToolName
+		callTool: MCPModelStructureToolBox defineMethodsToolName
 		with: (self arguments: 'methods' being: {
 			self methodIn: 'MCPTestSubject' source: 'saludo ^1'.
 			self methodIn: 'MCPTestSubject' source: 'despedida ^2' })! !
 
-!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 9:05:52 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 evaluate: aCode
 
-	^client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: aCode)! !
+	^client callTool: MCPImageToolBox evaluateToolName with: (self arguments: 'code' being: aCode)! !
 
 !MCPCallLogTest methodsFor: 'test support' stamp: 'HAW 10/Sep/2026, 6:38:51 pm (UTC)'!
 probeLogFileName
@@ -892,7 +892,7 @@ smalltalkForTheServer
 
 	^self! !
 
-!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:01 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testACallIsRecordedWithWhatItWasAskedAndWhatItAnswered
 
 	| record |
@@ -901,7 +901,7 @@ testACallIsRecordedWithWhatItWasAskedAndWhatItAnswered
 
 	self assert: self recordedCalls size equals: 1.
 	record := self recordedCalls first.
-	self assert: (record at: 'tool') equals: MCPImageTools evaluateToolName.
+	self assert: (record at: 'tool') equals: MCPImageToolBox evaluateToolName.
 	self assert: ((record at: 'arguments') at: 'code') equals: '3 + 4'.
 	self assert: (record at: 'answer') equals: '7'.
 	self deny: (record at: 'isError')! !
@@ -944,7 +944,7 @@ testARecordSaysWhenAndHowLongTheCallTook
 	self deny: (record at: 'at') isEmpty.
 	self deny: (record at: 'session') isEmpty! !
 
-!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 11:23:25 pm (UTC)'!
+!MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testCallWithListOfObjectsInArgumentsIsRecordedOnOneLine
 
 	| record |
@@ -953,7 +953,7 @@ testCallWithListOfObjectsInArgumentsIsRecordedOnOneLine
 
 	self assert: self recordedCalls size equals: 2.
 	record := self recordedCalls last.
-	self assert: (record at: 'tool') equals: MCPModelStructureTools defineMethodsToolName.
+	self assert: (record at: 'tool') equals: MCPModelStructureToolBox defineMethodsToolName.
 	self assert: ((record at: 'arguments') at: 'methods') size equals: 2! !
 
 !MCPCallLogTest methodsFor: 'tests' stamp: 'HAW 9/Sep/2026, 9:06:08 pm (UTC)'!
@@ -1010,11 +1010,11 @@ tearDown
 
 	super tearDown! !
 
-!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 answerOfEvaluatingToDebug: aCodeString
 
 	^client
-		callTool: MCPDebugTools evaluateToDebugOnErrorToolName
+		callTool: MCPDebugToolBox evaluateToDebugOnErrorToolName
 		with: (self arguments: 'code' being: aCodeString)! !
 
 !MCPDebuggingToolsTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
@@ -1057,51 +1057,51 @@ waitForTheDebuggerWindow
 		(Delay forMilliseconds: 20) wait ]
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testFinishingWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools finishDebuggingToolName)
+		assert: (self answerOf: MCPDebugToolBox finishDebuggingToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'finish')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testGoingThroughWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerThroughToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerThroughToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'through')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testProceedingWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerProceedToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerProceedToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'proceed')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testRestartingWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerRestartToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerRestartToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'restart')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testSteppingIntoWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerStepIntoToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerStepIntoToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepInto')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testSteppingOverWithoutADebuggerSaysThereIsNone
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerStepOverToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerStepOverToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
 ! !
 
@@ -1111,13 +1111,13 @@ testEvaluatingCodeThatDoesNotFailAnswersItsResult
 	self assert: (self answerOfEvaluatingToDebug: '6 * 7') equals: '42'
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testEvaluatingCodeThatDoesNotFailLeavesNoDebugger
 
 	self answerOfEvaluatingToDebug: '6 * 7'.
 
 	self
-		assert: (self answerOf: MCPDebugTools debuggerStepOverToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerStepOverToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
 ! !
 
@@ -1141,18 +1141,18 @@ testEvaluatingCodeThatFailsOpensADebugger
 
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testFinishingClosesTheDebuggerWindow
 
 	self openADebugger.
 	
-	self assert: (self answerOf: MCPDebugTools finishDebuggingToolName) equals: 'Finished'.
+	self assert: (self answerOf: MCPDebugToolBox finishDebuggingToolName) equals: 'Finished'.
 
 	self assert: self debuggerWindowsOnScreen isEmpty
 
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testFinishingClosesTheDebuggerWindowThatIsNotOnScreenYet
 
 	"The window is put up by the process that draws morphs, so it is not there yet when the
@@ -1161,84 +1161,84 @@ testFinishingClosesTheDebuggerWindowThatIsNotOnScreenYet
 
 	self answerOfEvaluatingToDebug: self failingCode.
 
-	self assert: (self answerOf: MCPDebugTools finishDebuggingToolName) equals: 'Finished'.
+	self assert: (self answerOf: MCPDebugToolBox finishDebuggingToolName) equals: 'Finished'.
 
 	self assert: self debuggerWindowsOnScreen isEmpty
 
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testFinishingLeavesNoDebuggerToDrive
 
 	self openADebugger.
 
-	self assert: (self answerOf: MCPDebugTools finishDebuggingToolName) equals: 'Finished'.
+	self assert: (self answerOf: MCPDebugToolBox finishDebuggingToolName) equals: 'Finished'.
 	self
-		assert: (self answerOf: MCPDebugTools debuggerStepOverToolName)
+		assert: (self answerOf: MCPDebugToolBox debuggerStepOverToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testGoingThroughDrivesTheDebuggerLeftByAFailure
 
 	| answer |
 
 	self openADebugger.
-	answer := self answerOf: MCPDebugTools debuggerThroughToolName.
+	answer := self answerOf: MCPDebugToolBox debuggerThroughToolName.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testProceedingRunsTheDebuggedProcessToItsEnd
 
 	self openADebugger.
 
-	self assert: (self answerOf: MCPDebugTools debuggerProceedToolName) equals: 'Proceeded'
+	self assert: (self answerOf: MCPDebugToolBox debuggerProceedToolName) equals: 'Proceeded'
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testRestartingDrivesTheDebuggerLeftByAFailure
 
 	| answer |
 
 	self openADebugger.
-	answer := self answerOf: MCPDebugTools debuggerRestartToolName.
+	answer := self answerOf: MCPDebugToolBox debuggerRestartToolName.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testSteppingIntoDrivesTheDebuggerLeftByAFailure
 
 	| answer |
 
 	self openADebugger.
-	answer := self answerOf: MCPDebugTools debuggerStepIntoToolName.
+	answer := self answerOf: MCPDebugToolBox debuggerStepIntoToolName.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
-!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 1/Sep/2026, 1:27:36 pm (UTC)'!
+!MCPDebuggingToolsTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testSteppingOverDrivesTheDebuggerLeftByAFailure
 
 	| answer |
 
 	self openADebugger.
-	answer := self answerOf: MCPDebugTools debuggerStepOverToolName.
+	answer := self answerOf: MCPDebugToolBox debuggerStepOverToolName.
 
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
+
+!MCPDebuggingToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPDebugToolBox }! !
 
 !MCPDebuggingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:15 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPDebuggingToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:14 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPDebugTools }! !
 
 !MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 testEvaluateAnswersThePrintStringOfTheResult
@@ -1267,22 +1267,22 @@ testEvaluationSignallingWarningFailsWithIt
 		raise: Error
 		withMessageText: (self serverWarningTextFor: 'probe')! !
 
-!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSavingTheImageAnswersTheNameOfTheImageItSaved
 
-	self assert: (self answerOf: MCPImageTools saveImageToolName) equals: 'Image saved: ', self imageName! !
+	self assert: (self answerOf: MCPImageToolBox saveImageToolName) equals: 'Image saved: ', self imageName! !
 
-!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSavingTheImageSavesItOnce
 
-	self answerOf: MCPImageTools saveImageToolName.
+	self answerOf: MCPImageToolBox saveImageToolName.
 
 	self assert: savedImageCount equals: 1! !
 
-!MCPImageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 1:28:01 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 evaluate: aCodeString
 
-	^client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: aCodeString)! !
+	^client callTool: MCPImageToolBox evaluateToolName with: (self arguments: 'code' being: aCodeString)! !
 
 !MCPImageToolsTest methodsFor: 'test support' stamp: 'HAW 28/Aug/2026, 12:48:22 am (UTC)'!
 smalltalkForTheServer
@@ -1309,39 +1309,39 @@ saveImage
 
 	savedImageCount := savedImageCount + 1! !
 
+!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPImageToolBox. MCPModelStructureToolBox. MCPBaseRefactoringToolBox }! !
+
 !MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:18 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPImageToolsTest methodsFor: 'tools under test' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPImageTools. MCPModelStructureTools. MCPRefactoringTools }! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 assertSideEffectStepDidNotRun
 
 	self deny: (Smalltalk includesKey: self class sideEffectGlobalName)! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 categoriesListingLine: aNumber
 
 	^self
 		line: aNumber
-		of: MCPModelStructureTools listCategoriesToolName
+		of: MCPModelStructureToolBox listCategoriesToolName
 		answering: '['! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 categoriesListingStep
 
-	^self step: MCPModelStructureTools listCategoriesToolName! !
+	^self step: MCPModelStructureToolBox listCategoriesToolName! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 childProbePushUpStep
 
 	^self
-		step: MCPRefactoringTools pushUpMethodRefactoringToolName
+		step: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe')! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
@@ -1361,16 +1361,16 @@ defineTestSubjectChildReadingAnInstanceVariable
 
 	^held'! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 evaluationLine: aNumber answering: anAnswer
 
-	^self line: aNumber of: MCPImageTools evaluateToolName answering: anAnswer! !
+	^self line: aNumber of: MCPImageToolBox evaluateToolName answering: anAnswer! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 evaluationStepOf: aCode
 
 	^self
-		step: MCPImageTools evaluateToolName
+		step: MCPImageToolBox evaluateToolName
 		with: (self arguments: 'code' being: aCode)! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
@@ -1389,13 +1389,13 @@ line: aNumber of: aToolName answering: anAnswer
 
 	^aNumber printString , '. ' , aToolName , ': ' , anAnswer! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 linesOfRunning: someSteps
 
 	| answer |
 
 	answer := client
-		callTool: MCPImageTools batchToolName
+		callTool: MCPImageToolBox batchToolName
 		with: (self arguments: 'steps' being: someSteps).
 
 	^answer lines asArray! !
@@ -1412,11 +1412,11 @@ notRunLine: aNumber of: aToolName
 
 	^self line: aNumber of: aToolName answering: 'not run'! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 prefixedEvaluationStepOf: aCode
 
 	^self
-		step: (self clientPrefixed: MCPImageTools evaluateToolName)
+		step: (self clientPrefixed: MCPImageToolBox evaluateToolName)
 		with: (self arguments: 'code' being: aCode)! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
@@ -1432,13 +1432,13 @@ recordedToolNames
 	^((records contents lines reject: [ :eachLine | eachLine isEmpty ])
 		collect: [ :eachLine | (Json readFrom: eachLine readStream) at: 'tool' ]) asArray! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 renameSelectorStepOf: aSelector to: aNewSelector
 
 	"The scope is the class, so that a rename does not reach the tests that name the selector."
 
 	^self
-		step: MCPRefactoringTools renameSelectorRefactoringToolName
+		step: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: aSelector
@@ -1464,12 +1464,12 @@ step: aToolName with: anArguments
 		at: 'arguments' put: anArguments;
 		yourself! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 stepsPropertyNotProvidedErrorText
 
 	| stepsProperty |
 
-	stepsProperty := (self toolNamed: MCPImageTools batchToolName) properties first.
+	stepsProperty := (self toolNamed: MCPImageToolBox batchToolName) properties first.
 
 	^self serverErrorTextFor: stepsProperty notProvidedErrorDescription! !
 
@@ -1478,14 +1478,14 @@ stoppingLine: aNumber of: aToolName with: anAnswer
 
 	^aNumber printString , '. ' , aToolName , ' stopped the batch: ' , anAnswer! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSubjectClassDefinitionStep
 
 	^self
-		step: MCPModelStructureTools defineClassToolName
+		step: MCPModelStructureToolBox defineClassToolName
 		with: (self arguments: 'definition' being: self subjectClassDefinition)! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSubjectMethodDefinitionStep
 
 	| methods |
@@ -1493,21 +1493,21 @@ testSubjectMethodDefinitionStep
 	methods := { self methodIn: 'MCPTestSubject' source: self subjectMethodSource }.
 
 	^self
-		step: MCPModelStructureTools defineMethodsToolName
+		step: MCPModelStructureToolBox defineMethodsToolName
 		with: (self arguments: 'methods' being: methods)! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSubjectMethodSourceStep
 
 	^self
-		step: MCPModelStructureTools methodSourcesToolName
+		step: MCPModelStructureToolBox methodSourcesToolName
 		with: (self arguments: 'methods' being: 'MCPTestSubject>>saludo')! !
 
-!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 unknownClassMethodDeletionStep
 
 	^self
-		step: MCPModelStructureTools deleteMethodsToolName
+		step: MCPModelStructureToolBox deleteMethodsToolName
 		with: (self arguments: 'className' being: 'MCPNoSuchClass' and: 'selectors' being: 'saludo')! !
 
 !MCPImageToolsTest methodsFor: 'test support - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
@@ -1562,15 +1562,15 @@ testBatchTakesReadsAndChangesTogether
 	self assert: (self createdClassInTest includesSelector: #saludo).
 	self assert: (lines last includesSubstring: 'Hola' caseSensitive: true)! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testBatchWithoutStepsFails
 
 	self
-		should: [ client callTool: MCPImageTools batchToolName with: Dictionary new ]
+		should: [ client callTool: MCPImageToolBox batchToolName with: Dictionary new ]
 		raise: Error
 		withMessageText: self stepsPropertyNotProvidedErrorText! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testEachStepIsLoggedUnderOwnTool
 
 	self linesOfRunning: {
@@ -1578,9 +1578,9 @@ testEachStepIsLoggedUnderOwnTool
 		self categoriesListingStep }.
 
 	self assert: self recordedToolNames equals: {
-		MCPImageTools evaluateToolName.
-		MCPModelStructureTools listCategoriesToolName.
-		MCPImageTools batchToolName }! !
+		MCPImageToolBox evaluateToolName.
+		MCPModelStructureToolBox listCategoriesToolName.
+		MCPImageToolBox batchToolName }! !
 
 !MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
 testFailingNonRefactoringStepDoesNotStopNextSteps
@@ -1591,7 +1591,7 @@ testFailingNonRefactoringStepDoesNotStopNextSteps
 
 	self assert: (Smalltalk includesKey: self class sideEffectGlobalName)! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testFailingRefactoringStopsBatch
 
 	| lines |
@@ -1606,10 +1606,10 @@ testFailingRefactoringStopsBatch
 	self assert: lines equals: {
 		self
 			stoppingLine: 1
-			of: MCPRefactoringTools renameSelectorRefactoringToolName
+			of: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 			with: self methodNotFoundErrorText.
-		self notRunLine: 2 of: MCPImageTools evaluateToolName.
-		self notRunLine: 3 of: MCPModelStructureTools listCategoriesToolName }.
+		self notRunLine: 2 of: MCPImageToolBox evaluateToolName.
+		self notRunLine: 3 of: MCPModelStructureToolBox listCategoriesToolName }.
 	self assertSideEffectStepDidNotRun! !
 
 !MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
@@ -1625,7 +1625,7 @@ testFailingStepAnswersErrorAndBatchGoesOn
 		self evaluationLine: 1 answering: (self serverErrorTextFor: 'probe').
 		self evaluationLine: 2 answering: '7' }! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 15/Sep/2026, 11:24:28 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRefactoringStoppedAtWarningStopsBatch
 
 	| lines |
@@ -1640,22 +1640,22 @@ testRefactoringStoppedAtWarningStopsBatch
 	self assert: lines equals: {
 		self
 			stoppingLine: 1
-			of: MCPRefactoringTools pushUpMethodRefactoringToolName
+			of: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 			with: self instanceVariableWarningNotApplied.
-		self notRunLine: 2 of: MCPImageTools evaluateToolName }.
+		self notRunLine: 2 of: MCPImageToolBox evaluateToolName }.
 	self assertSideEffectStepDidNotRun! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testStepNamingToolWithClientPrefixIsLoggedAsCalledAndUnderOwnTool
 
 	self linesOfRunning: { self prefixedEvaluationStepOf: '7' }.
 
 	self assert: self recordedToolNames equals: {
-		self clientPrefixed: MCPImageTools evaluateToolName.
-		MCPImageTools evaluateToolName.
-		MCPImageTools batchToolName }! !
+		self clientPrefixed: MCPImageToolBox evaluateToolName.
+		MCPImageToolBox evaluateToolName.
+		MCPImageToolBox batchToolName }! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testStepNamingToolWithClientPrefixRunsIt
 
 	| lines |
@@ -1663,7 +1663,7 @@ testStepNamingToolWithClientPrefixRunsIt
 	lines := self linesOfRunning: { self prefixedEvaluationStepOf: '7' }.
 
 	self assert: lines equals: {
-		self line: 1 of: (self clientPrefixed: MCPImageTools evaluateToolName) answering: '7' }! !
+		self line: 1 of: (self clientPrefixed: MCPImageToolBox evaluateToolName) answering: '7' }! !
 
 !MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 20/Sep/2026, 12:20:49 am (UTC)'!
 testStepSignallingWarningAnswersItAndBatchGoesOn
@@ -1678,12 +1678,12 @@ testStepSignallingWarningAnswersItAndBatchGoesOn
 		self evaluationLine: 1 answering: (self serverWarningTextFor: 'probe').
 		self evaluationLine: 2 answering: '7' }! !
 
-!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 21/Sep/2026, 3:07:27 pm (UTC)'!
+!MCPImageToolsTest methodsFor: 'tests - batch' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testStepWithClientPrefixRunsLongestToolNameEndingIt
 
 	| calledName lines |
 
-	calledName := self clientPrefixed: MCPRefactoringTools pushDownMethodToSubclassesRefactoringToolName.
+	calledName := self clientPrefixed: MCPBaseRefactoringToolBox pushDownMethodToSubclassesRefactoringToolName.
 
 	lines := self linesOfRunning: { self step: calledName }.
 
@@ -1710,10 +1710,10 @@ testUnknownToolStepFailsAndBatchGoesOn
 		self line: 1 of: 'no_such_tool' answering: (self unknownToolErrorTextFor: 'no_such_tool').
 		self evaluationLine: 2 answering: '7' }! !
 
-!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:21:05 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 defineMethods: someMethods
 
-	^self jsonAnswerOf: MCPModelStructureTools defineMethodsToolName with: (self arguments: 'methods' being: someMethods)! !
+	^self jsonAnswerOf: MCPModelStructureToolBox defineMethodsToolName with: (self arguments: 'methods' being: someMethods)! !
 
 !MCPModelStructureToolsTest methodsFor: 'test support' stamp: 'HAW 11/Sep/2026, 1:45:30 pm (UTC)'!
 defineTestSubjectFarewellIn: aMethodCategory
@@ -1766,7 +1766,7 @@ subjectFarewellMethodSource
 
 	^''¡Adiós, Hernán!!'''! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:48:19 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testACategoryHoldingNoMethodIsLeftOut
 
 	"Cuis gives a new class an empty as yet unclassified, which says nothing about it."
@@ -1774,11 +1774,11 @@ testACategoryHoldingNoMethodIsLeftOut
 	self defineTestSubjectClass.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodSourcesOfClassToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: OrderedDictionary new! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassDefinitionAnswersEveryClassNamed
 
 	| answer |
@@ -1786,23 +1786,23 @@ testClassDefinitionAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName
+	answer := self jsonAnswerOf: MCPModelStructureToolBox classDefinitionsToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject' 'MCPTestSubjectChild').
 	self assert: ((answer at: 'MCPTestSubjectChild') at: 'superclass') equals: 'MCPTestSubject'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:41:57 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassDefinitionAnswersTheSuperclassOfTheClass
 
 	self defineTestSubjectClass.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classDefinitionsToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureToolBox classDefinitionsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') at: 'superclass')
 		equals: 'Object'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassSourceAnswersEveryClassNamed
 
 	| answer |
@@ -1810,14 +1810,14 @@ testClassSourceAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
+	answer := self jsonAnswerOf: MCPModelStructureToolBox classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject').
 
 	self assert: answer size equals: 2.
 	self assert: ((answer at: 'MCPTestSubjectChild') at: 'definition') equals: (Smalltalk classNamed: 'MCPTestSubjectChild') definition.
 	self assert: ((answer at: 'MCPTestSubject') at: 'definition') equals: self createdClassInTest definition! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 
 	| answer |
@@ -1827,7 +1827,7 @@ testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource category: 'saludos'.
 	self createdClassInTest comment: 'Un sujeto de prueba'.
 
-	answer := (self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
+	answer := (self jsonAnswerOf: MCPModelStructureToolBox classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject'.
 
 	self assert: (answer at: 'definition') equals: self createdClassInTest definition.
@@ -1840,7 +1840,7 @@ testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 		assert: (((answer at: 'classSide') at: 'methods') at: 'saludos')
 		equals: (OrderedDictionary new at: 'saludoDeClase' put: self subjectClassSideMethodSource; yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassSourceNamedByAClassSideAnswersTheWholeClass
 
 	| answer |
@@ -1848,25 +1848,25 @@ testClassSourceNamedByAClassSideAnswersTheWholeClass
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools classSourcesToolName
+	answer := self jsonAnswerOf: MCPModelStructureToolBox classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject class').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject').
 	self assert: (((answer at: 'MCPTestSubject') at: 'methods') at: 'saludos') keys asArray equals: #('saludo')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassSourceOfAnUnknownClassFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools classSourcesToolName
+			callTool: MCPModelStructureToolBox classSourcesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject, NoSuchClassAtAll') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPClassProperty classNotFoundErrorDescriptionFor: 'NoSuchClassAtAll'))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:41 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testHierarchyAnswersEveryClassNamed
 
 	| answer |
@@ -1874,35 +1874,35 @@ testHierarchyAnswersEveryClassNamed
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools hierarchiesToolName
+	answer := self jsonAnswerOf: MCPModelStructureToolBox hierarchiesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject').
 
 	self assert: answer keys asArray equals: #('MCPTestSubjectChild' 'MCPTestSubject').
 	self assert: (answer at: 'MCPTestSubjectChild') asArray equals: #('MCPTestSubjectChild' 'MCPTestSubject' 'Object' 'ProtoObject')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 16/Sep/2026, 2:42:41 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testHierarchyAnswersTheClassAndAllItsSuperclasses
 
 	self defineTestSubjectClass.
 
 	self
 		assert: ((self
-			jsonAnswerOf: MCPModelStructureTools hierarchiesToolName
+			jsonAnswerOf: MCPModelStructureToolBox hierarchiesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') asArray
 		equals: #('MCPTestSubject' 'Object' 'ProtoObject')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testListClassesAnswersOnlyTheClassesWithTheGivenPrefix
 
 	self defineTestSubjectClass.
 
 	self
 		assert: (self 
-			jsonAnswerOf: MCPModelStructureTools listClassesToolName 
+			jsonAnswerOf: MCPModelStructureToolBox listClassesToolName 
 			with: (self arguments: 'prefix' being: 'MCPTestSubject')) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testSubclassesAnswersTheDirectSubclassesOfTheClass
 
 	self defineTestSubjectClass.
@@ -1910,11 +1910,11 @@ testSubclassesAnswersTheDirectSubclassesOfTheClass
 
 	self
 		assert: ((self
-			jsonAnswerOf: MCPModelStructureTools subclassesToolName
+			jsonAnswerOf: MCPModelStructureToolBox subclassesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') asArray
 		equals: #('MCPTestSubjectChild')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:47:26 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testTheMethodsOfAClassAreAnsweredInTheOrderItHoldsItsCategories
 
 	"The categories are kept in the order whoever wrote the class put them in, and not sorted,
@@ -1925,11 +1925,11 @@ testTheMethodsOfAClassAreAnsweredInTheOrderItHoldsItsCategories
 	self defineTestSubjectFarewellIn: 'despedidas'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodSourcesOfClassToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject')) keys asArray
 		equals: #('saludos' 'despedidas')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 2/Sep/2026, 4:47:20 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testTheSourceOfEveryMethodOfAClassIsAnsweredUnderTheCategoryItIsFiledIn
 
 	self defineTestSubjectClass.
@@ -1937,14 +1937,14 @@ testTheSourceOfEveryMethodOfAClassIsAnsweredUnderTheCategoryItIsFiledIn
 	self defineTestSubjectFarewellIn: 'despedidas'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesOfClassToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodSourcesOfClassToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: (OrderedDictionary new
 			at: 'saludos' put: (OrderedDictionary new at: 'saludo' put: self subjectMethodSource; yourself);
 			at: 'despedidas' put: (OrderedDictionary new at: 'despedida' put: self subjectFarewellMethodSource; yourself);
 			yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodSourceAnswersEveryMethodNamed
 
 	| answer |
@@ -1953,60 +1953,60 @@ testMethodSourceAnswersEveryMethodNamed
 	self defineTestSubjectMethod.
 	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource.
 
-	answer := self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName
+	answer := self jsonAnswerOf: MCPModelStructureToolBox methodSourcesToolName
 		with: (self arguments: 'methods' being: 'MCPTestSubject class>>#saludoDeClase, MCPTestSubject>>saludo').
 
 	self assert: answer keys asArray equals: #('MCPTestSubject class>>#saludoDeClase' 'MCPTestSubject>>#saludo').
 	self assert: ((answer at: 'MCPTestSubject class>>#saludoDeClase') at: 'source') equals: self subjectClassSideMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodSourceAnswersTheSourceOfTheMethodWithItsNonAsciiCharacters
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools methodSourcesToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureToolBox methodSourcesToolName
 			with: (self arguments: 'methods' being: 'MCPTestSubject>>saludo')) at: 'MCPTestSubject>>#saludo') at: 'source')
 		equals: self subjectMethodSource! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodSourceOfAMethodNotWrittenAsClassAndSelectorFails
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodSourcesToolName
+			callTool: MCPModelStructureToolBox methodSourcesToolName
 			with: (self arguments: 'methods' being: 'MCPTestSubject saludo') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPMethodsProperty notAMethodNameErrorDescriptionFor: 'MCPTestSubject saludo'))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 16/Sep/2026, 2:42:44 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - reading a method' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodSourceOfAnUnknownClassFails
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodSourcesToolName
+			callTool: MCPModelStructureToolBox methodSourcesToolName
 			with: (self arguments: 'methods' being: 'NoSuchClassAtAll>>anything') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: 'Class not found: NoSuchClassAtAll')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - class categories' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - class categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassesInCategoryAnswersTheClassesOfThatCategory
 
 	self defineTestSubjectClass.
 
 	self
 		assert: (self 
-			jsonAnswerOf: MCPModelStructureTools classesInCategoryToolName 
+			jsonAnswerOf: MCPModelStructureToolBox classesInCategoryToolName 
 			with: (self arguments: 'category' being: self classCategoryOfTestData)) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - class categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - class categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testListCategoriesIncludesTheCategoryOfTheServer
 
-	self assert: ((self jsonAnswerOf: MCPModelStructureTools listCategoriesToolName) includes: MCPServer category)! !
+	self assert: ((self jsonAnswerOf: MCPModelStructureToolBox listCategoriesToolName) includes: MCPServer category)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 16/Sep/2026, 2:42:32 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 
 	self defineTestSubjectClass.
@@ -2015,35 +2015,35 @@ testClassOrganizationAnswersTheMethodCategoriesOfTheClassSideWhenItIsNamed
 	^''¡Hola!!''' category: 'saludos'.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationsToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureToolBox classOrganizationsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject class')) at: 'MCPTestSubject class') at: 'saludos')
 		equals: #('saludoDeClase')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 16/Sep/2026, 2:42:32 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassOrganizationAnswersTheSelectorsFiledUnderEachMethodCategory
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classOrganizationsToolName
+		assert: (((self jsonAnswerOf: MCPModelStructureToolBox classOrganizationsToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject') at: 'saludos')
 		equals: #('saludo')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassifyMethodsAnswersWhereEachMethodWasFiledBefore
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: (((self jsonAnswerOf: MCPModelStructureTools classifyMethodsToolName with: (self
+		assert: (((self jsonAnswerOf: MCPModelStructureToolBox classifyMethodsToolName with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selectors' being: 'saludo'
 			and: 'category' being: 'despedidas')) at: 'classified') first at: 'wasUnder')
 		equals: 'saludos'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassifyMethodsFilesEveryMethodNamed
 
 	self defineTestSubjectClass.
@@ -2052,7 +2052,7 @@ testClassifyMethodsFilesEveryMethodNamed
 
 	^''¡Chau!!''' category: 'saludos'.
 
-	client callTool: MCPModelStructureTools classifyMethodsToolName with: (self
+	client callTool: MCPModelStructureToolBox classifyMethodsToolName with: (self
 		arguments: 'className' being: 'MCPTestSubject'
 		and: 'selectors' being: 'saludo, despedida'
 		and: 'category' being: 'despedidas').
@@ -2061,40 +2061,40 @@ testClassifyMethodsFilesEveryMethodNamed
 		assert: (self createdClassInTest organization listAtCategoryNamed: 'despedidas') asSortedCollection asArray
 		equals: #(#despedida #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 15/Sep/2026, 2:00:27 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassifyMethodsFilesTheMethodUnderTheCategoryNamed
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
-	client callTool: MCPModelStructureTools classifyMethodsToolName with: (self
+	client callTool: MCPModelStructureToolBox classifyMethodsToolName with: (self
 		arguments: 'className' being: 'MCPTestSubject'
 		and: 'selectors' being: 'saludo'
 		and: 'category' being: 'despedidas').
 
 	self assert: (self createdClassInTest organization categoryOfElement: #saludo) equals: 'despedidas'! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassifyMethodsTakesAwayTheCategoriesItLeftEmpty
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: ((self jsonAnswerOf: MCPModelStructureTools classifyMethodsToolName with: (self
+		assert: ((self jsonAnswerOf: MCPModelStructureToolBox classifyMethodsToolName with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selectors' being: 'saludo'
 			and: 'category' being: 'despedidas')) at: 'emptied')
 		equals: #('saludos')! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testClassifyMethodsWithASelectorTheClassDoesNotImplementFails
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		should: [ client callTool: MCPModelStructureTools classifyMethodsToolName with: (self
+		should: [ client callTool: MCPModelStructureToolBox classifyMethodsToolName with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selectors' being: 'saludo, despedida'
 			and: 'category' being: 'despedidas') ]
@@ -2102,34 +2102,34 @@ testClassifyMethodsWithASelectorTheClassDoesNotImplementFails
 		withMessageText: (self serverErrorTextFor:
 			(MCPMethodProperty methodNotFoundErrorDescriptionFor: #despedida in: self createdClassInTest))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodsInACategoryAnswerTheSelectorsFiledUnderIt
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodsInCategoryToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodsInCategoryToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'saludos'))
 		equals: #('saludo')
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testMethodsInACategoryTheClassDoesNotHaveFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodsInCategoryToolName
+			callTool: MCPModelStructureToolBox methodsInCategoryToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(MCPModelStructureTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
+			(MCPModelStructureToolBox methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))
 
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:40:17 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testOnlyTheMethodsOfTheCategoryAskedForAreAnswered
 
 	self defineTestSubjectClass.
@@ -2137,33 +2137,33 @@ testOnlyTheMethodsOfTheCategoryAskedForAreAnswered
 	self defineTestSubjectFarewellIn: 'despedidas'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesInCategoryToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodSourcesInCategoryToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas'))
 		equals: (OrderedDictionary new at: 'despedida' put: self subjectFarewellMethodSource; yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:39:36 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testTheSourceOfEveryMethodInACategoryIsAnsweredUnderItsSelector
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools methodSourcesInCategoryToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox methodSourcesInCategoryToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'saludos'))
 		equals: (OrderedDictionary new at: 'saludo' put: self subjectMethodSource; yourself)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 2/Sep/2026, 4:39:48 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - method categories' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testTheSourcesOfAMethodCategoryTheClassDoesNotHaveFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPModelStructureTools methodSourcesInCategoryToolName
+			callTool: MCPModelStructureToolBox methodSourcesInCategoryToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'category' being: 'despedidas') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(MCPModelStructureTools methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))! !
+			(MCPModelStructureToolBox methodCategoryNotFoundErrorDescriptionFor: 'despedidas' in: self createdClassInTest))! !
 
 !MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 27/Aug/2026, 6:09:01 pm (UTC)'!
 testDefineClassCreatesTheClass
@@ -2172,7 +2172,7 @@ testDefineClassCreatesTheClass
 
 	self assert: self createdClassInTest notNil! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 
 	"A definition that is turned down has to be turned down before it is evaluated, or a
@@ -2180,7 +2180,7 @@ testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 
 	self
 		should: [ client 
-			callTool: MCPModelStructureTools defineClassToolName 
+			callTool: MCPModelStructureToolBox defineClassToolName 
 			with: (self arguments: 'definition' being: 'Smalltalk at: #MCPTestSideEffect put: 42') ]
 		raise: Error
 		withExceptionDo: [ :anError |
@@ -2189,76 +2189,76 @@ testDefineClassDoesNotEvaluateADefinitionThatDoesNotCreateAClass
 				equals: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #at:put:)).
 			self deny: (Smalltalk includesKey: self class sideEffectGlobalName) ]! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassFailsWhenTheClassNameIsNotALiteral
 
 	self
 		should: [ client 
-			callTool: MCPModelStructureTools defineClassToolName 
+			callTool: MCPModelStructureToolBox defineClassToolName 
 			with: (self arguments: 'definition' being: self definitionWithANonLiteralClassName) ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool classNameIsNotALiteralErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassFailsWhenTheDefinitionDoesNotSendAClassCreationMessage
 
 	self
 		should: [ client 
-			callTool: MCPModelStructureTools defineClassToolName 
+			callTool: MCPModelStructureToolBox defineClassToolName 
 			with: (self arguments: 'definition' being: '3 + 4') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPDefineClassTool isNotAClassCreationMessageErrorDescriptionFor: #+))! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassFailsWhenTheDefinitionHasMoreThanOneStatement
 
 	self
 		should: [ client 
-			callTool: MCPModelStructureTools defineClassToolName 
+			callTool: MCPModelStructureToolBox defineClassToolName 
 			with: (self arguments: 'definition' being: self subjectClassDefinition , '. 3 + 4') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassFailsWhenTheDefinitionIsNotAMessageSend
 
 	self
 		should: [ client 
-			callTool: MCPModelStructureTools defineClassToolName 
+			callTool: MCPModelStructureToolBox defineClassToolName 
 			with: (self arguments: 'definition' being: '3') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: MCPDefineClassTool isNotASingleMessageSendErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineClassWithoutADefinitionFails
 
 	self
-		should: [ client callTool: MCPModelStructureTools defineClassToolName ]
+		should: [ client callTool: MCPModelStructureToolBox defineClassToolName ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(self propertyNamed: 'definition' of: MCPModelStructureTools defineClassToolName) notProvidedErrorDescription)
+			(self propertyNamed: 'definition' of: MCPModelStructureToolBox defineClassToolName) notProvidedErrorDescription)
 
 ! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 16/Sep/2026, 2:42:49 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDeleteClassRemovesEveryClassNamed
 
 	self defineTestSubjectClass.
 	self defineTestSubjectSubclass.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools deleteClassesToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox deleteClassesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestSubjectChild, MCPTestSubject'))
 		equals: #('MCPTestSubjectChild' 'MCPTestSubject').
 	self assert: (Smalltalk classNamed: 'MCPTestSubjectChild') isNil.
 	self assert: self createdClassInTest isNil! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 16/Sep/2026, 2:42:49 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing classes' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDeleteClassRemovesTheClassFromTheSystem
 
 	self defineTestSubjectClass.
 
-	client callTool: MCPModelStructureTools deleteClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject').
+	client callTool: MCPModelStructureToolBox deleteClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject').
 
 	self assert: self createdClassInTest isNil! !
 
@@ -2358,16 +2358,16 @@ testDefineMethodsWithAClassThatDoesNotExistDefinesNothing
 				equals: (self serverErrorTextFor: (MCPClassProperty classNotFoundErrorDescriptionFor: 'MCPNoSuchClass')).
 			self deny: (self createdClassInTest includesSelector: #saludo) ]! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 11/Sep/2026, 1:21:25 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDefineMethodsWithoutMethodsFails
 
 	self
-		should: [ client callTool: MCPModelStructureTools defineMethodsToolName with: Dictionary new ]
+		should: [ client callTool: MCPModelStructureToolBox defineMethodsToolName with: Dictionary new ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(self propertyNamed: 'methods' of: MCPModelStructureTools defineMethodsToolName) notProvidedErrorDescription)! !
+			(self propertyNamed: 'methods' of: MCPModelStructureToolBox defineMethodsToolName) notProvidedErrorDescription)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDeleteMethodRemovesEveryMethodNamed
 
 	self defineTestSubjectClass.
@@ -2375,31 +2375,31 @@ testDeleteMethodRemovesEveryMethodNamed
 	self defineTestSubjectFarewellIn: 'saludos'.
 
 	self
-		assert: (self jsonAnswerOf: MCPModelStructureTools deleteMethodsToolName
+		assert: (self jsonAnswerOf: MCPModelStructureToolBox deleteMethodsToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo, despedida'))
 		equals: #('MCPTestSubject>>#saludo' 'MCPTestSubject>>#despedida').
 	self deny: (self createdClassInTest includesSelector: #saludo).
 	self deny: (self createdClassInTest includesSelector: #despedida)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDeleteMethodRemovesTheMethodFromTheClass
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
-	client callTool: MCPModelStructureTools deleteMethodsToolName with:
+	client callTool: MCPModelStructureToolBox deleteMethodsToolName with:
 		(self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo').
 
 	self deny: (self createdClassInTest includesSelector: #saludo)! !
 
-!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 16/Sep/2026, 2:42:52 pm (UTC)'!
+!MCPModelStructureToolsTest methodsFor: 'tests - changing methods' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testDeleteMethodWithASelectorTheClassDoesNotImplementRemovesNothing
 
 	self defineTestSubjectClass.
 	self defineTestSubjectMethod.
 
 	self
-		should: [ client callTool: MCPModelStructureTools deleteMethodsToolName with:
+		should: [ client callTool: MCPModelStructureToolBox deleteMethodsToolName with:
 			(self arguments: 'className' being: 'MCPTestSubject' and: 'selectors' being: 'saludo, noSuchSelector') ]
 		raise: Error
 		withExceptionDo: [ :anError |
@@ -2408,15 +2408,15 @@ testDeleteMethodWithASelectorTheClassDoesNotImplementRemovesNothing
 				equals: (self serverErrorTextFor: (MCPMethodProperty methodNotFoundErrorDescriptionFor: 'noSuchSelector' in: self createdClassInTest)).
 			self assert: (self createdClassInTest includesSelector: #saludo) ]! !
 
+!MCPModelStructureToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox }! !
+
 !MCPModelStructureToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:27 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPModelStructureToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:26 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools }! !
 
 !MCPPackageToolsTest methodsFor: 'running' stamp: 'HAW 8/Sep/2026, 2:47:50 pm (UTC)'!
 setUp
@@ -2442,10 +2442,10 @@ answerOf: aToolName forTestPackage: aKey
 
 	^(self jsonAnswerOf: aToolName with: self testPackageArgument) at: aKey! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:50 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 changeDescriptionTo: aDescription
 
-	^self jsonAnswerOf: MCPPackageTools changePackageDescriptionToolName
+	^self jsonAnswerOf: MCPPackageToolBox changePackageDescriptionToolName
 		with: (self
 			arguments: 'packageName' being: self class packageNameOfTestData
 			and: 'description' being: aDescription)! !
@@ -2466,10 +2466,10 @@ defineExtensionOfTestPackage
 		source: self extensionMethodSource
 		category: '*' , self class packageNameOfTestData! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:37 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 definitionOfTestPackage
 
-	^self jsonAnswerOf: MCPPackageTools packageDefinitionToolName with: self testPackageArgument! !
+	^self jsonAnswerOf: MCPPackageToolBox packageDefinitionToolName with: self testPackageArgument! !
 
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
 extensionMethodSource
@@ -2483,44 +2483,44 @@ fileNameOfTestPackage
 
 	^(DirectoryEntry currentDirectory // testPackage packageFileName) pathName! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:04 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 nameTheFileOfTestPackage: aFileName
 
-	^client callTool: MCPPackageTools changePackageFileNameToolName
+	^client callTool: MCPPackageToolBox changePackageFileNameToolName
 		with: (self
 			arguments: 'packageName' being: self class packageNameOfTestData
 			and: 'fileName' being: aFileName)! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:13 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 packageOfClassNamed: aClassName
 
-	^client callTool: MCPPackageTools packageOfClassToolName
+	^client callTool: MCPPackageToolBox packageOfClassToolName
 		with: (self arguments: 'className' being: aClassName)! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:18 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 packageOfMethod: aSelector of: aClassName
 
-	^client callTool: MCPPackageTools packageOfMethodToolName
+	^client callTool: MCPPackageToolBox packageOfMethodToolName
 		with: (self arguments: 'className' being: aClassName and: 'selector' being: aSelector)! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:41 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 packagesNamedStartingWith: aPrefix
 
-	^self jsonAnswerOf: MCPPackageTools listPackagesToolName
+	^self jsonAnswerOf: MCPPackageToolBox listPackagesToolName
 		with: (self arguments: 'prefix' being: aPrefix)! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:55 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 require: someRequiredPackageNames
 
-	^self jsonAnswerOf: MCPPackageTools changePackageRequirementsToolName
+	^self jsonAnswerOf: MCPPackageToolBox changePackageRequirementsToolName
 		with: (self
 			arguments: 'packageName' being: self class packageNameOfTestData
 			and: 'requiredPackageNames' being: someRequiredPackageNames)! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:04:09 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 saveTestPackage
 
-	^client callTool: MCPPackageTools savePackageToolName with: self testPackageArgument! !
+	^client callTool: MCPPackageToolBox savePackageToolName with: self testPackageArgument! !
 
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 2:47:54 pm (UTC)'!
 smalltalkForTheServer
@@ -2532,10 +2532,10 @@ testPackageArgument
 
 	^self arguments: 'packageName' being: self class packageNameOfTestData! !
 
-!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:45 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 unsavedPackageNames
 
-	^Json readFrom: (self answerOf: MCPPackageTools unsavedPackagesToolName) readStream! !
+	^Json readFrom: (self answerOf: MCPPackageToolBox unsavedPackagesToolName) readStream! !
 
 !MCPPackageToolsTest methodsFor: 'tests - listing the packages' stamp: 'HAW 8/Sep/2026, 2:48:27 pm (UTC)'!
 testListingThePackagesLeavesOutTheOnesNotNamedWithThePrefix
@@ -2564,12 +2564,12 @@ testListingThePackagesSaysWhatEachOneIsAndWhetherItHasChangesToWriteOut
 	self assert: (listed first at: 'description') equals: ''.
 	self deny: (listed first at: 'hasUnsavedChanges')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - reading a package' stamp: 'HAW 1/Sep/2026, 2:04:40 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - reading a package' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testAPackageThatIsNotInstalledIsReported
 
 	self
 		should: [ client
-			callTool: MCPPackageTools packageDefinitionToolName
+			callTool: MCPPackageToolBox packageDefinitionToolName
 			with: (self arguments: 'packageName' being: 'NoSuchPackageAtAll') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
@@ -2615,7 +2615,7 @@ testChangingTheRequirementsReplacesTheOnesItHad
 	self assert: (self require: 'OSProcess') equals: #('OSProcess').
 	self assert: (self definitionOfTestPackage at: 'requires') equals: #('OSProcess')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 8/Sep/2026, 2:48:06 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testAPackageIsNotNamedAFileInADirectoryThatIsNotThere
 
 	| fileName |
@@ -2626,9 +2626,9 @@ testAPackageIsNotNamedAFileInADirectoryThatIsNotThere
 		should: [ self nameTheFileOfTestPackage: fileName ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(MCPPackageTools directoryDoesNotExistErrorDescriptionFor: fileName))! !
+			(MCPPackageToolBox directoryDoesNotExistErrorDescriptionFor: fileName))! !
 
-!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 1/Sep/2026, 2:05:06 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testAPackageThatDoesNotKnowItsFileIsNotSaved
 
 	"A package that does not know its file asks on screen where to write itself, which no
@@ -2638,7 +2638,7 @@ testAPackageThatDoesNotKnowItsFileIsNotSaved
 		should: [ self saveTestPackage ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
-			(MCPPackageTools doesNotKnowItsFileErrorDescriptionFor: testPackage))! !
+			(MCPPackageToolBox doesNotKnowItsFileErrorDescriptionFor: testPackage))! !
 
 !MCPPackageToolsTest methodsFor: 'tests - saving a package' stamp: 'HAW 8/Sep/2026, 2:48:04 pm (UTC)'!
 testSavingAPackageWritesItToItsFileAndLeavesNothingToWriteOut
@@ -2652,14 +2652,14 @@ testSavingAPackageWritesItToItsFileAndLeavesNothingToWriteOut
 	self deny: (self definitionOfTestPackage at: 'hasUnsavedChanges').
 	self deny: (self unsavedPackageNames includes: self class packageNameOfTestData)! !
 
-!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 1/Sep/2026, 2:05:22 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testAMethodExtendingAnotherPackageBelongsToTheOneItsCategoryNames
 
 	"UISupervisor came with the image and belongs to no package, while this method of it was
 	written for MCPServer and is filed under a category naming it, which is what an extension is."
 
 	self assert: (self packageOfClassNamed: 'UISupervisor')
-		equals: MCPPackageTools notInAnyPackageDescription.
+		equals: MCPPackageToolBox notInAnyPackageDescription.
 	self assert: (self packageOfMethod: 'waitToDone:' of: 'UISupervisor class') equals: 'MCPServer'! !
 
 !MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 1/Sep/2026, 2:05:16 pm (UTC)'!
@@ -2670,16 +2670,16 @@ testTheClassOfAPackageIsAnsweredWithThatPackage
 	self assert: (self packageOfClassNamed: 'MCPTestSubject')
 		equals: self class packageNameOfTestData! !
 
-!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testThePackageClassesAreTheOnesItHolds
 
 	self defineTestSubjectClass.
 
 	self
-		assert: (self jsonAnswerOf: MCPPackageTools packageClassesToolName with: self testPackageArgument) asArray
+		assert: (self jsonAnswerOf: MCPPackageToolBox packageClassesToolName with: self testPackageArgument) asArray
 		equals: #('MCPTestSubject')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testThePackageExtensionsAreTheMethodsItAddsToClassesItDoesNotHold
 
 	self defineTestSubjectClass.
@@ -2687,10 +2687,10 @@ testThePackageExtensionsAreTheMethodsItAddsToClassesItDoesNotHold
 	self defineExtensionOfTestPackage.
 
 	self
-		assert: (self jsonAnswerOf: MCPPackageTools packageExtensionsToolName with: self testPackageArgument) asArray
+		assert: (self jsonAnswerOf: MCPPackageToolBox packageExtensionsToolName with: self testPackageArgument) asArray
 		equals: #('MCPTestExtended>>#mcpExtension')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testThePackageMethodsAreTheOnesOfItsClassesAndItsExtensions
 
 	self defineTestSubjectClass.
@@ -2698,10 +2698,10 @@ testThePackageMethodsAreTheOnesOfItsClassesAndItsExtensions
 	self defineExtensionOfTestPackage.
 
 	self
-		assert: (self jsonAnswerOf: MCPPackageTools packageMethodsToolName with: self testPackageArgument) asArray
+		assert: (self jsonAnswerOf: MCPPackageToolBox packageMethodsToolName with: self testPackageArgument) asArray
 		equals: #('MCPTestExtended>>#mcpExtension' 'MCPTestSubject>>#saludo')! !
 
-!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testThePackageSourceCodeCarriesItsClassesAndItsExtensions
 
 	| classSources extensionSources |
@@ -2710,8 +2710,8 @@ testThePackageSourceCodeCarriesItsClassesAndItsExtensions
 	self defineTestSubjectMethod.
 	self defineExtensionOfTestPackage.
 
-	classSources := self answerOf: MCPPackageTools packageSourceCodeToolName forTestPackage: 'classes'.
-	extensionSources := self answerOf: MCPPackageTools packageSourceCodeToolName forTestPackage: 'extensions'.
+	classSources := self answerOf: MCPPackageToolBox packageSourceCodeToolName forTestPackage: 'classes'.
+	extensionSources := self answerOf: MCPPackageToolBox packageSourceCodeToolName forTestPackage: 'extensions'.
 
 	self assert: classSources keys asArray equals: #('MCPTestSubject').
 	self
@@ -2721,15 +2721,15 @@ testThePackageSourceCodeCarriesItsClassesAndItsExtensions
 		assert: ((extensionSources at: 'MCPTestExtended>>#mcpExtension') at: 'source')
 		equals: self extensionMethodSource! !
 
+!MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox. MCPPackageToolBox }! !
+
 !MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:30 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:29 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools. MCPPackageTools }! !
 
 !MCPPackageToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 2:47:55 pm (UTC)'!
 classNamed: aClassName
@@ -2798,45 +2798,45 @@ instanceVariableWarning
 
 	^PushUpMethod accessingInstanceVariableWarningMessage: { 'held' }! !
 
-!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:17 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 pushUpTheProbeOfTheChild
 
-	^self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+	^self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe')! !
 
-!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 6:19:46 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 pushUpTheProbeOfTheChildAccepting: aWarningsText
 
-	^self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+	^self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubjectChild'
 			and: 'selector' being: 'mcpProbe'
 			and: MCPRefactoringTool acceptedWarningsPropertyName being: aWarningsText)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testAddInstanceVariableRefactoringAddsItToTheClass
 
 	self defineTestSubjectClass.
 
-	self applyRefactoring: MCPRefactoringTools addInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox addInstanceVariableRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'addedVariable').
 
 	self assert: (self createdClassInTest instVarNames includes: 'addedVariable')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testAddInstanceVariableRefactoringAnswersTheDefinitionOfTheClass
 
 	self defineTestSubjectClass.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools addInstanceVariableRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox addInstanceVariableRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'addedVariable'))
 		equals: 'Refactoring applied. 1 class changed:' , String newLineString , String newLineString ,
 			self createdClassInTest definition
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushDownInstanceVariableRefactoringMovesItToTheSubclasses
 
 	self defineClassWith: (self
@@ -2846,14 +2846,14 @@ testPushDownInstanceVariableRefactoringMovesItToTheSubclasses
 		definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'
 		instanceVariableNames: '' classVariableNames: '').
 
-	self applyRefactoring: MCPRefactoringTools pushDownInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushDownInstanceVariableRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'travellingVariable').
 
 	self deny: (self createdClassInTest instVarNames includes: 'travellingVariable').
 	self assert: ((Smalltalk classNamed: #MCPTestSubjectChild) instVarNames includes: 'travellingVariable')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testPushUpInstanceVariableRefactoringAnswersTheDefinitionsOfTheClassesItChanged
 
 	"The definitions say where the variable ended up, which is what a client asks the classes
@@ -2865,14 +2865,14 @@ testPushUpInstanceVariableRefactoringAnswersTheDefinitionsOfTheClassesItChanged
 		instanceVariableNames: 'travellingVariable' classVariableNames: '').
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools pushUpInstanceVariableRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox pushUpInstanceVariableRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'variableName' being: 'travellingVariable'))
 		equals: 'Refactoring applied. 2 classes changed:' , String newLineString , String newLineString ,
 			self createdClassInTest definition , String newLineString , String newLineString ,
 			(Smalltalk classNamed: 'MCPTestSubjectChild') definition
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testPushUpInstanceVariableRefactoringMovesItToTheSuperclass
 
 	self defineTestSubjectClass.
@@ -2880,26 +2880,26 @@ testPushUpInstanceVariableRefactoringMovesItToTheSuperclass
 		definitionOf: 'MCPTestSubjectChild' subclassOf: 'MCPTestSubject'
 		instanceVariableNames: 'travellingVariable' classVariableNames: '').
 
-	self applyRefactoring: MCPRefactoringTools pushUpInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushUpInstanceVariableRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'variableName' being: 'travellingVariable').
 
 	self assert: (self createdClassInTest instVarNames includes: 'travellingVariable')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRemoveInstanceVariableRefactoringRemovesItFromTheClass
 
 	self defineClassWith: (self
 		definitionOf: 'MCPTestSubject' subclassOf: 'Object'
 		instanceVariableNames: 'doomedVariable' classVariableNames: '').
 
-	self applyRefactoring: MCPRefactoringTools removeInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox removeInstanceVariableRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'doomedVariable').
 
 	self deny: (self createdClassInTest instVarNames includes: 'doomedVariable')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testRemoveUnreferencedInstanceVariablesRefactoringAnswersTheVariablesItRemoved
 
 	self defineClassWith: (self
@@ -2910,12 +2910,12 @@ testRemoveUnreferencedInstanceVariablesRefactoringAnswersTheVariablesItRemoved
 	^usedVariable printString'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools removeUnreferencedInstanceVariablesRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox removeUnreferencedInstanceVariablesRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: 'Refactoring applied. 1 instance variable removed: unusedVariable'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRemoveUnreferencedInstanceVariablesRefactoringRemovesOnlyTheUnusedOnes
 
 	self defineClassWith: (self
@@ -2925,14 +2925,14 @@ testRemoveUnreferencedInstanceVariablesRefactoringRemovesOnlyTheUnusedOnes
 
 	^usedVariable printString'.
 
-	self applyRefactoring: MCPRefactoringTools removeUnreferencedInstanceVariablesRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox removeUnreferencedInstanceVariablesRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject').
 
 	self assert: (self createdClassInTest instVarNames includes: 'usedVariable').
 	self deny: (self createdClassInTest instVarNames includes: 'unusedVariable')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameInstanceVariableRefactoringAnswersTheMethodsItChanged
 
 	self defineClassWith: (self
@@ -2943,7 +2943,7 @@ testRenameInstanceVariableRefactoringAnswersTheMethodsItChanged
 	^oldVariable printString'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools renameInstanceVariableRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox renameInstanceVariableRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'variableName' being: 'oldVariable'
@@ -2952,7 +2952,7 @@ testRenameInstanceVariableRefactoringAnswersTheMethodsItChanged
 MCPTestSubject>>#mcpProbeUsingIt'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - instance variable' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameInstanceVariableRefactoringRenamesItEverywhereItIsUsed
 
 	self defineClassWith: (self
@@ -2962,7 +2962,7 @@ testRenameInstanceVariableRefactoringRenamesItEverywhereItIsUsed
 
 	^oldVariable printString'.
 
-	self applyRefactoring: MCPRefactoringTools renameInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameInstanceVariableRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'variableName' being: 'oldVariable'
@@ -2972,29 +2972,29 @@ testRenameInstanceVariableRefactoringRenamesItEverywhereItIsUsed
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeUsingIt) includesSubstring: 'newVariable' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInsertSuperclassRefactoringAnswersTheClassItCreated
 
 	self defineTestSubjectClass.
 
 	self
-		assert: ((self applyRefactoring: MCPRefactoringTools insertSuperclassRefactoringToolName
+		assert: ((self applyRefactoring: MCPBaseRefactoringToolBox insertSuperclassRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'newClassName' being: 'MCPTestSubjectChild'))
 				includesSubstring: 'Object subclass: #MCPTestSubjectChild' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testInsertSuperclassRefactoringPutsTheNewClassBetween
 
 	self defineTestSubjectClass.
 
-	self applyRefactoring: MCPRefactoringTools insertSuperclassRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox insertSuperclassRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'newClassName' being: 'MCPTestSubjectChild').
 
 	self assert: self createdClassInTest superclass name equals: #MCPTestSubjectChild
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameClassRefactoringAnswersTheMethodsItChanged
 
 	self defineClassWith: (self
@@ -3005,7 +3005,7 @@ testRenameClassRefactoringAnswersTheMethodsItChanged
 	^MCPTestSubjectToRename'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools renameClassRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox renameClassRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubjectToRename'
 				and: 'newClassName' being: 'MCPTestSubjectRenamed'))
@@ -3013,7 +3013,7 @@ testRenameClassRefactoringAnswersTheMethodsItChanged
 MCPTestSubjectRenamed>>#mcpProbeNamingItsClass'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameClassRefactoringRenamesTheClass
 
 	"The class renamed here is one of its own, and not the subject the other tests share,
@@ -3023,7 +3023,7 @@ testRenameClassRefactoringRenamesTheClass
 		definitionOf: 'MCPTestSubjectToRename' subclassOf: 'Object'
 		instanceVariableNames: '' classVariableNames: '').
 
-	self applyRefactoring: MCPRefactoringTools renameClassRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameClassRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubjectToRename'
 			and: 'newClassName' being: 'MCPTestSubjectRenamed').
@@ -3033,7 +3033,7 @@ testRenameClassRefactoringRenamesTheClass
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameGlobalRefactoringAnswersTheMethodsItChanged
 
 	[ Smalltalk at: 'MCPTestGlobalProbe' asSymbol put: 42.
@@ -3043,7 +3043,7 @@ testRenameGlobalRefactoringAnswersTheMethodsItChanged
 	^MCPTestGlobalProbe'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools renameGlobalRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox renameGlobalRefactoringToolName
 			with: (self
 				arguments: 'globalName' being: 'MCPTestGlobalProbe'
 				and: 'newGlobalName' being: 'MCPTestGlobalProbeRenamed'))
@@ -3054,12 +3054,12 @@ MCPTestSubject>>#mcpProbeNamingTheGlobal' ]
 			Smalltalk removeKey: 'MCPTestGlobalProbeRenamed' asSymbol ifAbsent: [ nil ] ]
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameGlobalRefactoringRenamesItEverywhereItIsNamed
 
 	[ Smalltalk at: 'MCPTestGlobalProbe' asSymbol put: 42.
 
-	self applyRefactoring: MCPRefactoringTools renameGlobalRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameGlobalRefactoringToolName
 		with: (self
 			arguments: 'globalName' being: 'MCPTestGlobalProbe'
 			and: 'newGlobalName' being: 'MCPTestGlobalProbeRenamed').
@@ -3072,7 +3072,7 @@ testRenameGlobalRefactoringRenamesItEverywhereItIsNamed
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testSafelyRemoveClassRefactoringAnswersTheClassesItRemoved
 
 	"The name is all that is left of a class that is out of the system, so it is what a client
@@ -3081,25 +3081,25 @@ testSafelyRemoveClassRefactoringAnswersTheClassesItRemoved
 	self defineTestSubjectClass.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools safelyRemoveClassRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox safelyRemoveClassRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: 'Refactoring applied. 1 class removed: MCPTestSubject'
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - class' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testSafelyRemoveClassRefactoringRemovesAClassNothingUses
 
 	self defineTestSubjectClass.
 
-	self applyRefactoring: MCPRefactoringTools safelyRemoveClassRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox safelyRemoveClassRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject').
 
 	self assert: self createdClassInTest isNil
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 11/Sep/2026, 2:19:14 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testAddParameterRefactoringAddsAKeywordToAKeywordSelector
 
 	self defineTestSubjectClass.
@@ -3110,7 +3110,7 @@ testAddParameterRefactoringAddsAKeywordToAKeywordSelector
 
 	^self mcpProbeWith: 7'.
 
-	self applyRefactoring: MCPRefactoringTools addParameterRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox addParameterRefactoringToolName
 		with: (Dictionary new
 			at: 'className' put: 'MCPTestSubject';
 			at: 'selector' put: 'mcpProbeWith:';
@@ -3123,7 +3123,7 @@ testAddParameterRefactoringAddsAKeywordToAKeywordSelector
 	self assert: (self createdClassInTest includesSelector: 'mcpProbeWith:and:' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'self mcpProbeWith: 7 and: 8' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:08:50 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testAddParameterRefactoringGivesTheSendersTheValueToPass
 
 	self defineTestSubjectClass.
@@ -3134,7 +3134,7 @@ testAddParameterRefactoringGivesTheSendersTheValueToPass
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools addParameterRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox addParameterRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3144,7 +3144,7 @@ testAddParameterRefactoringGivesTheSendersTheValueToPass
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe:' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'self mcpProbe: 7' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:06 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 
 	"Reordering keeps the keywords and only moves them, so the new selector is made of the
@@ -3158,7 +3158,7 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 
 	^self mcpProbeFirst: 1 second: 2'.
 
-	self applyRefactoring: MCPRefactoringTools changeKeywordsOrderRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox changeKeywordsOrderRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbeFirst:second:'
@@ -3167,7 +3167,7 @@ testChangeKeywordsOrderRefactoringReordersThemInTheSendersToo
 	self assert: (self createdClassInTest includesSelector: 'second:mcpProbeFirst:' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'second: 2 mcpProbeFirst: 1' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:08 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testRemoveParameterRefactoringRemovesItFromTheSelectorAndTheSenders
 
 	self defineTestSubjectClass.
@@ -3178,7 +3178,7 @@ testRemoveParameterRefactoringRemovesItFromTheSelectorAndTheSenders
 
 	^self mcpProbeWith: 7'.
 
-	self applyRefactoring: MCPRefactoringTools removeParameterRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox removeParameterRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbeWith:'
@@ -3187,7 +3187,7 @@ testRemoveParameterRefactoringRemovesItFromTheSelectorAndTheSenders
 	self assert: (self createdClassInTest includesSelector: 'mcpProbeWith' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol) includesSubstring: 'self mcpProbeWith' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:10 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameSelectorRefactoringAnswersTheMethodsItChanged
 
 	"The new implementor and the sender are the methods that are still there, and the one the
@@ -3202,7 +3202,7 @@ testRenameSelectorRefactoringAnswersTheMethodsItChanged
 	^self mcpProbe'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3213,7 +3213,7 @@ MCPTestSubject>>#mcpProbeRenamed
 1 method removed:
 MCPTestSubject>>#mcpProbe'! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:45 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameSelectorRefactoringInAnUnknownScopeFails
 
 	self defineTestSubjectClass.
@@ -3222,16 +3222,16 @@ testRenameSelectorRefactoringInAnUnknownScopeFails
 	^42'.
 
 	self
-		should: [ self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
+		should: [ self applyRefactoring: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
 				and: 'newSelector' being: 'mcpProbeRenamed'
 				and: 'scope' being: 'package') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: (MCPRefactoringToolGroup unknownScopeErrorDescriptionFor: 'package'))! !
+		withMessageText: (self serverErrorTextFor: (MCPRefactoringToolBox unknownScopeErrorDescriptionFor: 'package'))! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:48 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameSelectorRefactoringInTheClassScopeLeavesTheOtherClassesAlone
 
 	self defineTestSubjectClass.
@@ -3240,7 +3240,7 @@ testRenameSelectorRefactoringInTheClassScopeLeavesTheOtherClassesAlone
 	^42'.
 	self defineTestSubjectSiblingImplementingProbe.
 
-	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3249,7 +3249,7 @@ testRenameSelectorRefactoringInTheClassScopeLeavesTheOtherClassesAlone
 
 	self assert: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:13:52 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
 
 	self defineTestSubjectClass.
@@ -3261,7 +3261,7 @@ testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
 
 	^43'.
 
-	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3270,7 +3270,7 @@ testRenameSelectorRefactoringInTheHierarchyScopeReachesTheSubclasses
 
 	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbeRenamed' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 9/Sep/2026, 2:09:12 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - selector' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 
 	"The selectors are named here as strings, never as symbols, because renaming a selector
@@ -3284,7 +3284,7 @@ testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools renameSelectorRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameSelectorRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3294,7 +3294,7 @@ testRenameSelectorRefactoringRenamesItInItsImplementorsAndItsSenders
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
 	self assert: ((self createdClassInTest sourceCodeAt: #mcpProbeCaller) includesSubstring: 'mcpProbeRenamed' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testAddAsSubclassResponsibilityRefactoringAnswersTheMethodItWrote
 
 	self defineTestSubjectClass.
@@ -3304,13 +3304,13 @@ testAddAsSubclassResponsibilityRefactoringAnswersTheMethodItWrote
 	^42'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools addAsSubclassResponsibilityRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox addAsSubclassResponsibilityRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe'))
 		equals: 'Refactoring applied. 1 method changed:
 MCPTestSubject>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testAddAsSubclassResponsibilityRefactoringDeclaresItInTheSuperclass
 
 	self defineTestSubjectClass.
@@ -3319,14 +3319,14 @@ testAddAsSubclassResponsibilityRefactoringDeclaresItInTheSuperclass
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools addAsSubclassResponsibilityRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox addAsSubclassResponsibilityRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe').
 
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'subclassResponsibility' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testMoveToInstanceOrClassMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
 
 	self defineTestSubjectClass.
@@ -3335,7 +3335,7 @@ testMoveToInstanceOrClassMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemo
 	^42'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox moveToInstanceOrClassMethodRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe'))
 		equals: 'Refactoring applied. 1 method changed:
 MCPTestSubject class>>#mcpProbe
@@ -3343,7 +3343,7 @@ MCPTestSubject class>>#mcpProbe
 MCPTestSubject>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 16/Sep/2026, 11:26:39 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testMoveToInstanceOrClassMethodRefactoringMovesImplementorsInScope
 
 	self defineTestSubjectClass.
@@ -3352,7 +3352,7 @@ testMoveToInstanceOrClassMethodRefactoringMovesImplementorsInScope
 	^42'.
 	self defineTestSubjectSiblingImplementingProbe.
 
-	self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox moveToInstanceOrClassMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3362,7 +3362,7 @@ testMoveToInstanceOrClassMethodRefactoringMovesImplementorsInScope
 	self assert: ((Smalltalk classNamed: 'MCPTestSibling') class includesSelector: 'mcpProbe' asSymbol).
 	self deny: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testMoveToInstanceOrClassMethodRefactoringMovesItToTheClassSide
 
 	self defineTestSubjectClass.
@@ -3370,14 +3370,14 @@ testMoveToInstanceOrClassMethodRefactoringMovesItToTheClassSide
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox moveToInstanceOrClassMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe').
 
 	self assert: (self createdClassInTest class includesSelector: 'mcpProbe' asSymbol).
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 16/Sep/2026, 11:26:39 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testMoveToInstanceOrClassMethodRefactoringRedirectsSendersInScope
 
 	self defineTestSubjectClass.
@@ -3392,7 +3392,7 @@ testMoveToInstanceOrClassMethodRefactoringRedirectsSendersInScope
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools moveToInstanceOrClassMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox moveToInstanceOrClassMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3409,7 +3409,7 @@ testMoveToInstanceOrClassMethodRefactoringRedirectsSendersInScope
 
 	^self mcpProbe'! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testPushDownMethodToOneSubclassRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
 
 	self defineTestSubjectClass.
@@ -3419,7 +3419,7 @@ testPushDownMethodToOneSubclassRefactoringAnswersTheMethodItWroteAndTheOneItRemo
 	^42'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools pushDownMethodToOneSubclassRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox pushDownMethodToOneSubclassRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3430,7 +3430,7 @@ MCPTestSubjectChild>>#mcpProbe
 MCPTestSubject>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushDownMethodToOneSubclassRefactoringMovesItThere
 
 	self defineTestSubjectClass.
@@ -3439,7 +3439,7 @@ testPushDownMethodToOneSubclassRefactoringMovesItThere
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools pushDownMethodToOneSubclassRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushDownMethodToOneSubclassRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3449,7 +3449,7 @@ testPushDownMethodToOneSubclassRefactoringMovesItThere
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushDownMethodToSubclassesRefactoringAnswersTheMethodsItChanged
 
 	"The method it came from is left saying it is the responsibility of the subclasses, so it
@@ -3462,14 +3462,14 @@ testPushDownMethodToSubclassesRefactoringAnswersTheMethodsItChanged
 	^42'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools pushDownMethodToSubclassesRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox pushDownMethodToSubclassesRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe'))
 		equals: 'Refactoring applied. 2 methods changed:
 MCPTestSubject>>#mcpProbe
 MCPTestSubjectChild>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushDownMethodToSubclassesRefactoringGivesItToEverySubclass
 
 	self defineTestSubjectClass.
@@ -3478,13 +3478,13 @@ testPushDownMethodToSubclassesRefactoringGivesItToEverySubclass
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools pushDownMethodToSubclassesRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushDownMethodToSubclassesRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe').
 
 	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushUpMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
 
 	self defineTestSubjectClass.
@@ -3494,7 +3494,7 @@ testPushUpMethodRefactoringAnswersTheMethodItWroteAndTheOneItRemoved
 	^42'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe'))
 		equals: 'Refactoring applied. 1 method changed:
 MCPTestSubject>>#mcpProbe
@@ -3502,7 +3502,7 @@ MCPTestSubject>>#mcpProbe
 MCPTestSubjectChild>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushUpMethodRefactoringMovesItToTheSuperclass
 
 	self defineTestSubjectClass.
@@ -3511,14 +3511,14 @@ testPushUpMethodRefactoringMovesItToTheSuperclass
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubjectChild' and: 'selector' being: 'mcpProbe').
 
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
 	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 9/Sep/2026, 2:09:16 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushUpMethodRefactoringPushesUpTheDependantMethodsWhenAsked
 
 	self defineTestSubjectClass.
@@ -3530,7 +3530,7 @@ testPushUpMethodRefactoringPushesUpTheDependantMethodsWhenAsked
 
 	^self mcpHelper'.
 
-	self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubjectChild'
 			and: 'selector' being: 'mcpProbe'
@@ -3539,7 +3539,7 @@ testPushUpMethodRefactoringPushesUpTheDependantMethodsWhenAsked
 	self assert: (self createdClassInTest includesSelector: 'mcpHelper' asSymbol).
 	self deny: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpHelper' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 9/Sep/2026, 2:09:19 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - method' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testPushUpMethodRefactoringRemovesTheEquivalentMethodOfASiblingWhenAsked
 
 	self defineTestSubjectClass.
@@ -3552,7 +3552,7 @@ testPushUpMethodRefactoringRemovesTheEquivalentMethodOfASiblingWhenAsked
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools pushUpMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubjectChild'
 			and: 'selector' being: 'mcpProbe'
@@ -3561,7 +3561,7 @@ testPushUpMethodRefactoringRemovesTheEquivalentMethodOfASiblingWhenAsked
 	self assert: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol).
 	self deny: ((Smalltalk classNamed: 'MCPTestSibling') includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineTemporaryVariableRefactoringAnswersTheNewSourceOfTheMethod
 
 	self defineTestSubjectClass.
@@ -3573,7 +3573,7 @@ testInlineTemporaryVariableRefactoringAnswersTheNewSourceOfTheMethod
 	^aTemporary + 1'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools inlineTemporaryVariableRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox inlineTemporaryVariableRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3587,7 +3587,7 @@ mcpProbe
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
 
 	self defineTestSubjectClass.
@@ -3599,20 +3599,20 @@ testInlineTemporaryVariableRefactoringRefusesATextTheMethodSaysTwice
 	^aTemporary + aTemporary'.
 
 	self
-		should: [ self applyRefactoring: MCPRefactoringTools inlineTemporaryVariableRefactoringToolName
+		should: [ self applyRefactoring: MCPBaseRefactoringToolBox inlineTemporaryVariableRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
 				and: 'variableName' being: 'aTemporary'
 				and: 'text' being: 'aTemporary') ]
 		raise: Error
-		withMessageText: (self serverErrorTextFor: (MCPRefactoringTools
+		withMessageText: (self serverErrorTextFor: (MCPBaseRefactoringToolBox
 			textFoundMoreThanOnceErrorDescriptionFor: 'aTemporary'
 			in: (self createdClassInTest compiledMethodAt: 'mcpProbe' asSymbol)))
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineTemporaryVariableRefactoringReplacesTheUseNamedByItsText
 
 	self defineTestSubjectClass.
@@ -3623,7 +3623,7 @@ testInlineTemporaryVariableRefactoringReplacesTheUseNamedByItsText
 	aTemporary := 42.
 	^aTemporary + 1'.
 
-	self applyRefactoring: MCPRefactoringTools inlineTemporaryVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox inlineTemporaryVariableRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3634,7 +3634,7 @@ testInlineTemporaryVariableRefactoringReplacesTheUseNamedByItsText
 		includesSubstring: '^42 + 1' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testRenameTemporaryRefactoringAnswersTheNewSourceOfTheMethod
 
 	self defineTestSubjectClass.
@@ -3646,7 +3646,7 @@ testRenameTemporaryRefactoringAnswersTheNewSourceOfTheMethod
 	^aTemporary'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools renameTemporaryRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox renameTemporaryRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3662,7 +3662,7 @@ mcpProbe
 	^aRenamedTemporary'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testRenameTemporaryRefactoringRenamesItInEveryUseInsideTheMethod
 
 	self defineTestSubjectClass.
@@ -3673,7 +3673,7 @@ testRenameTemporaryRefactoringRenamesItInEveryUseInsideTheMethod
 	aTemporary := 42.
 	^aTemporary'.
 
-	self applyRefactoring: MCPRefactoringTools renameTemporaryRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox renameTemporaryRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3686,7 +3686,7 @@ testRenameTemporaryRefactoringRenamesItInEveryUseInsideTheMethod
 		includesSubstring: 'aTemporary :=' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testTemporaryToInstanceVariableRefactoringAnswersTheNewSourceOfTheMethod
 
 	self defineTestSubjectClass.
@@ -3698,7 +3698,7 @@ testTemporaryToInstanceVariableRefactoringAnswersTheNewSourceOfTheMethod
 	^aTemporary'.
 
 	self
-		assert: ((self applyRefactoring: MCPRefactoringTools temporaryToInstanceVariableRefactoringToolName
+		assert: ((self applyRefactoring: MCPBaseRefactoringToolBox temporaryToInstanceVariableRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3706,7 +3706,7 @@ testTemporaryToInstanceVariableRefactoringAnswersTheNewSourceOfTheMethod
 				includesSubstring: 'MCPTestSubject>>#mcpProbe is now:' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - temporary' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testTemporaryToInstanceVariableRefactoringMovesItToTheClass
 
 	self defineTestSubjectClass.
@@ -3717,7 +3717,7 @@ testTemporaryToInstanceVariableRefactoringMovesItToTheClass
 	aTemporary := 42.
 	^aTemporary'.
 
-	self applyRefactoring: MCPRefactoringTools temporaryToInstanceVariableRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox temporaryToInstanceVariableRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3726,7 +3726,7 @@ testTemporaryToInstanceVariableRefactoringMovesItToTheClass
 	self assert: (self createdClassInTest instVarNames includes: 'aTemporary')
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractAsParameterRefactoringAnswersTheMethodsItChanged
 
 	"The method that took the piece as a parameter is a new one, and the one it came from is
@@ -3741,7 +3741,7 @@ testExtractAsParameterRefactoringAnswersTheMethodsItChanged
 	^self mcpProbe'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools extractAsParameterRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox extractAsParameterRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3754,7 +3754,7 @@ MCPTestSubject>>#mcpProbeCaller
 MCPTestSubject>>#mcpProbe'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
 
 	self defineTestSubjectClass.
@@ -3765,7 +3765,7 @@ testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools extractAsParameterRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractAsParameterRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3777,7 +3777,7 @@ testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
 		includesSubstring: 'self mcpProbe: 42' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
 
 	"The piece named is sent with 1, and the code like it is sent with 2, so what differs
@@ -3793,7 +3793,7 @@ testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
 	self mcpFoo: 2.
 	^self mcpFoo: 1'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3809,7 +3809,7 @@ testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
 	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'mcpFoo' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringAnswersTheMethodItCreatedAndTheOneItChanged
 
 	self defineTestSubjectClass.
@@ -3818,7 +3818,7 @@ testExtractMethodRefactoringAnswersTheMethodItCreatedAndTheOneItChanged
 	^42 + 1'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3830,7 +3830,7 @@ MCPTestSubject>>#mcpProbe'
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 
 	self defineTestSubjectClass.
@@ -3838,7 +3838,7 @@ testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 
 	^42'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3851,7 +3851,7 @@ testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
 
 	self defineTestSubjectClass.
@@ -3863,7 +3863,7 @@ testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
 
 	^3 + 4'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3877,7 +3877,7 @@ testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
 
 	self defineTestSubjectClass.
@@ -3889,7 +3889,7 @@ testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
 
 	^3 + 4'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3902,7 +3902,7 @@ testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 12/Sep/2026, 6:23:50 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 
 	self defineTestSubjectClass.
@@ -3910,7 +3910,7 @@ testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 
 	^(3 + 4) * (3 + 4)'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3924,7 +3924,7 @@ testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractToTemporaryRefactoringAnswersTheNewSourceOfTheMethod
 
 	self defineTestSubjectClass.
@@ -3933,7 +3933,7 @@ testExtractToTemporaryRefactoringAnswersTheNewSourceOfTheMethod
 	^42 + 1'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools extractToTemporaryRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox extractToTemporaryRefactoringToolName
 			with: (self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -3949,7 +3949,7 @@ mcpProbe
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testExtractToTemporaryRefactoringExtractsThePieceNamedByItsText
 
 	self defineTestSubjectClass.
@@ -3957,7 +3957,7 @@ testExtractToTemporaryRefactoringExtractsThePieceNamedByItsText
 
 	^42 + 1'.
 
-	self applyRefactoring: MCPRefactoringTools extractToTemporaryRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractToTemporaryRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3970,7 +3970,7 @@ testExtractToTemporaryRefactoringExtractsThePieceNamedByItsText
 		includesSubstring: '^aNumber + 1' caseSensitive: true)
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
 
 	self defineTestSubjectClass.
@@ -3978,7 +3978,7 @@ testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
 
 	^(42 + 1) * (42 + 1)'.
 
-	self applyRefactoring: MCPRefactoringTools extractToTemporaryRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractToTemporaryRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -3992,7 +3992,7 @@ testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: '^(aNumber) * (aNumber)' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringAnswersTheMethodsItChanged
 
 	self defineTestSubjectClass.
@@ -4004,7 +4004,7 @@ testInlineMethodRefactoringAnswersTheMethodsItChanged
 	^self mcpProbe'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox inlineMethodRefactoringToolName
 			with: ((self
 				arguments: 'className' being: 'MCPTestSubject'
 				and: 'selector' being: 'mcpProbe'
@@ -4016,7 +4016,7 @@ testInlineMethodRefactoringAnswersTheMethodsItChanged
 MCPTestSubject>>#mcpCallerOfIt'
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 1:23:36 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringInTheClassScopeLeavesTheSendsOfOtherClassesAlone
 
 	self defineTestSubjectClass.
@@ -4031,7 +4031,7 @@ testInlineMethodRefactoringInTheClassScopeLeavesTheSendsOfOtherClassesAlone
 
 	^MCPTestSubject new mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox inlineMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4041,7 +4041,7 @@ testInlineMethodRefactoringInTheClassScopeLeavesTheSendsOfOtherClassesAlone
 	self assert: (((Smalltalk classNamed: 'MCPTestSibling') sourceCodeAt: 'mcpCallerOfIt' asSymbol)
 		includesSubstring: 'new mcpProbe' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 1:23:32 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringInlinesEverySendTheScopeTakesIn
 
 	self defineTestSubjectClass.
@@ -4055,13 +4055,13 @@ testInlineMethodRefactoringInlinesEverySendTheScopeTakesIn
 
 	^self mcpProbe + 1'.
 
-	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox inlineMethodRefactoringToolName
 		with: (self arguments: 'className' being: 'MCPTestSubject' and: 'selector' being: 'mcpProbe').
 
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpCallerOfIt' asSymbol) includesSubstring: '^10' caseSensitive: true).
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOtherCallerOfIt' asSymbol) includesSubstring: '10 + 1' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 9/Sep/2026, 2:09:21 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringRemovesTheMethodWhenAsked
 
 	self defineTestSubjectClass.
@@ -4072,7 +4072,7 @@ testInlineMethodRefactoringRemovesTheMethodWhenAsked
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox inlineMethodRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4084,7 +4084,7 @@ testInlineMethodRefactoringRemovesTheMethodWhenAsked
 
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 1/Sep/2026, 1:28:35 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 	"The send is named by the text of its selector, which the sending method has to say once,
@@ -4098,7 +4098,7 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 	^self mcpProbe'.
 
-	self applyRefactoring: MCPRefactoringTools inlineMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox inlineMethodRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4112,7 +4112,7 @@ testInlineMethodRefactoringReplacesTheSendByWhatTheMethodDoes
 
 ! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 11/Sep/2026, 1:59:45 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringNamesTheParameterAsTheCodeDoesWhenNoneIsAsked
 
 	| newMethodSource |
@@ -4122,7 +4122,7 @@ testExtractMethodRefactoringNamesTheParameterAsTheCodeDoesWhenNoneIsAsked
 
 	^aNumber + 1'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: (self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpTotalFor:'
@@ -4134,7 +4134,7 @@ testExtractMethodRefactoringNamesTheParameterAsTheCodeDoesWhenNoneIsAsked
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpTotalFor:' asSymbol)
 		includesSubstring: 'self mcpIncremented: aNumber' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 4/Sep/2026, 1:03:38 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - extracting' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked
 
 	"The name a client asks for is the one the new method calls its parameter. The code the
@@ -4147,7 +4147,7 @@ testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked
 
 	^aNumber + 1'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
 		with: (Dictionary new
 			at: 'className' put: 'MCPTestSubject';
 			at: 'selector' put: 'mcpTotalFor:';
@@ -4163,15 +4163,15 @@ testExtractMethodRefactoringNamesTheParameterOfTheNewMethodAsAsked
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpTotalFor:' asSymbol)
 		includesSubstring: 'self mcpIncremented: aNumber' caseSensitive: true)! !
 
+!MCPRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox. MCPBaseRefactoringToolBox }! !
+
 !MCPRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:33 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPRefactoringToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:31 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools. MCPRefactoringTools }! !
 
 !MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 3:29:33 pm (UTC)'!
 testARefactoringGoesOnThroughAnAcceptedWarning
@@ -4224,17 +4224,17 @@ testARefactoringThatWarnsAnswersTheWarningInsteadOfApplying
 	self assert: ((Smalltalk classNamed: 'MCPTestSubjectChild') includesSelector: 'mcpProbe' asSymbol).
 	self deny: (self createdClassInTest includesSelector: 'mcpProbe' asSymbol)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:48 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testARefactoringToolDeclaresTheAcceptedWarnings
 
 	| properties |
 
-	properties := ((self toolNamed: MCPRefactoringTools pushUpMethodRefactoringToolName) definition
+	properties := ((self toolNamed: MCPBaseRefactoringToolBox pushUpMethodRefactoringToolName) definition
 		at: 'inputSchema') at: 'properties'.
 
 	self assert: (properties includesKey: MCPRefactoringTool acceptedWarningsPropertyName)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 9/Sep/2026, 6:19:57 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests - warnings' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testAWarningAboutReferencesNamesTheMethodsThatHoldThem
 
 	self defineTestSubjectClass.
@@ -4244,13 +4244,13 @@ testAWarningAboutReferencesNamesTheMethodsThatHoldThem
 	^#MCPTestSubject'.
 
 	self
-		assert: (self applyRefactoring: MCPRefactoringTools safelyRemoveClassRefactoringToolName
+		assert: (self applyRefactoring: MCPBaseRefactoringToolBox safelyRemoveClassRefactoringToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject'))
 		equals: (MCPRefactoringTool notAppliedDescriptionFor:
 			(SafelyRemoveClass warningMessageForReferencesToNames: { self createdClassInTest }) , ' in MCPTestSibling>>#mcpReferrer').
 	self assert: self createdClassInTest notNil! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 23/Sep/2026, 12:15:00 am (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodFromSimilarCodeParameterizesTheWholeMeasureNextToItsOwnTemporaries
 
 	| probeSource |
@@ -4276,7 +4276,7 @@ testExtractMethodFromSimilarCodeParameterizesTheWholeMeasureNextToItsOwnTemporar
 	sector at: #hamilton put: 13 * 1000.
 	^sector'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4294,7 +4294,7 @@ testExtractMethodFromSimilarCodeParameterizesTheWholeMeasureNextToItsOwnTemporar
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpSectorWithSchumacherAt:' asSymbol)
 		includesSubstring: 'sector at: #schumacher put: aPosition' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 22/Sep/2026, 4:15:19 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTemporary
 
 	| probeSource |
@@ -4315,7 +4315,7 @@ testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTem
 	self assert: 1 equals: salesToAlan size.
 	self assert: 1 equals: (salesToAlan count: [ :aProduct | aProduct = 2 ])'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4333,7 +4333,7 @@ testExtractMethodFromSimilarCodeParameterizesWhatDiffersInsideTheUsesOfItsOwnTem
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpAssertOneSaleTo:matching:' asSymbol)
 		includesSubstring: 'salesToAda count: aCondition' caseSensitive: true)! !
 
-!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 22/Sep/2026, 10:01:23 pm (UTC)'!
+!MCPRefactoringToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodFromSimilarCodeTakesTheSameExpressionDifferingInSeveralPlacesAsOneParameter
 
 	self defineTestSubjectClass.
@@ -4351,7 +4351,7 @@ testExtractMethodFromSimilarCodeTakesTheSameExpressionDifferingInSeveralPlacesAs
 	self mcpRegister: 3.
 	self mcpRegister: 2'.
 
-	self applyRefactoring: MCPRefactoringTools extractMethodFromSimilarCodeRefactoringToolName
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
 		with: ((self
 			arguments: 'className' being: 'MCPTestSubject'
 			and: 'selector' being: 'mcpProbe'
@@ -4408,7 +4408,7 @@ sortedAnswerOf: aToolName with: anArguments
 	^(self jsonAnswerOf: aToolName with: anArguments) asSortedCollection asArray
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
 
 	self defineTestSubjectClass.
@@ -4418,10 +4418,10 @@ testImplementorsOfAnswersEveryMethodThatImplementsTheSelector
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbe' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools implementorsOfToolName with: (self arguments: 'selectors' being: 'mcpProbe') under: 'mcpProbe')
+		assert: (self methodsFoundBy: MCPSearchToolBox implementorsOfToolName with: (self arguments: 'selectors' being: 'mcpProbe') under: 'mcpProbe')
 		equals: #('MCPTestSubject mcpProbe')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testSendersOfAnswersEveryMethodThatSendsTheSelector
 
 	self defineTestSubjectClass.
@@ -4434,10 +4434,10 @@ testSendersOfAnswersEveryMethodThatSendsTheSelector
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeCaller' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe') under: 'mcpProbe')
+		assert: (self methodsFoundBy: MCPSearchToolBox sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe') under: 'mcpProbe')
 		equals: #('MCPTestSubject mcpProbeCaller')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 11/Sep/2026, 2:16:50 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - senders and implementors' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testSendersOfAnswersEverySelectorNamed
 
 	self defineTestSubjectClass.
@@ -4447,13 +4447,13 @@ testSendersOfAnswersEverySelectorNamed
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeCaller' asSymbol }.
 
 	self
-		assert: (self jsonAnswerOf: MCPSearchTools sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe, mcpOtherProbe')) keys asArray
+		assert: (self jsonAnswerOf: MCPSearchToolBox sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe, mcpOtherProbe')) keys asArray
 		equals: #('mcpProbe' 'mcpOtherProbe').
 	self
-		assert: (self methodsFoundBy: MCPSearchTools sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe, mcpOtherProbe') under: 'mcpOtherProbe')
+		assert: (self methodsFoundBy: MCPSearchToolBox sendersOfToolName with: (self arguments: 'selectors' being: 'mcpProbe, mcpOtherProbe') under: 'mcpOtherProbe')
 		equals: #('MCPTestSubject mcpProbeCaller')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 16/Sep/2026, 2:42:56 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToAClassAnswerEveryMethodThatNamesIt
 
 	self defineTestSubjectClass.
@@ -4463,10 +4463,10 @@ testReferencesToAClassAnswerEveryMethodThatNamesIt
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeNamingItsClass' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject') under: 'MCPTestSubject')
+		assert: (self methodsFoundBy: MCPSearchToolBox referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject') under: 'MCPTestSubject')
 		equals: #('MCPTestSubject mcpProbeNamingItsClass')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 8/Sep/2026, 9:40:23 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 
 	self defineClassWith: (self
@@ -4486,18 +4486,18 @@ testReferencesToAClassVariableIncludeTheSubclassesThatSeeIt
 		(Smalltalk classNamed: 'MCPTestSubjectChild') >> 'mcpProbeReading' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools referencesToClassVariableToolName
+		assert: (self methodsFoundBy: MCPSearchToolBox referencesToClassVariableToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'ProbeVariable'))
 		equals: #('MCPTestSubject mcpProbeWriting' 'MCPTestSubjectChild mcpProbeReading')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToAClassVariableTheClassDoesNotHaveFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPSearchTools referencesToClassVariableToolName
+			callTool: MCPSearchToolBox referencesToClassVariableToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'NoSuchVariable') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
@@ -4505,7 +4505,7 @@ testReferencesToAClassVariableTheClassDoesNotHaveFails
 
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToAnInstanceVariableIncludeTheSubclassesThatSeeIt
 
 	self defineClassWith: (self
@@ -4522,26 +4522,26 @@ testReferencesToAnInstanceVariableIncludeTheSubclassesThatSeeIt
 	^probeVariable printString'.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools referencesToInstanceVariableToolName
+		assert: (self methodsFoundBy: MCPSearchToolBox referencesToInstanceVariableToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'probeVariable'))
 		equals: #('[read] - MCPTestSubjectChild mcpProbeReading' '[write] - MCPTestSubject mcpProbeWriting')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToAnInstanceVariableTheClassDoesNotHaveFails
 
 	self defineTestSubjectClass.
 
 	self
 		should: [ client
-			callTool: MCPSearchTools referencesToInstanceVariableToolName
+			callTool: MCPSearchToolBox referencesToInstanceVariableToolName
 			with: (self arguments: 'className' being: 'MCPTestSubject' and: 'variableName' being: 'noSuchVariable') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor:
 			(MCPServer instanceVariableNotFoundErrorDescriptionFor: 'noSuchVariable' in: self createdClassInTest))
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 16/Sep/2026, 2:42:56 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - references' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testReferencesToClassesAnswerEveryClassNamed
 
 	self defineTestSubjectClass.
@@ -4552,27 +4552,27 @@ testReferencesToClassesAnswerEveryClassNamed
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeNamingItsClass' asSymbol }.
 
 	self
-		assert: (self jsonAnswerOf: MCPSearchTools referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild')) keys asArray
+		assert: (self jsonAnswerOf: MCPSearchToolBox referencesToClassesToolName with: (self arguments: 'classNames' being: 'MCPTestSubject, MCPTestSubjectChild')) keys asArray
 		equals: #('MCPTestSubject' 'MCPTestSubjectChild')! !
 
-!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testSearchingSelectorsAnswersNoneWhenNoSelectorContainsTheText
 
 	self
-		assert: (self sortedAnswerOf: MCPSearchTools searchSelectorsToolName with: (self arguments: 'text' being: self phraseNoOtherMethodCarries))
+		assert: (self sortedAnswerOf: MCPSearchToolBox searchSelectorsToolName with: (self arguments: 'text' being: self phraseNoOtherMethodCarries))
 		equals: #()
 
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testSearchingSelectorsAnswersTheOnesWhoseNameContainsTheText
 
 	self
-		assert: (self sortedAnswerOf: MCPSearchTools searchSelectorsToolName with: (self arguments: 'text' being: 'pluralize'))
+		assert: (self sortedAnswerOf: MCPSearchToolBox searchSelectorsToolName with: (self arguments: 'text' being: 'pluralize'))
 		equals: #('pluralize:')
 ! !
 
-!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 8/Sep/2026, 9:40:18 pm (UTC)'!
+!MCPSearchToolsTest methodsFor: 'tests - searching by text' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 
 	| phrase |
@@ -4587,18 +4587,18 @@ testSearchingTheSourceAnswersEveryMethodWhoseTextContainsIt
 	self answerToEverySearch: { self createdClassInTest >> 'mcpProbeCarryingAPhrase' asSymbol }.
 
 	self
-		assert: (self methodsFoundBy: MCPSearchTools searchSourceToolName with: (self arguments: 'text' being: phrase))
+		assert: (self methodsFoundBy: MCPSearchToolBox searchSourceToolName with: (self arguments: 'text' being: phrase))
 		equals: #('MCPTestSubject mcpProbeCarryingAPhrase')! !
+
+!MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox. MCPSearchToolBox }! !
 
 !MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:39 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPSearchToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:37 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools. MCPSearchTools }! !
 
 !MCPSearchToolsTest methodsFor: 'smalltalk protocol' stamp: 'HAW 8/Sep/2026, 9:38:00 pm (UTC)'!
 allCallsOn: aSelectorOrAnAssociation
@@ -4626,50 +4626,50 @@ setUp
 	super setUp.
 	methodsFound := #()! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 15/Sep/2026, 11:24:43 pm (UTC)'!
-testAServerHasOnlyTheToolsOfTheGroupsItIsGivenToProvide
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:09:54 pm (UTC)'!
+testAServerHasOnlyTheToolsOfTheToolBoxesItIsGivenToProvide
 
 	| aServer |
 
 	aServer := MCPServer
 		servingOver: MCPTransportMock new
 		smalltalk: Smalltalk
-		providing: (Array with: MCPImageTools)
+		providing: (Array with: MCPImageToolBox)
 		decoratedBy: #().
 
 	self
 		assert: (aServer toolDefinitions collect: [ :eachToolDefinition | eachToolDefinition at: 'name' ]) asSet
 		equals: (Set
-			with: MCPImageTools evaluateToolName
-			with: MCPImageTools screenshotToolName
-			with: MCPImageTools saveImageToolName
-			with: MCPImageTools batchToolName)! !
+			with: MCPImageToolBox evaluateToolName
+			with: MCPImageToolBox screenshotToolName
+			with: MCPImageToolBox saveImageToolName
+			with: MCPImageToolBox batchToolName)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 20/Sep/2026, 12:48:00 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testAddingToolAlreadyAddedFails
 
 	| evaluateTool |
 
-	evaluateTool := server toolNamed: MCPImageTools evaluateToolName.
+	evaluateTool := server toolNamed: MCPImageToolBox evaluateToolName.
 
 	self
 		should: [ server addTool: evaluateTool ]
 		raise: Error
-		withMessageText: (MCPServer toolAlreadyAddedErrorDescriptionFor: MCPImageTools evaluateToolName)! !
+		withMessageText: (MCPServer toolAlreadyAddedErrorDescriptionFor: MCPImageToolBox evaluateToolName)! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 12:23:36 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testCallingAToolWithAnArgumentItDoesNotKnowFails
 
 	self
-		should: [ client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4') ]
+		should: [ client callTool: MCPImageToolBox evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPDeclaredProperties unknownArgumentsErrorDescriptionFor: #('kode') among: #('code')))! !
 
-!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 12:23:36 pm (UTC)'!
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 testCallingAToolWithSeveralArgumentsItDoesNotKnowNamesThemAll
 
 	self
-		should: [ client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4' and: 'extra' being: '') ]
+		should: [ client callTool: MCPImageToolBox evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4' and: 'extra' being: '') ]
 		raise: Error
 		withMessageText: (self serverErrorTextFor: (MCPDeclaredProperties unknownArgumentsErrorDescriptionFor: #('extra' 'kode') among: #('code')))! !
 
@@ -4720,53 +4720,53 @@ testUnknownMethodAnswersAMethodNotFoundError
 
 	self assert: ((response at: 'error') at: 'message') equals: 'Unknown method: no/such/method'! !
 
+!MCPServerToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPImageToolBox }! !
+
 !MCPServerToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:42 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
 
-!MCPServerToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:40 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPImageTools }! !
-
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningATestClassCountsTheTestsThatPassedFailedAndSignalled
 
 	self defineTestCaseProbe.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestClassToolName
+		assert: (self countsOfRunning: MCPTestRunningToolBox runTestClassToolName
 			with: (self arguments: 'className' being: 'MCPTestProbeCase'))
 		equals: #(1 1 1)
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 4/Sep/2026, 11:15:08 am (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningATestClassTellsTheTestThatFailedFromTheOneThatSignalled
 
 	| answer |
 
 	self defineTestCaseProbe.
 
-	answer := self jsonAnswerOf: MCPTestRunningTools runTestClassToolName
+	answer := self jsonAnswerOf: MCPTestRunningToolBox runTestClassToolName
 		with: (self arguments: 'className' being: 'MCPTestProbeCase').
 
 	self
 		assert: (Array with: (answer at: 'failed') with: (answer at: 'errors'))
 		equals: #(#('MCPTestProbeCase>>#testThatFails') #('MCPTestProbeCase>>#testThatSignals'))! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningOneTestMethodRunsThatOneAlone
 
 	self defineTestCaseProbe.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestMethodToolName
+		assert: (self countsOfRunning: MCPTestRunningToolBox runTestMethodToolName
 			with: (self arguments: 'className' being: 'MCPTestProbeCase' and: 'selector' being: 'testThatPasses'))
 		equals: #(1 0 0)
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 1/Sep/2026, 1:28:36 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
 
 	self defineTestCaseProbe.
@@ -4776,23 +4776,23 @@ testRunningTheTestsForSeveralClassesRunsTheTestsOfEachOne
 	self assert: true'.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestsForClassesToolName
+		assert: (self countsOfRunning: MCPTestRunningToolBox runTestsForClassesToolName
 			with: (self arguments: 'classNames' being: 'MCPTestProbeCase, MCPTestOtherProbeCase'))
 		equals: #(2 1 1)
 
 ! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 16/Sep/2026, 2:43:00 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningTheTestsOfAClassCategoryRunsEveryOneOfThem
 
 	self defineTestCaseProbe.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoriesToolName
+		assert: (self countsOfRunning: MCPTestRunningToolBox runTestsInCategoriesToolName
 			with: (self arguments: 'categoryNames' being: self classCategoryOfTestData))
 		equals: #(1 1 1)! !
 
-!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 16/Sep/2026, 2:43:00 pm (UTC)'!
+!MCPTestRunningToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 3:08:52 pm (UTC)'!
 testRunningTheTestsOfSeveralClassCategoriesRunsThemAsOneSuite
 
 	classCategories add: self otherClassCategoryOfTestData.
@@ -4807,7 +4807,7 @@ testRunningTheTestsOfSeveralClassCategoriesRunsThemAsOneSuite
 	self assert: true'.
 
 	self
-		assert: (self countsOfRunning: MCPTestRunningTools runTestsInCategoriesToolName
+		assert: (self countsOfRunning: MCPTestRunningToolBox runTestsInCategoriesToolName
 			with: (self arguments: 'categoryNames' being: self classCategoryOfTestData, ', ', self otherClassCategoryOfTestData))
 		equals: #(2 1 1)! !
 
@@ -4841,15 +4841,15 @@ defineTestCaseProbe
 	self error: ''probing'''
 ! !
 
+!MCPTestRunningToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+toolBoxClasses
+
+	^{ MCPModelStructureToolBox. MCPTestRunningToolBox }! !
+
 !MCPTestRunningToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:44 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
-
-!MCPTestRunningToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:43 pm (UTC)'!
-toolGroupClasses
-
-	^{ MCPModelStructureTools. MCPTestRunningTools }! !
 
 !MCPTestRunningToolsTest methodsFor: 'class factory' stamp: 'HAW 11/Sep/2026, 2:27:24 pm (UTC)'!
 allClassCategoriesOfTestData

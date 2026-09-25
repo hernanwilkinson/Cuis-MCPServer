@@ -41,7 +41,7 @@ def tool(definition):
     return '\n'.join(lines)
 
 def block(package, group):
-    definitions = sorted(dump['groups'][package][group], key=lambda d: d['name'])
+    definitions = sorted(dump['toolBoxes'][package][group], key=lambda d: d['name'])
     return '\n'.join(tool(d) for d in definitions)
 
 text = readme.read_text()

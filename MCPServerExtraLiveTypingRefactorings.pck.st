@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8160] on 9 September 2026 at 11:29:57 am'!
-'Description Move a method to the class of what its receiver holds'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 15!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:14 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerExtraLiveTypingRefactorings' 1 16!
 !requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MCPServerExtraRefactoring' nil nil nil!
@@ -49,19 +49,19 @@ properties
 		MCPPlainProperty named: 'superclassName' describedBy: 'Name of the superclass of the new class. It has to exist already' defaultingTo: 'Object'.
 		MCPPlainProperty named: 'category' describedBy: 'Class category to make the new class in. Defaults to the one of the class it came from' defaultingTo: '' }! !
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:07:51 am (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 25/Sep/2026, 3:08:36 pm (UTC)'!
 applyInActualScopeWith: anArguments
 
 	^self withValuesFrom: anArguments do: [ :aMethod :aNewClassName :someParameterNames :aSuperclassName :aCategory |
 		(MCPRefactoringApplier applying: (self
 			refactoringGatheringIn: aMethod
-			the: (MCPToolGroup namesFrom: someParameterNames) asArray
+			the: (MCPToolBox namesFrom: someParameterNames) asArray
 			into: aNewClassName
 			subclassing: aSuperclassName
 			onCategory: aCategory
 			keepingPossibleSends: (self keepsPossibleSendsIn: anArguments))) applyReportingChanges ]! !
 
-!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 4/Sep/2026, 12:17:40 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 refactoringGatheringIn: aMethod the: parameterNames into: aNewClassName subclassing: aSuperclassName onCategory: aCategory keepingPossibleSends: isKeepingPossibleSends
 
 	^self
@@ -74,17 +74,17 @@ refactoringGatheringIn: aMethod the: parameterNames into: aNewClassName subclass
 				from: aMethod
 				toClassNamed: aNewClassName asSymbol
 				subclassing: (self classNamed: aSuperclassName) name
-				onCategory: (MCPRefactoringToolGroup categoryFor: aCategory of: aMethod methodClass)
+				onCategory: (MCPRefactoringToolBox categoryFor: aCategory of: aMethod methodClass)
 				withParameters: parameterNames
-				placedAt: (MCPRefactoringToolGroup positionsIn: aMethod of: parameterNames)
+				placedAt: (MCPRefactoringToolBox positionsIn: aMethod of: parameterNames)
 				implementors: implementors
 				senders: senders
 				withPossibleMessageSends: isKeepingPossibleSends ]! !
 
-!MCPExtractParameterObjectInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 3:42:01 pm (UTC)'!
+!MCPExtractParameterObjectInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 decoratedToolName
 
-	^MCPExtraRefactoringTools extractParameterObjectToolName! !
+	^MCPExtraRefactoringToolBox extractParameterObjectToolName! !
 
 !MCPMoveInstanceVariableInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 4:26:19 pm (UTC)'!
 description
@@ -133,10 +133,10 @@ defaultScopeName
 
 	^''! !
 
-!MCPMoveInstanceVariableInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:26:08 pm (UTC)'!
+!MCPMoveInstanceVariableInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 decoratedToolName
 
-	^MCPExtraRefactoringTools moveInstanceVariableToolName! !
+	^MCPExtraRefactoringToolBox moveInstanceVariableToolName! !
 
 !MCPMoveInstanceVariableInActualScopeDecorator class methodsFor: 'descriptions' stamp: 'HAW 1/Sep/2026, 4:26:14 pm (UTC)'!
 actualScopeOnlyDescription
@@ -154,11 +154,11 @@ description
 	^self decoratee description ,
 		' It also takes actual as the scope, which moves the method to the class LiveTyping saw the variable it is sent to hold, so that class is found instead of named. A global is moved to the way the tool it decorates does, because its class is already known.'! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 9/Sep/2026, 2:14:44 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 3:08:48 pm (UTC)'!
 isAskedForTheActualScopeIn: anArguments
 
 	^(super isAskedForTheActualScopeIn: anArguments)
-		and: [ (smalltalk includesKey: (anArguments at: MCPExtraRefactoringTools receiverPropertyName ifAbsent: [ '' ]) asSymbol) not ]! !
+		and: [ (smalltalk includesKey: (anArguments at: MCPExtraRefactoringToolBox receiverPropertyName ifAbsent: [ '' ]) asSymbol) not ]! !
 
 !MCPMoveMethodInActualScopeDecorator methodsFor: 'actual types' stamp: 'HAW 2/Sep/2026, 8:54:08 pm (UTC)'!
 classHeldBy: aVariableName in: aMethod
@@ -186,12 +186,12 @@ classHeldBy: anInstanceVariableName of: aClass
 		commonSupertypeOfInstanceVariableNamed: anInstanceVariableName
 		ifNoTypes: [ self error: (self class noClassSeenErrorDescriptionFor: anInstanceVariableName) ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 9/Sep/2026, 2:14:30 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'properties' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 properties
 
 	^{
 		MCPMethodProperty selectorDescribedBy: 'Selector of the method to move'.
-		MCPPlainProperty named: MCPExtraRefactoringTools receiverPropertyName describedBy: 'Name of the instance variable, class variable or parameter the moved method is sent to. The class it is moved to is the one LiveTyping saw it hold'.
+		MCPPlainProperty named: MCPExtraRefactoringToolBox receiverPropertyName describedBy: 'Name of the instance variable, class variable or parameter the moved method is sent to. The class it is moved to is the one LiveTyping saw it hold'.
 		MCPPlainProperty named: 'extraParameterName' describedBy: 'Name of the parameter the moved method takes to reach what it was moved from. Left out when it needs none' defaultingTo: ''.
 		MCPPlainProperty named: 'extraParameterKeyword' describedBy: 'Keyword the moved method takes that parameter with, when it is a keyword selector that needs a new keyword for it. Left out otherwise' defaultingTo: '' }! !
 
@@ -205,7 +205,7 @@ applyInActualScopeWith: anArguments
 			parameterNamed: anExtraParameterName
 			keyword: anExtraParameterKeyword)) applyReportingChanges ]! !
 
-!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 9/Sep/2026, 2:14:38 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator methodsFor: 'applying' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 refactoringMoving: aMethod through: aReceiverName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
 
 	^MoveMethod
@@ -213,17 +213,17 @@ refactoringMoving: aMethod through: aReceiverName parameterNamed: anExtraParamet
 		from: aMethod methodClass
 		to: (self classHeldBy: aReceiverName in: aMethod)
 		accessingThrough: aReceiverName
-		parameterNeeded: (MCPExtraRefactoringTools extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
+		parameterNeeded: (MCPExtraRefactoringToolBox extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
 
 !MCPMoveMethodInActualScopeDecorator methodsFor: 'scope' stamp: 'HAW 9/Sep/2026, 2:07:15 am (UTC)'!
 defaultScopeName
 
 	^''! !
 
-!MCPMoveMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 1/Sep/2026, 4:26:28 pm (UTC)'!
+!MCPMoveMethodInActualScopeDecorator class methodsFor: 'decorating' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 decoratedToolName
 
-	^MCPExtraRefactoringTools moveMethodToolName! !
+	^MCPExtraRefactoringToolBox moveMethodToolName! !
 
 !MCPMoveMethodInActualScopeDecorator class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:17:26 pm (UTC)'!
 actualScopeOnlyDescription

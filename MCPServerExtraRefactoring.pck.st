@@ -1,19 +1,19 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:23 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServerExtraRefactoring' 1 18!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:07 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerExtraRefactoring' 1 19!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'ExtraRefactorings' nil nil nil!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
 
 
-!classDefinition: #MCPExtraRefactoringTools category: #MCPServerExtraRefactoring!
-MCPRefactoringToolGroup subclass: #MCPExtraRefactoringTools
+!classDefinition: #MCPExtraRefactoringToolBox category: #MCPServerExtraRefactoring!
+MCPRefactoringToolBox subclass: #MCPExtraRefactoringToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerExtraRefactoring'!
-!classDefinition: 'MCPExtraRefactoringTools class' category: #MCPServerExtraRefactoring!
-MCPExtraRefactoringTools class
+!classDefinition: 'MCPExtraRefactoringToolBox class' category: #MCPServerExtraRefactoring!
+MCPExtraRefactoringToolBox class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPMethodObjectDefinition category: #MCPServerExtraRefactoring!
@@ -27,7 +27,7 @@ MCPMethodObjectDefinition class
 	instanceVariableNames: ''!
 
 
-!MCPExtraRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:14:39 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -37,7 +37,7 @@ addToolsTo: anMCPServer
 		addTool: self extractParameterObjectTool;
 		addTool: self extractToMethodObjectTool! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractClassTool
 
 	^MCPRefactoringTool
@@ -59,7 +59,7 @@ extractClassTool
 
 ! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractParameterObjectTool
 
 	^MCPRefactoringTool
@@ -89,7 +89,7 @@ extractParameterObjectTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractToMethodObjectTool
 
 	^MCPRefactoringTool
@@ -124,7 +124,7 @@ extractToMethodObjectTool
 				withInstanceCreationMessageFrom: definition keywordsDefinitions
 				evaluatedWith: anEvaluationSelector asSymbol) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 moveInstanceVariableTool
 
 	^MCPRefactoringTool
@@ -141,7 +141,7 @@ moveInstanceVariableTool
 				to: aTargetClass
 				accessingThrough: anAccessingVariableName) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 moveMethodTool
 
 	^MCPRefactoringTool
@@ -166,12 +166,12 @@ moveMethodTool
 				parameterNamed: anExtraParameterName
 				keyword: anExtraParameterKeyword) ]! !
 
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:18 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:18 pm (UTC)'!
 isAGlobalNamed: aName
 
 	^smalltalk includesKey: aName asSymbol! !
 
-!MCPExtraRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:22 pm (UTC)'!
+!MCPExtraRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 2:14:22 pm (UTC)'!
 moveMethodRefactoringFor: aMethod to: aTargetClassName through: aReceiverName parameterNamed: anExtraParameterName keyword: anExtraParameterKeyword
 
 	^MoveMethod
@@ -183,32 +183,32 @@ moveMethodRefactoringFor: aMethod to: aTargetClassName through: aReceiverName pa
 		accessingThrough: aReceiverName
 		parameterNeeded: (self class extraParameterNamed: anExtraParameterName keyword: anExtraParameterKeyword)! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractClassToolName
 
 	^'refactor_extract_class'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 extractParameterObjectToolName
 
 	^'refactor_extract_parameter_object'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 extractToMethodObjectToolName
 
 	^'refactor_extract_to_method_object'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 moveInstanceVariableToolName
 
 	^'refactor_move_instance_variable'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:20 pm (UTC)'!
 moveMethodToolName
 
 	^'refactor_move_method'! !
 
-!MCPExtraRefactoringTools class methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:05:26 am (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:05:26 am (UTC)'!
 extraParameterNamed: aParameterName keyword: aKeyword
 
 	aParameterName ifEmpty: [ ^NonExtraParameterNameNeeded new ].
@@ -218,7 +218,7 @@ extraParameterNamed: aParameterName keyword: aKeyword
 		ifNotEmpty: [ :anExtraKeyword |
 			ExtraParameterNameNeededAndExtraKeyword parameterName: aParameterName extraKeyword: anExtraKeyword ]! !
 
-!MCPExtraRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 2:14:14 pm (UTC)'!
+!MCPExtraRefactoringToolBox class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 2:14:14 pm (UTC)'!
 receiverPropertyName
 
 	^'receiver'! !
@@ -308,10 +308,10 @@ keywordDefinitionFrom: aPair holdingIn: someInstanceVariableNames
 			ifTrue: [ aPair third ]
 			ifFalse: [ self parameterNameFor: (someInstanceVariableNames at: variableName ifAbsent: [ variableName ]) ])! !
 
-!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:32 pm (UTC)'!
+!MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 25/Sep/2026, 3:08:34 pm (UTC)'!
 pairsIn: aText
 
-	^(MCPToolGroup namesFrom: aText) collect: [ :eachPair |
+	^(MCPToolBox namesFrom: aText) collect: [ :eachPair |
 		(eachPair subStrings: '=') collect: [ :eachPart | eachPart withBlanksTrimmed ] ]! !
 
 !MCPMethodObjectDefinition methodsFor: 'definition - private' stamp: 'HAW 9/Sep/2026, 2:42:29 pm (UTC)'!

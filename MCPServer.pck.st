@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 12:03:02 pm'!
-'Description Read what a package holds: its classes, its methods, its extensions and its source'!
-!provides: 'MCPServer' 1 91!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:46 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServer' 1 92!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -159,7 +159,7 @@ MCPRefactoringApplier class
 
 !classDefinition: #MCPServer category: #MCPServer!
 Object subclass: #MCPServer
-	instanceVariableNames: 'transport running tools smalltalk toolGroupClasses toolDecoratorClasses callLog'
+	instanceVariableNames: 'transport running tools smalltalk toolBoxClasses toolDecoratorClasses callLog'
 	classVariableNames: 'OnStartupInstance'
 	poolDictionaries: ''
 	category: 'MCPServer'!
@@ -247,94 +247,94 @@ MCPTool subclass: #MCPToolDecorator
 MCPToolDecorator class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPToolGroup category: #MCPServer!
-Object subclass: #MCPToolGroup
+!classDefinition: #MCPToolBox category: #MCPServer!
+Object subclass: #MCPToolBox
 	instanceVariableNames: 'smalltalk'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPToolGroup class' category: #MCPServer!
-MCPToolGroup class
+!classDefinition: 'MCPToolBox class' category: #MCPServer!
+MCPToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPDebugTools category: #MCPServer!
-MCPToolGroup subclass: #MCPDebugTools
+!classDefinition: #MCPDebugToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPDebugToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPDebugTools class' category: #MCPServer!
-MCPDebugTools class
+!classDefinition: 'MCPDebugToolBox class' category: #MCPServer!
+MCPDebugToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPImageTools category: #MCPServer!
-MCPToolGroup subclass: #MCPImageTools
+!classDefinition: #MCPImageToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPImageToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPImageTools class' category: #MCPServer!
-MCPImageTools class
+!classDefinition: 'MCPImageToolBox class' category: #MCPServer!
+MCPImageToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPModelStructureTools category: #MCPServer!
-MCPToolGroup subclass: #MCPModelStructureTools
+!classDefinition: #MCPModelStructureToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPModelStructureToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPModelStructureTools class' category: #MCPServer!
-MCPModelStructureTools class
+!classDefinition: 'MCPModelStructureToolBox class' category: #MCPServer!
+MCPModelStructureToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPPackageTools category: #MCPServer!
-MCPToolGroup subclass: #MCPPackageTools
+!classDefinition: #MCPPackageToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPPackageToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPPackageTools class' category: #MCPServer!
-MCPPackageTools class
+!classDefinition: 'MCPPackageToolBox class' category: #MCPServer!
+MCPPackageToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPRefactoringToolGroup category: #MCPServer!
-MCPToolGroup subclass: #MCPRefactoringToolGroup
+!classDefinition: #MCPRefactoringToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPRefactoringToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPRefactoringToolGroup class' category: #MCPServer!
-MCPRefactoringToolGroup class
+!classDefinition: 'MCPRefactoringToolBox class' category: #MCPServer!
+MCPRefactoringToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPRefactoringTools category: #MCPServer!
-MCPRefactoringToolGroup subclass: #MCPRefactoringTools
+!classDefinition: #MCPBaseRefactoringToolBox category: #MCPServer!
+MCPRefactoringToolBox subclass: #MCPBaseRefactoringToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPRefactoringTools class' category: #MCPServer!
-MCPRefactoringTools class
+!classDefinition: 'MCPBaseRefactoringToolBox class' category: #MCPServer!
+MCPBaseRefactoringToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPSearchTools category: #MCPServer!
-MCPToolGroup subclass: #MCPSearchTools
+!classDefinition: #MCPSearchToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPSearchToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPSearchTools class' category: #MCPServer!
-MCPSearchTools class
+!classDefinition: 'MCPSearchToolBox class' category: #MCPServer!
+MCPSearchToolBox class
 	instanceVariableNames: ''!
 
-!classDefinition: #MCPTestRunningTools category: #MCPServer!
-MCPToolGroup subclass: #MCPTestRunningTools
+!classDefinition: #MCPTestRunningToolBox category: #MCPServer!
+MCPToolBox subclass: #MCPTestRunningToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServer'!
-!classDefinition: 'MCPTestRunningTools class' category: #MCPServer!
-MCPTestRunningTools class
+!classDefinition: 'MCPTestRunningToolBox class' category: #MCPServer!
+MCPTestRunningToolBox class
 	instanceVariableNames: ''!
 
 !classDefinition: #MCPToolProperty category: #MCPServer!
@@ -583,41 +583,41 @@ I am a tool that adds something to what another tool answers, which is how a pac
 
 Every subclass of mine says which tool it decorates, and a server wraps that tool with it once every tool is in place. A decorator of a tool that is not there decorates nothing.!
 
-!MCPToolGroup commentStamp: '<historical>' prior: 0!
-I am a group of tools a server offers.
+!MCPToolBox commentStamp: '<historical>' prior: 0!
+I am a box of tools a server offers.
 
 Every subclass of mine is asked to add its tools, so a package that has some is one that subclasses me, and a package that is not loaded adds none. There is nothing to register and nothing to forget to register.!
 
-!MCPDebugTools commentStamp: '<historical>' prior: 0!
+!MCPDebugToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that open a debugger on code that fails and drive the one that is open.!
 
-!MCPImageTools commentStamp: '<historical>' prior: 0!
+!MCPImageToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that act on the image itself: evaluating code in it, seeing what it looks like, saving it, and calling several of the tools the server serves in one call, which MCPBatch runs.!
 
-!MCPModelStructureTools commentStamp: '<historical>' prior: 0!
+!MCPModelStructureToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that read and change the metamodel: classes, their categories, their hierarchy and their methods.!
 
-!MCPPackageTools commentStamp: '<historical>' prior: 0!
+!MCPPackageToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that act on the code packages of the image: what each of them holds, describes itself as and requires, which of them have changes that their file does not have yet, and writing one out.
 
 A package is saved only when it knows the file it is written to. Asking the image for that file opens a dialog on screen, which no request can answer, so a package that does not know it is reported instead of asked, and the file is named through a tool of mine.!
 
-!MCPRefactoringToolGroup commentStamp: '<historical>' prior: 0!
-I am a group of tools that apply refactorings.
+!MCPRefactoringToolBox commentStamp: '<historical>' prior: 0!
+I am a box of tools that apply refactorings.
 
 I know what my subclasses need to build one: the scope a refactoring over a selector works on, the class a name stands for, and the names a client sent as one text. Applying a refactoring and describing what it changed is what MCPRefactoringApplier does, and my tools ask it directly.
 
-A group of mine that has tools of its own is named after the refactorings it offers, as MCPRefactoringTools; a group of mine that only gathers others is named a tool group, as I am.!
+A subclass of mine is named after the refactorings it offers: MCPBaseRefactoringToolBox has the ones of the base image and MCPExtraRefactoringToolBox the ones of ExtraRefactorings; I only gather what they share.!
 
-!MCPRefactoringTools commentStamp: '<historical>' prior: 0!
+!MCPBaseRefactoringToolBox commentStamp: '<historical>' prior: 0!
 I am every tool that applies a refactoring of the image I was made for.
 
 A server asks me for my tools and offers them; what a refactoring needs to be built, and how a piece of source is named by the text it is written with or by the interval it occupies, is mine to know and not the server's.!
 
-!MCPSearchTools commentStamp: '<historical>' prior: 0!
+!MCPSearchToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that look for what the image already holds: who sends a selector, who implements it, what names a class or a variable, what a source text says, and what message answers a result that is already known.!
 
-!MCPTestRunningTools commentStamp: '<historical>' prior: 0!
+!MCPTestRunningToolBox commentStamp: '<historical>' prior: 0!
 I am the tools that run tests, one of them or a whole suite, and answer how they went.!
 
 !MCPToolProperty commentStamp: '<historical>' prior: 0!
@@ -1552,13 +1552,13 @@ applySourceChanging: aRefactoring to: aMethod
 
 	^(self applying: aRefactoring changing: aMethod) applyCompilingNewSource! !
 
-!MCPServer methodsFor: 'initialization' stamp: 'HAW 9/Sep/2026, 9:04:36 pm (UTC)'!
-initializeServingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
+!MCPServer methodsFor: 'initialization' stamp: 'HAW 25/Sep/2026, 3:09:54 pm (UTC)'!
+initializeServingOver: aTransport smalltalk: aSmalltalk providing: aCollectionOfToolBoxClasses decoratedBy: aCollectionOfDecoratorClasses
 
 	transport := aTransport.
 	smalltalk := aSmalltalk.
-	toolGroupClasses := someToolGroupClasses.
-	toolDecoratorClasses := someDecoratorClasses.
+	toolBoxClasses := aCollectionOfToolBoxClasses.
+	toolDecoratorClasses := aCollectionOfDecoratorClasses.
 	running := false.
 	callLog := MCPNullCallLog new.
 
@@ -1838,10 +1838,10 @@ toolNamed: aToolName ifAbsent: anAbsentBlock
 
 	^tools at: aToolName ifAbsent: anAbsentBlock! !
 
-!MCPServer methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:30 pm (UTC)'!
+!MCPServer methodsFor: 'tool installation' stamp: 'HAW 25/Sep/2026, 3:09:54 pm (UTC)'!
 addProvidedTools
 
-	toolGroupClasses do: [ :eachToolGroupClass | (eachToolGroupClass for: smalltalk) addToolsTo: self ]! !
+	toolBoxClasses do: [ :aToolBoxClass | (aToolBoxClass for: smalltalk) addToolsTo: self ]! !
 
 !MCPServer methodsFor: 'tool installation' stamp: 'HAW 20/Sep/2026, 12:48:20 pm (UTC)'!
 addTool: aTool
@@ -1897,23 +1897,23 @@ servingOver: aTransport
 	^self servingOver: aTransport smalltalk: Smalltalk
 ! !
 
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 7/Sep/2026, 8:05:28 pm (UTC)'!
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 servingOver: aTransport smalltalk: aSmalltalk
 
 	^self
 		servingOver: aTransport
 		smalltalk: aSmalltalk
-		providing: self defaultToolGroupClasses
+		providing: self defaultToolBoxClasses
 		decoratedBy: self defaultToolDecoratorClasses! !
 
-!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 7/Sep/2026, 7:04:23 pm (UTC)'!
-servingOver: aTransport smalltalk: aSmalltalk providing: someToolGroupClasses decoratedBy: someDecoratorClasses
+!MCPServer class methodsFor: 'instance creation' stamp: 'HAW 25/Sep/2026, 3:09:54 pm (UTC)'!
+servingOver: aTransport smalltalk: aSmalltalk providing: aCollectionOfToolBoxClasses decoratedBy: aCollectionOfDecoratorClasses
 
 	^self new
 		initializeServingOver: aTransport
 		smalltalk: aSmalltalk
-		providing: someToolGroupClasses
-		decoratedBy: someDecoratorClasses! !
+		providing: aCollectionOfToolBoxClasses
+		decoratedBy: aCollectionOfDecoratorClasses! !
 
 !MCPServer class methodsFor: 'instance creation' stamp: ''!
 servingOverHttpAtPort: aPortNumber
@@ -2183,15 +2183,15 @@ classCreationSelectors
 
 	^Class organization listAtCategoryNamed: 'subclass creation'! !
 
+!MCPServer class methodsFor: 'tool installation' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+defaultToolBoxClasses
+
+	^MCPToolBox allSubclasses reject: [ :eachToolGroupClass | eachToolGroupClass isAbstract ]! !
+
 !MCPServer class methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:27 pm (UTC)'!
 defaultToolDecoratorClasses
 
 	^MCPToolDecorator allSubclasses reject: [ :eachDecoratorClass | eachDecoratorClass isAbstract ]! !
-
-!MCPServer class methodsFor: 'tool installation' stamp: 'HAW 7/Sep/2026, 8:05:25 pm (UTC)'!
-defaultToolGroupClasses
-
-	^MCPToolGroup allSubclasses reject: [ :eachToolGroupClass | eachToolGroupClass isAbstract ]! !
 
 !MCPTool methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 7:50:46 pm (UTC)'!
 definition
@@ -2695,42 +2695,42 @@ decoratedToolName
 	^self subclassResponsibility
 ! !
 
-!MCPToolGroup methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!MCPToolBox methodsFor: 'initialization' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 initializeFor: aSmalltalk
 
 	smalltalk := aSmalltalk! !
 
-!MCPToolGroup methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!MCPToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 addToolsTo: anMCPServer
 
 	^self subclassResponsibility! !
 
-!MCPToolGroup methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:57 pm (UTC)'!
+!MCPToolBox methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:57 pm (UTC)'!
 namesFrom: aCommaSeparatedText
 
 	^self class namesFrom: aCommaSeparatedText! !
 
-!MCPToolGroup class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
+!MCPToolBox class methodsFor: 'instance creation' stamp: 'HAW 25/Aug/2026, 10:50:45 am (UTC)'!
 for: aSmalltalk
 
 	"Answer a provider of tools for aSmalltalk, which is the image its tools work on."
 
 	^self new initializeFor: aSmalltalk! !
 
-!MCPToolGroup class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:10:27 pm (UTC)'!
+!MCPToolBox class methodsFor: 'testing' stamp: 'HAW 27/Aug/2026, 10:10:27 pm (UTC)'!
 isAbstract
 
 	^self hasSubclasses 
 ! !
 
-!MCPToolGroup class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:57 pm (UTC)'!
+!MCPToolBox class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:53:57 pm (UTC)'!
 namesFrom: aCommaSeparatedText
 
 	"Answer the names a client sent as one text, which is how a list reaches a tool."
 
 	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName | eachName withBlanksTrimmed ]! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerProceedTool
 
 	^MCPPluggableTool
@@ -2740,7 +2740,7 @@ debuggerProceedTool
 		executingWith: [ MCPDebuggingSession current proceed ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerRestartTool
 
 	^MCPPluggableTool
@@ -2750,7 +2750,7 @@ debuggerRestartTool
 		executingWith: [ MCPDebuggingSession current restart ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:23 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:23 pm (UTC)'!
 debuggerStepIntoTool
 
 	^MCPPluggableTool
@@ -2760,7 +2760,7 @@ debuggerStepIntoTool
 		executingWith: [ MCPDebuggingSession current stepInto ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
 debuggerStepOverTool
 
 	^MCPPluggableTool
@@ -2770,7 +2770,7 @@ debuggerStepOverTool
 		executingWith: [ MCPDebuggingSession current stepOver ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
 debuggerThroughTool
 
 	^MCPPluggableTool
@@ -2780,7 +2780,7 @@ debuggerThroughTool
 		executingWith: [ MCPDebuggingSession current through ]
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:38 pm (UTC)'!
 evaluateToDebugOnErrorTool
 
 	^MCPEvaluateToDebugOnErrorTool
@@ -2790,7 +2790,7 @@ evaluateToDebugOnErrorTool
 
 ! !
 
-!MCPDebugTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 finishDebuggingTool
 
 	^MCPPluggableTool
@@ -2800,7 +2800,7 @@ finishDebuggingTool
 		executingWith: [ MCPDebuggingSession finishCurrent ]
 ! !
 
-!MCPDebugTools methodsFor: 'tools' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tools' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -2813,42 +2813,42 @@ addToolsTo: anMCPServer
 		addTool: self finishDebuggingTool
 ! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerProceedToolName
 
 	^'debugger_proceed'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerRestartToolName
 
 	^'debugger_restart'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerStepIntoToolName
 
 	^'debugger_stepinto'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerStepOverToolName
 
 	^'debugger_stepover'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerThroughToolName
 
 	^'debugger_through'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 evaluateToDebugOnErrorToolName
 
 	^'evaluate_to_debug_on_error'! !
 
-!MCPDebugTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 finishDebuggingToolName
 
 	^'finish_debugging'! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 batchToolRunningIn: anMCPServer
 
 	^MCPPluggableTool
@@ -2857,7 +2857,7 @@ batchToolRunningIn: anMCPServer
 		properties: { self stepsProperty }
 		executingWith: [ :someSteps | (MCPBatch of: someSteps runningIn: anMCPServer) answer ]! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 evaluateTool
 
 	^MCPPluggableTool
@@ -2867,7 +2867,7 @@ evaluateTool
 		executingWith: [ :aCode | (Compiler evaluate: aCode) printString ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 10:23:09 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 10:23:09 pm (UTC)'!
 saveImageTool
 
 	^MCPPluggableTool
@@ -2879,7 +2879,7 @@ saveImageTool
 			(Delay forSeconds: 1) wait.
 			'Image saved: ', smalltalk imageName ]! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 screenshotTool
 
 	^MCPPluggableTool
@@ -2889,7 +2889,7 @@ screenshotTool
 		executingWith: [ :aFileName | self writeScreenshotTo: aFileName ]
 ! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 stepsProperty
 
 	^MCPListProperty
@@ -2902,7 +2902,7 @@ stepsProperty
 				describedBy: 'The arguments of the tool, as they would be sent to it on its own. A tool that takes none is called without them' }
 		valuedWith: [ :aToolName :anArguments | MCPBatchStep of: aToolName with: anArguments ]! !
 
-!MCPImageTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 6:57:02 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 6:57:02 pm (UTC)'!
 writeScreenshotTo: aFileName
 
 	"The world is drawn by the process that draws morphs, so the picture is taken there, and
@@ -2914,7 +2914,7 @@ writeScreenshotTo: aFileName
 
 	^aFileName! !
 
-!MCPImageTools methodsFor: 'tools' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
+!MCPImageToolBox methodsFor: 'tools' stamp: 'HAW 15/Sep/2026, 11:24:27 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -2924,32 +2924,32 @@ addToolsTo: anMCPServer
 		addTool: (self batchToolRunningIn: anMCPServer)
 ! !
 
-!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPImageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 batchToolName
 
 	^'batch'! !
 
-!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPImageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 evaluateToolName
 
 	^'evaluate'! !
 
-!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPImageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 saveImageToolName
 
 	^'save_image'! !
 
-!MCPImageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPImageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 screenshotToolName
 
 	^'screenshot'! !
 
-!MCPImageTools class methodsFor: 'process names' stamp: 'HAW 3/Sep/2026, 10:23:14 pm (UTC)'!
+!MCPImageToolBox class methodsFor: 'process names' stamp: 'HAW 3/Sep/2026, 10:23:14 pm (UTC)'!
 saveImageProcessName
 
 	^'MCP saving the image'! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:04 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:04 pm (UTC)'!
 classDefinitionsTool
 
 	^MCPClassDefinitionTool
@@ -2957,7 +2957,7 @@ classDefinitionsTool
 		describedBy: 'Read the definition of several classes in one call: for each, its superclass, its instance and class variables, its selectors and its comment.'
 		properties: { MCPClassesProperty default }! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:08 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:08 pm (UTC)'!
 classOrganizationsTool
 
 	^MCPPluggableTool
@@ -2967,7 +2967,7 @@ classOrganizationsTool
 		executingWith: [ :someClasses |
 			Json render: (self forEachOf: someClasses answer: [ :eachClass | self organizationOf: eachClass ]) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:12 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:12 pm (UTC)'!
 classSourcesTool
 
 	^MCPPluggableTool
@@ -2976,7 +2976,7 @@ classSourcesTool
 		properties: { MCPClassesProperty default }
 		executingWith: [ :someClasses | Json render: (self classSourcesOf: someClasses) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 classesInCategoryTool
 
 	^MCPPluggableTool
@@ -2987,7 +2987,7 @@ classesInCategoryTool
 			Json render: ((SystemOrganization classesAt: aCategory) collect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 classifyMethodsTool
 
 	^MCPPluggableTool
@@ -3000,7 +3000,7 @@ classifyMethodsTool
 		executingWith: [ :aClass :someSelectors :aMethodCategory |
 			self classify: someSelectors of: aClass under: aMethodCategory ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 defineClassTool
 
 	"The definition a request carries is parsed and judged before it is evaluated, which is more
@@ -3012,7 +3012,7 @@ defineClassTool
 		properties: { MCPPlainProperty named: 'definition' describedBy: 'Full class definition expression' }
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 1:26:52 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 1:26:52 pm (UTC)'!
 defineMethodsTool
 
 	^MCPPluggableTool
@@ -3033,7 +3033,7 @@ defineMethodsTool
 		executingWith: [ :someDefinitions |
 			Json render: (someDefinitions collect: [ :eachDefinition | eachDefinition define ]) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:25 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:25 pm (UTC)'!
 deleteClassesTool
 
 	^MCPPluggableTool
@@ -3044,7 +3044,7 @@ deleteClassesTool
 			describedBy: 'Names of the classes to remove, separated by commas' }
 		executingWith: [ :someClasses | Json render: (self remove: someClasses) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:29 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:29 pm (UTC)'!
 deleteMethodsTool
 
 	^MCPPluggableTool
@@ -3057,7 +3057,7 @@ deleteMethodsTool
 				describedBy: 'Selectors of the methods to remove, separated by commas' }
 		executingWith: [ :aClass :someSelectors | Json render: (self remove: someSelectors from: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:17 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:17 pm (UTC)'!
 hierarchiesTool
 
 	^MCPPluggableTool
@@ -3067,7 +3067,7 @@ hierarchiesTool
 		executingWith: [ :someClasses |
 			Json render: (self forEachOf: someClasses answer: [ :eachClass | self hierarchyNamesOf: eachClass ]) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:28:34 pm (UTC)'!
 listCategoriesTool
 
 	^MCPPluggableTool
@@ -3077,7 +3077,7 @@ listCategoriesTool
 		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:31:05 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:31:05 pm (UTC)'!
 listClassesTool
 
 	^MCPPluggableTool
@@ -3094,7 +3094,7 @@ listClassesTool
 				thenCollect: [ :aClass | aClass name ]) asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 methodSourcesInCategoryTool
 
 	^MCPPluggableTool
@@ -3106,7 +3106,7 @@ methodSourcesInCategoryTool
 		executingWith: [ :aClass :aMethodCategory |
 			Json render: (self sourcesIn: aMethodCategory of: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 methodSourcesOfClassTool
 
 	^MCPPluggableTool
@@ -3115,7 +3115,7 @@ methodSourcesOfClassTool
 		properties: { MCPClassProperty default }
 		executingWith: [ :aClass | Json render: (self sourcesOf: aClass) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:21 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:21 pm (UTC)'!
 methodSourcesTool
 
 	^MCPPluggableTool
@@ -3124,7 +3124,7 @@ methodSourcesTool
 		properties: { MCPMethodsProperty default }
 		executingWith: [ :someMethods | Json render: (self sourcesOfMethods: someMethods) ]! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 methodsInCategoryTool
 
 	^MCPPluggableTool
@@ -3137,7 +3137,7 @@ methodsInCategoryTool
 			Json render: (self selectorsIn: aMethodCategory of: aClass) ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 subclassesTool
 
 	^MCPPluggableTool
@@ -3147,7 +3147,7 @@ subclassesTool
 		executingWith: [ :someClasses |
 			Json render: (self forEachOf: someClasses answer: [ :eachClass | self subclassNamesOf: eachClass ]) ]! !
 
-!MCPModelStructureTools methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:29 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:29 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -3169,7 +3169,7 @@ addToolsTo: anMCPServer
 		addTool: self deleteClassesTool;
 		addTool: self deleteMethodsTool! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:01:07 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:01:07 pm (UTC)'!
 classSideSourceOf: aClass
 
 	^OrderedDictionary new
@@ -3177,7 +3177,7 @@ classSideSourceOf: aClass
 		at: 'methods' put: (self sourcesOf: aClass class);
 		yourself! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:00:39 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:00:39 pm (UTC)'!
 classSourceOf: aClass
 
 	^OrderedDictionary new
@@ -3187,14 +3187,14 @@ classSourceOf: aClass
 		at: 'classSide' put: (self classSideSourceOf: aClass);
 		yourself! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 classSourcesOf: someClasses
 
 	^self
 		forEachOf: (someClasses collect: [ :eachClass | eachClass theNonMetaClass ])
 		answer: [ :eachClass | self classSourceOf: eachClass ]! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:48:59 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:48:59 pm (UTC)'!
 classify: someSelectors of: aClass under: aMethodCategory
 
 	"Answer where each method was filed before, which is the one thing that is gone once it has
@@ -3223,7 +3223,7 @@ classify: someSelectors of: aClass under: aMethodCategory
 		at: 'emptied' put: (self removedEmptyCategoriesOf: previousCategories using: classOrganization);
 		yourself)! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 forEachOf: someClasses answer: aBlock
 
 	^someClasses
@@ -3231,12 +3231,12 @@ forEachOf: someClasses answer: aBlock
 		into: [ :anAnswer :eachClass |
 			anAnswer at: eachClass name put: (aBlock value: eachClass); yourself ]! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 hierarchyNamesOf: aClass
 
 	^(aClass withAllSuperclasses collect: [ :eachClass | eachClass name ]) asArray! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 organizationOf: aClass
 
 	"Answer each method category with the selectors filed under it, keeping the order the class
@@ -3251,7 +3251,7 @@ organizationOf: aClass
 				yourself ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 remove: someClasses
 
 	^(someClasses collect: [ :eachClass |
@@ -3260,7 +3260,7 @@ remove: someClasses
 		eachClass theNonMetaClass removeFromSystem.
 		removedName ]) asArray! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 remove: someSelectors from: aClass
 
 	^((self selectorsFrom: someSelectors implementedBy: aClass) collect: [ :eachSelector |
@@ -3269,7 +3269,7 @@ remove: someSelectors from: aClass
 		aClass removeSelector: eachSelector.
 		removedName ]) asArray! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:49:31 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 7:49:31 pm (UTC)'!
 removedEmptyCategoriesOf: someMethodCategories using: aClassOrganization
 
 	| emptyCategories  |
@@ -3279,7 +3279,7 @@ removedEmptyCategoriesOf: someMethodCategories using: aClassOrganization
 	
 	^(emptyCategories collect: [ :aCategory | aCategory asString ]) asArray sort! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:32 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 28/Aug/2026, 3:41:32 pm (UTC)'!
 selectorsFrom: someSelectors implementedBy: aClass
 
 	"A selector the class does not implement is a mistake worth telling a client about, and not
@@ -3292,7 +3292,7 @@ selectorsFrom: someSelectors implementedBy: aClass
 			ifFalse: [ self error: (MCPMethodProperty methodNotFoundErrorDescriptionFor: selector in: aClass) ].
 		selector ]! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 selectorsIn: aMethodCategory of: aClass
 
 	"A category the class does not have answers no selector, which reads the same as one that
@@ -3305,7 +3305,7 @@ selectorsIn: aMethodCategory of: aClass
 	^(aClass organization listAtCategoryNamed: aMethodCategory) asArray sorted
 ! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:39:24 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:39:24 pm (UTC)'!
 sourcesIn: aMethodCategory of: aClass
 
 	"Answer the source of each method filed under aMethodCategory, under its selector, in the
@@ -3319,7 +3319,7 @@ sourcesIn: aMethodCategory of: aClass
 
 	^sourcesBySelector! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:48:07 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 2/Sep/2026, 4:48:07 pm (UTC)'!
 sourcesOf: aClass
 
 	"Answer the source of every method of aClass under its selector, grouped by the method
@@ -3337,7 +3337,7 @@ sourcesOf: aClass
 
 	^sourcesByCategory! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 sourcesOfMethods: someMethods
 
 	^someMethods
@@ -3348,103 +3348,103 @@ sourcesOfMethods: someMethods
 				put: (OrderedDictionary new at: 'source' put: eachMethod sourceCode; yourself);
 				yourself ]! !
 
-!MCPModelStructureTools methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPModelStructureToolBox methodsFor: 'model structure' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 subclassNamesOf: aClass
 
 	^(aClass subclasses collect: [ :eachClass | eachClass name ]) asArray sorted! !
 
-!MCPModelStructureTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 6:31:34 pm (UTC)'!
 methodCategoryNotFoundErrorDescriptionFor: aMethodCategory in: aClass
 
 	^'Method category not found: ', aMethodCategory, ' in ', aClass name
 ! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 classDefinitionsToolName
 
 	^'class_definitions'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 classOrganizationsToolName
 
 	^'class_organizations'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 classSourcesToolName
 
 	^'class_sources'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 classesInCategoryToolName
 
 	^'classes_in_category'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 classifyMethodsToolName
 
 	^'classify_methods'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 defineClassToolName
 
 	^'define_class'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 defineMethodsToolName
 
 	^'define_methods'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 deleteClassesToolName
 
 	^'delete_classes'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 deleteMethodsToolName
 
 	^'delete_methods'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 hierarchiesToolName
 
 	^'hierarchies'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 listCategoriesToolName
 
 	^'list_categories'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 listClassesToolName
 
 	^'list_classes'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 methodSourcesInCategoryToolName
 
 	^'method_sources_in_category'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 methodSourcesOfClassToolName
 
 	^'method_sources_of_class'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 methodSourcesToolName
 
 	^'method_sources'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 methodsInCategoryToolName
 
 	^'methods_in_category'! !
 
-!MCPModelStructureTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPModelStructureToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 subclassesToolName
 
 	^'subclasses'! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 changePackageDescriptionTool
 
 	^MCPPluggableTool
@@ -3457,7 +3457,7 @@ changePackageDescriptionTool
 			aCodePackage description: aDescription.
 			Json render: (self summaryOf: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 changePackageFileNameTool
 
 	^MCPPluggableTool
@@ -3468,7 +3468,7 @@ changePackageFileNameTool
 			MCPPlainProperty named: 'fileName' describedBy: 'Absolute path of the .pck.st file the package is written to' }
 		executingWith: [ :aCodePackage :aFileName | self name: aFileName asTheFileOf: aCodePackage ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 changePackageRequirementsTool
 
 	^MCPPluggableTool
@@ -3483,7 +3483,7 @@ changePackageRequirementsTool
 			self require: (self namesFrom: someRequiredPackageNames) in: aCodePackage.
 			Json render: (self requirementNamesOf: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 listPackagesTool
 
 	^MCPPluggableTool
@@ -3498,7 +3498,7 @@ listPackagesTool
 			Json render: ((self packagesNamedStartingWith: aPrefix)
 				collect: [ :eachPackage | self summaryOf: eachPackage ]) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 packageClassesTool
 
 	^MCPPluggableTool
@@ -3507,7 +3507,7 @@ packageClassesTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: aCodePackage classNames asArray sorted ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:43 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:43 pm (UTC)'!
 packageDefinitionTool
 
 	^MCPPluggableTool
@@ -3516,7 +3516,7 @@ packageDefinitionTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self definitionOf: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 packageExtensionsTool
 
 	^MCPPluggableTool
@@ -3525,7 +3525,7 @@ packageExtensionsTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self namesOf: aCodePackage extensionMethods) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 packageMethodsTool
 
 	^MCPPluggableTool
@@ -3534,7 +3534,7 @@ packageMethodsTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self namesOf: aCodePackage methods) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 packageOfClassTool
 
 	^MCPPluggableTool
@@ -3543,7 +3543,7 @@ packageOfClassTool
 		properties: { MCPClassProperty default }
 		executingWith: [ :aClass | self nameOfPackageOf: aClass ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:12 pm (UTC)'!
 packageOfMethodTool
 
 	^MCPPluggableTool
@@ -3552,7 +3552,7 @@ packageOfMethodTool
 		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self nameOfPackageOfMethod: aMethod ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 packageSourceCodeTool
 
 	^MCPPluggableTool
@@ -3561,7 +3561,7 @@ packageSourceCodeTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self sourceCodeOf: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:29 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:29 pm (UTC)'!
 savePackageTool
 
 	^MCPPluggableTool
@@ -3570,7 +3570,7 @@ savePackageTool
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | self save: aCodePackage ]! !
 
-!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:57 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:57 pm (UTC)'!
 unsavedPackagesTool
 
 	^MCPPluggableTool
@@ -3582,24 +3582,24 @@ unsavedPackagesTool
 				select: [ :eachPackage | eachPackage hasUnsavedChanges ]
 				thenCollect: [ :eachPackage | eachPackage packageName ]) ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:40 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:40 pm (UTC)'!
 assertDirectoryExistsFor: aFileName
 
 	aFileName asFullFileEntry parent exists
 		ifFalse: [ self error: (self class directoryDoesNotExistErrorDescriptionFor: aFileName) ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:26 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:26 pm (UTC)'!
 assertKnowsItsFile: aCodePackage
 
 	(self knowsItsFile: aCodePackage)
 		ifFalse: [ self error: (self class doesNotKnowItsFileErrorDescriptionFor: aCodePackage) ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:36 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:36 pm (UTC)'!
 codePackageClass
 
 	^smalltalk classNamed: #CodePackage! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:18 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:18 pm (UTC)'!
 definitionOf: aCodePackage
 
 	"A package that was never written, or whose image was moved, knows no file, which is
@@ -3617,7 +3617,7 @@ definitionOf: aCodePackage
 		at: 'extensionMethodCount' put: aCodePackage extensionMethodCount;
 		yourself! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:37 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:37 pm (UTC)'!
 installedPackages
 
 	"Answer every package installed in the image, sorted by name, so that the same request is
@@ -3626,7 +3626,7 @@ installedPackages
 	^(self codePackageClass installedPackages values asSortedCollection: [ :onePackage :anotherPackage |
 		onePackage packageName <= anotherPackage packageName ]) asArray! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:21 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:21 pm (UTC)'!
 knowsItsFile: aCodePackage
 
 	"Answer whether aCodePackage can be written without being asked where, which is what its
@@ -3636,7 +3636,7 @@ knowsItsFile: aCodePackage
 		ifNil: [ false ]
 		ifNotNil: [ :aFileName | aFileName asFullFileEntry parent exists ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:35 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:35 pm (UTC)'!
 name: aFileName asTheFileOf: aCodePackage
 
 	"The directory has to be there before the name is taken: a package named a file in a
@@ -3647,7 +3647,7 @@ name: aFileName asTheFileOf: aCodePackage
 
 	^aFileName! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:39 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:39 pm (UTC)'!
 nameOfPackageOf: aClass
 
 	"A class no package holds - one just created, or one of the base image - is said to be in
@@ -3657,7 +3657,7 @@ nameOfPackageOf: aClass
 		ifNil: [ self class notInAnyPackageDescription ]
 		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:41 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 8/Sep/2026, 2:44:41 pm (UTC)'!
 nameOfPackageOfMethod: aMethod
 
 	"A method is looked for by its reference and not by its class, so that a method filed under
@@ -3667,17 +3667,17 @@ nameOfPackageOfMethod: aMethod
 		ifNil: [ self class notInAnyPackageDescription ]
 		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 namesOf: aCollectionOfMethods
 
 	^(aCollectionOfMethods collect: [ :aMethod | aMethod classAndSelector ]) asArray sorted! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:06 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:06 pm (UTC)'!
 packagesNamedStartingWith: aPrefix
 
 	^self installedPackages select: [ :eachPackage | eachPackage packageName beginsWith: aPrefix ]! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:50 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:59:50 pm (UTC)'!
 require: someRequiredPackageNames in: aCodePackage
 
 	"Replace what aCodePackage requires. A feature spec is told what it provides and what it
@@ -3693,7 +3693,7 @@ require: someRequiredPackageNames in: aCodePackage
 			collect: [ :eachName | FeatureRequirement name: eachName asSymbol ]) asSet.
 	aCodePackage hasUnsavedChanges: true! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:23 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:23 pm (UTC)'!
 requirementNamesOf: aCodePackage
 
 	"Answer the names of the packages aCodePackage requires. A requirement also holds the
@@ -3702,7 +3702,7 @@ requirementNamesOf: aCodePackage
 
 	^(aCodePackage requires collect: [ :eachRequirement | eachRequirement name asString ]) asArray sorted! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
 save: aCodePackage
 
 	"Asking a package that does not know its file to save itself opens a dialog on screen asking
@@ -3714,12 +3714,12 @@ save: aCodePackage
 
 	^aCodePackage fullFileName! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
 sourceCodeOf: aCodePackage
 
 	| modelStructureTools classSources |
 
-	modelStructureTools := MCPModelStructureTools for: smalltalk.
+	modelStructureTools := MCPModelStructureToolBox for: smalltalk.
 	classSources := OrderedDictionary new.
 	aCodePackage classesInSafeOrderDo: [ :aClass |
 		classSources at: aClass name put: (modelStructureTools classSourceOf: aClass) ].
@@ -3729,7 +3729,7 @@ sourceCodeOf: aCodePackage
 		at: 'extensions' put: (modelStructureTools sourcesOfMethods: aCodePackage extensionMethods);
 		yourself! !
 
-!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:11 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:11 pm (UTC)'!
 summaryOf: aCodePackage
 
 	"Answer what is worth knowing about a package without asking for it by name: what it is
@@ -3741,7 +3741,7 @@ summaryOf: aCodePackage
 		at: 'hasUnsavedChanges' put: aCodePackage hasUnsavedChanges;
 		yourself! !
 
-!MCPPackageTools methodsFor: 'arguments' stamp: 'HAW 8/Sep/2026, 2:44:34 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'arguments' stamp: 'HAW 8/Sep/2026, 2:44:34 pm (UTC)'!
 packageProperty
 
 	^MCPCodePackageProperty
@@ -3749,7 +3749,7 @@ packageProperty
 		describedBy: 'Name of the package'
 		in: smalltalk! !
 
-!MCPPackageTools methodsFor: 'tools' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+!MCPPackageToolBox methodsFor: 'tools' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -3767,87 +3767,87 @@ addToolsTo: anMCPServer
 		addTool: self changePackageRequirementsTool;
 		addTool: self changePackageFileNameTool! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 changePackageDescriptionToolName
 
 	^'change_package_description'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 changePackageFileNameToolName
 
 	^'change_package_file_name'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 changePackageRequirementsToolName
 
 	^'change_package_requirements'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 listPackagesToolName
 
 	^'list_packages'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:47 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:47 pm (UTC)'!
 packageClassesToolName
 
 	^'package_classes'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 packageDefinitionToolName
 
 	^'package_definition'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
 packageExtensionsToolName
 
 	^'package_extensions'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
 packageMethodsToolName
 
 	^'package_methods'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 packageOfClassToolName
 
 	^'package_of_class'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 packageOfMethodToolName
 
 	^'package_of_method'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
 packageSourceCodeToolName
 
 	^'package_source_code'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 savePackageToolName
 
 	^'save_package'! !
 
-!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 unsavedPackagesToolName
 
 	^'unsaved_packages'! !
 
-!MCPPackageTools class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:44 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:44 pm (UTC)'!
 directoryDoesNotExistErrorDescriptionFor: aFileName
 
 	^'There is no directory to write ', aFileName, ' in'! !
 
-!MCPPackageTools class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:30 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 1:59:30 pm (UTC)'!
 doesNotKnowItsFileErrorDescriptionFor: aCodePackage
 
 	^'The package ', aCodePackage packageName, ' does not know the file to write itself to. Name it with ', self changePackageFileNameToolName, ' first'! !
 
-!MCPPackageTools class methodsFor: 'constants' stamp: 'HAW 1/Sep/2026, 2:00:18 pm (UTC)'!
+!MCPPackageToolBox class methodsFor: 'constants' stamp: 'HAW 1/Sep/2026, 2:00:18 pm (UTC)'!
 notInAnyPackageDescription
 
 	^'It is not in any package'! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelector around: aClass when: aScopeName using: aRefactoringClass
 
 	aScopeName caseOf: {
@@ -3880,12 +3880,12 @@ implementors: anImplementorsCollection andSenders: aSendersCollection of: aSelec
 			inSystem: smalltalk ] }
 		otherwise: [ self error: (self class unknownScopeErrorDescriptionFor: aScopeName) ]! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 refactoringOn: aMethod within: aScopeName builtWith: aBlock
 
 	^self refactoringOn: aMethod within: aScopeName using: ScopedRefactoring builtWith: aBlock! !
 
-!MCPRefactoringToolGroup methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'scope' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 refactoringOn: aMethod within: aScopeName using: aRefactoringClass builtWith: aBlock
 
 	| implementors senders |
@@ -3902,12 +3902,12 @@ refactoringOn: aMethod within: aScopeName using: aRefactoringClass builtWith: aB
 
 	^aBlock value: implementors value: (senders collect: [ :eachSender | eachSender compiledMethod ])! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 categoryFor: aCategory of: aClass
 
 	^self class categoryFor: aCategory of: aClass! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'arguments' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
 classNamed: aClassName
 
 	^aClassName
@@ -3917,12 +3917,12 @@ classNamed: aClassName
 				ifNil: [ self error: (self class classNotFoundErrorDescriptionFor: aName) ] ]
 ! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 positionsIn: aCompiledMethod of: someParameterNames
 
 	^self class positionsIn: aCompiledMethod of: someParameterNames! !
 
-!MCPRefactoringToolGroup methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:04:39 am (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'arguments' stamp: 'HAW 9/Sep/2026, 2:04:39 am (UTC)'!
 scopeProperty
 
 	^MCPPlainProperty
@@ -3930,48 +3930,48 @@ scopeProperty
 		describedBy: self class scopeValuesDescription , '. Defaults to ' , self class defaultScopeName
 		defaultingTo: self class defaultScopeName! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:50:46 pm (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:50:46 pm (UTC)'!
 firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	^self class firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop! !
 
-!MCPRefactoringToolGroup methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
+!MCPRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	^self class intervalIn: aCompiledMethod matching: aText from: aStart to: aStop! !
 
-!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:47 pm (UTC)'!
 classNameNeededErrorDescription
 
 	^'Class name needed'
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 25/Aug/2026, 1:36:51 pm (UTC)'!
 classNotFoundErrorDescriptionFor: aClassName
 
 	^'Class not found: ', aClassName
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:28 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:28 pm (UTC)'!
 textFoundMoreThanOnceErrorDescriptionFor: aText in: aCompiledMethod
 
 	^'Text found more than once in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector,
 		', send the interval instead: ', aText
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:23 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 1/Sep/2026, 3:44:23 pm (UTC)'!
 textNotFoundErrorDescriptionFor: aText in: aCompiledMethod
 
 	^'Text not found in ', aCompiledMethod methodClass name, '>>', aCompiledMethod selector, ': ', aText
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 11:46:05 am (UTC)'!
 unknownScopeErrorDescriptionFor: aScopeName
 
 	^'Unknown scope: ', aScopeName
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 3:35:39 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 1/Sep/2026, 3:35:39 pm (UTC)'!
 scopePropertyName
 
 	"The name a client sends the scope under. A package that adds a scope of its own reads it
@@ -3979,7 +3979,7 @@ scopePropertyName
 
 	^'scope'! !
 
-!MCPRefactoringToolGroup class methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:51:18 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:51:18 pm (UTC)'!
 firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	"Answer the piece of source a refactoring works on: the interval when a client sends one,
@@ -3995,7 +3995,7 @@ firstIntervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	^(firstOccurrence to: firstOccurrence + aText size - 1) asSourceCodeInterval! !
 
-!MCPRefactoringToolGroup class methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:51:26 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'refactoring' stamp: 'HAW 2/Sep/2026, 8:51:26 pm (UTC)'!
 intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	"Answer the piece of source a refactoring works on, refusing a text the method says more
@@ -4011,7 +4011,7 @@ intervalIn: aCompiledMethod matching: aText from: aStart to: aStop
 
 	^interval! !
 
-!MCPRefactoringToolGroup class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 categoryFor: aCategory of: aClass
 
 	"Answer the category the new class is made in, which is the one of the class it came from
@@ -4020,7 +4020,7 @@ categoryFor: aCategory of: aClass
 	^aCategory isEmpty ifTrue: [ aClass category ] ifFalse: [ aCategory ]
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'arguments' stamp: 'HAW 2/Sep/2026, 8:50:11 pm (UTC)'!
 positionsIn: aCompiledMethod of: someParameterNames
 
 	"Answer where each parameter stands in the message, counting from one. A client names the
@@ -4030,17 +4030,17 @@ positionsIn: aCompiledMethod of: someParameterNames
 		aCompiledMethod methodNode argumentNames indexOf: eachName ]
 ! !
 
-!MCPRefactoringToolGroup class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:37 am (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:37 am (UTC)'!
 defaultScopeName
 
 	^'system'! !
 
-!MCPRefactoringToolGroup class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:22 am (UTC)'!
+!MCPRefactoringToolBox class methodsFor: 'descriptions' stamp: 'HAW 9/Sep/2026, 2:04:22 am (UTC)'!
 scopeValuesDescription
 
 	^'Where the sends to change are looked for, around the class of the method: class, hierarchy, category, hierarchyAndCategories or system. category is the whole tree of the root class category, which is what a package usually is, but a class category tree does not always have a package of its own'! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
 assert: someParameters isNamedBy: someAskedNames
 
 	"The new selector needs one keyword for each parameter the extracted code uses, which is
@@ -4049,7 +4049,7 @@ assert: someParameters isNamedBy: someAskedNames
 	someParameters size = someAskedNames size
 		ifFalse: [ ExtractMethodNewMethod signalExtractMethodWithWrongNumberOfArgumentsError ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgumentNames: someArgumentNames replacing: aReplacing
 
 	"Extract the code the interval covers into a method of its own, the way the applier does
@@ -4086,7 +4086,7 @@ extractMethodFrom: aMethodReference at: anInterval named: aNewSelector withArgum
 			withArgumentNames: (self namesRenaming: parameters asAskedIn: someArgumentNames))
 		replacements: replacements)! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:51:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 5:51:54 pm (UTC)'!
 extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval replacingAll: shouldReplaceAll
 
 	"Let the finder say which pieces are being replaced. It answers the ones that are the same
@@ -4108,7 +4108,7 @@ extractToTemporaryNamed: aVariableName in: aMethodReference at: anInterval repla
 	^MCPRefactoringApplier apply: (refactoring) reportingNewSourceOf: aMethodReference
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 4/Sep/2026, 1:04:04 pm (UTC)'!
 messageNamed: aNewSelector takingTheNamesOf: someParameters
 
 	^someParameters
@@ -4117,7 +4117,7 @@ messageNamed: aNewSelector takingTheNamesOf: someParameters
 			selector: aNewSelector asSymbol
 			arguments: (someParameters collect: [ :eachParameter | eachParameter name ]) asArray ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 messageNamed: aNewSelector withArgumentNames: someArgumentNames
 
 	"Answer the message the extracted code becomes, named the way a client asked for it."
@@ -4129,7 +4129,7 @@ messageNamed: aNewSelector withArgumentNames: someArgumentNames
 			arguments: ((someArgumentNames subStrings: ',') collect: [ :eachName | eachName withBlanksTrimmed ]) asArray ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 25/Aug/2026, 12:13:17 pm (UTC)'!
 messageSendIn: aCompiledMethod at: anInterval
 
 	"Answer the send the interval falls on, named the way InlineMethod asks for it."
@@ -4150,7 +4150,7 @@ messageSendIn: aCompiledMethod at: anInterval
 		completeSourceRange: nodeAndRange value
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:09 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:09 pm (UTC)'!
 methodNamed: aSelector inClassNamed: aClassName
 
 	| aClass |
@@ -4161,7 +4161,7 @@ methodNamed: aSelector inClassNamed: aClassName
 		compiledMethodAt: aSelector asSymbol
 		ifAbsent: [ self error: (MCPMethodProperty methodNotFoundErrorDescriptionFor: aSelector asSymbol in: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 11/Sep/2026, 1:59:58 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 11/Sep/2026, 1:59:58 pm (UTC)'!
 namesRenaming: someParameters asAskedIn: someArgumentNames
 
 	"Answer what the new method calls each parameter a client asked to name differently. One it
@@ -4179,7 +4179,7 @@ namesRenaming: someParameters asAskedIn: someArgumentNames
 
 	^renamedNames! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 11:55:19 am (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 11:55:19 am (UTC)'!
 pushUpRefactoringFor: aMethod pushingUpDependants: shouldPushUpDependants removingEquivalents: shouldRemoveEquivalents
 
 	| dependantMethods removingMethods |
@@ -4197,7 +4197,7 @@ pushUpRefactoringFor: aMethod pushingUpDependants: shouldPushUpDependants removi
 		additionallyRemovingFrom: removingMethods
 		pushingUp: dependantMethods! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
 replacementsFoundBy: aFinder replacing: aReplacing
 
 	"Answer the pieces the extraction replaces. The finder looks through the class and all its
@@ -4212,7 +4212,7 @@ replacementsFoundBy: aFinder replacing: aReplacing
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:45:18 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:45:18 pm (UTC)'!
 sendsOf: aMethod within: aScopeName
 
 	^self
@@ -4226,7 +4226,7 @@ sendsOf: aMethod within: aScopeName
 						addAll: (InlineMethod findReferencesToSelector: aMethod selector in: eachSender methodReference);
 						yourself ] ]! !
 
-!MCPRefactoringTools methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:13 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactoring' stamp: 'HAW 9/Sep/2026, 1:23:13 pm (UTC)'!
 sendsToInlineOf: aMethod within: aScopeName orTheOneIn: aSenderClassName named: aSenderSelector at: anIntervalBlock
 
 	^aSenderClassName
@@ -4236,7 +4236,7 @@ sendsToInlineOf: aMethod within: aScopeName orTheOneIn: aSenderClassName named: 
 			senderMethod := self methodNamed: aSenderSelector inClassNamed: aClassName.
 			Array with: (self messageSendIn: senderMethod at: (anIntervalBlock value: senderMethod)) ]! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addClassRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4245,7 +4245,7 @@ addClassRefactoringToolsTo: anMCPServer
 		addTool: self safelyRemoveClassRefactoringTool;
 		addTool: self renameGlobalRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addExtractionRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4255,7 +4255,7 @@ addExtractionRefactoringToolsTo: anMCPServer
 		addTool: self extractMethodRefactoringTool;
 		addTool: self extractMethodFromSimilarCodeRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addInstanceVariableRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4266,7 +4266,7 @@ addInstanceVariableRefactoringToolsTo: anMCPServer
 		addTool: self pushDownInstanceVariableRefactoringTool;
 		addTool: self removeUnreferencedInstanceVariablesRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addMethodRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4276,7 +4276,7 @@ addMethodRefactoringToolsTo: anMCPServer
 		addTool: self addAsSubclassResponsibilityRefactoringTool;
 		addTool: self moveToInstanceOrClassMethodRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addSelectorRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4285,7 +4285,7 @@ addSelectorRefactoringToolsTo: anMCPServer
 		addTool: self removeParameterRefactoringTool;
 		addTool: self addParameterRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addTemporaryRefactoringToolsTo: anMCPServer
 
 	anMCPServer
@@ -4293,7 +4293,7 @@ addTemporaryRefactoringToolsTo: anMCPServer
 		addTool: self inlineTemporaryVariableRefactoringTool;
 		addTool: self renameTemporaryRefactoringTool! !
 
-!MCPRefactoringTools methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tools' stamp: 'HAW 25/Aug/2026, 12:16:21 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	self
@@ -4304,7 +4304,7 @@ addToolsTo: anMCPServer
 		addTemporaryRefactoringToolsTo: anMCPServer;
 		addExtractionRefactoringToolsTo: anMCPServer! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 addInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4316,7 +4316,7 @@ addInstanceVariableRefactoringTool
 		executingWith: [ :aClass :aVariableName |
 			MCPRefactoringApplier applyReportingChangedClass: (AddInstanceVariable named: aVariableName to: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4326,7 +4326,7 @@ pushDownInstanceVariableRefactoringTool
 		executingWith: [ :aClass :aVariableName |
 			MCPRefactoringApplier applyReportingChangedClasses: (PushDownInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushUpInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4336,7 +4336,7 @@ pushUpInstanceVariableRefactoringTool
 		executingWith: [ :aClass :aVariableName |
 			MCPRefactoringApplier applyReportingChangedClasses: (PushUpInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 removeInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4346,7 +4346,7 @@ removeInstanceVariableRefactoringTool
 		executingWith: [ :aClass :aVariableName |
 			MCPRefactoringApplier applyReportingChangedClass: (RemoveInstanceVariable named: aVariableName from: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 removeUnreferencedInstanceVariablesRefactoringTool
 
 	^MCPRefactoringTool
@@ -4357,7 +4357,7 @@ removeUnreferencedInstanceVariablesRefactoringTool
 			MCPRefactoringApplier applyReportingRemovedVariables: (RemoveAllUnreferencedInstanceVariables from: aClass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - instance variable' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 renameInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4369,7 +4369,7 @@ renameInstanceVariableRefactoringTool
 		executingWith: [ :aClass :aVariableName :aNewVariableName |
 			MCPRefactoringApplier applyReportingChanges: (RenameInstanceVariable from: aVariableName to: aNewVariableName in: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 insertSuperclassRefactoringTool
 
 	^MCPRefactoringTool
@@ -4381,7 +4381,7 @@ insertSuperclassRefactoringTool
 		executingWith: [ :aClass :aNewClassName |
 			MCPRefactoringApplier applyReportingNewClass: (InsertSuperclass to: aClass named: aNewClassName asSymbol) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameClassRefactoringTool
 
 	^MCPRefactoringTool
@@ -4393,7 +4393,7 @@ renameClassRefactoringTool
 		executingWith: [ :aClass :aNewClassName |
 			MCPRefactoringApplier applyReportingChanges: (RenameClass from: aClass to: aNewClassName asSymbol in: smalltalk) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameGlobalRefactoringTool
 
 	^MCPRefactoringTool
@@ -4406,7 +4406,7 @@ renameGlobalRefactoringTool
 			MCPRefactoringApplier applyReportingChanges: (RenameGlobal from: aGlobalName asSymbol to: aNewGlobalName asSymbol in: smalltalk) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - class' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 safelyRemoveClassRefactoringTool
 
 	^MCPRefactoringTool
@@ -4415,7 +4415,7 @@ safelyRemoveClassRefactoringTool
 		properties: { MCPClassProperty withDefaultNameDescribedBy: 'Name of the class to remove' }
 		executingWith: [ :aClass | MCPRefactoringApplier applyReportingRemovedClasses: (SafelyRemoveClass of: aClass) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 11/Sep/2026, 2:20:00 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - selector' stamp: 'HAW 11/Sep/2026, 2:20:00 pm (UTC)'!
 addParameterRefactoringTool
 
 	^MCPRefactoringTool
@@ -4455,7 +4455,7 @@ addParameterRefactoringTool
 							implementors: implementors
 							senders: senders ] ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 changeKeywordsOrderRefactoringTool
 
 	^MCPRefactoringTool
@@ -4477,7 +4477,7 @@ changeKeywordsOrderRefactoringTool
 				builtWith: [ :implementors :senders |
 					ChangeKeywordsSelectorOrder from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 removeParameterRefactoringTool
 
 	^MCPRefactoringTool
@@ -4502,7 +4502,7 @@ removeParameterRefactoringTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - selector' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameSelectorRefactoringTool
 
 	^MCPRefactoringTool
@@ -4524,7 +4524,7 @@ renameSelectorRefactoringTool
 				builtWith: [ :implementors :senders |
 					RenameSelector from: aMethod selector to: aNewSelector implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 addAsSubclassResponsibilityRefactoringTool
 
 	^MCPRefactoringTool
@@ -4534,7 +4534,7 @@ addAsSubclassResponsibilityRefactoringTool
 		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (AddAsSubclassResponsibility for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - method' stamp: 'HAW 16/Sep/2026, 11:25:12 am (UTC)'!
 moveToInstanceOrClassMethodRefactoringTool
 
 	^MCPRefactoringTool
@@ -4551,7 +4551,7 @@ moveToInstanceOrClassMethodRefactoringTool
 				builtWith: [ :implementors :senders |
 					MoveToInstanceOrClassMethod for: aMethod implementors: implementors senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownMethodToOneSubclassRefactoringTool
 
 	^MCPRefactoringTool
@@ -4564,7 +4564,7 @@ pushDownMethodToOneSubclassRefactoringTool
 			MCPRefactoringApplier applyReportingChanges: (PushDownMethodToOneSubclass for: aMethod to: aSubclass) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushDownMethodToSubclassesRefactoringTool
 
 	^MCPRefactoringTool
@@ -4574,7 +4574,7 @@ pushDownMethodToSubclassesRefactoringTool
 		executingWith: [ :aMethod | MCPRefactoringApplier applyReportingChanges: (PushDownMethodToSubclasses for: aMethod) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - method' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 pushUpMethodRefactoringTool
 
 	^MCPRefactoringTool
@@ -4598,7 +4598,7 @@ pushUpMethodRefactoringTool
 				pushingUpDependants: aDependantsAnswer isTrue
 				removingEquivalents: anEquivalentsAnswer isTrue) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 inlineTemporaryVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4617,7 +4617,7 @@ inlineTemporaryVariableRefactoringTool
 					inMethod: aMethod) reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 renameTemporaryRefactoringTool
 
 	^MCPRefactoringTool
@@ -4635,7 +4635,7 @@ renameTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - temporary' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 temporaryToInstanceVariableRefactoringTool
 
 	^MCPRefactoringTool
@@ -4648,7 +4648,7 @@ temporaryToInstanceVariableRefactoringTool
 			MCPRefactoringApplier apply: (TemporaryToInstanceVariable named: aVariableName fromMethod: aMethod methodNode) reportingNewSourceOf: aMethod ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:54 pm (UTC)'!
 extractAsParameterRefactoringTool
 
 	^MCPRefactoringTool
@@ -4673,7 +4673,7 @@ extractAsParameterRefactoringTool
 						implementors: implementors
 						senders: senders ]) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractMethodFromSimilarCodeRefactoringTool
 
 	^MCPRefactoringTool
@@ -4693,7 +4693,7 @@ extractMethodFromSimilarCodeRefactoringTool
 				to: (self messageNamed: aNewSelector withArgumentNames: someArgumentNames) ]
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractToTemporaryRefactoringTool
 
 	^MCPRefactoringTool
@@ -4719,7 +4719,7 @@ extractToTemporaryRefactoringTool
 
 ! !
 
-!MCPRefactoringTools methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation - extraction' stamp: 'HAW 9/Sep/2026, 5:02:53 pm (UTC)'!
 inlineMethodRefactoringTool
 
 	^MCPRefactoringTool
@@ -4745,7 +4745,7 @@ inlineMethodRefactoringTool
 					at: [ :aSendingMethod | self intervalIn: aSendingMethod matching: aText from: aStart to: aStop ])
 				removeMethod: aRemoveAnswer isTrue) ]! !
 
-!MCPRefactoringTools methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'tool creation' stamp: 'HAW 9/Sep/2026, 3:26:17 pm (UTC)'!
 extractMethodRefactoringTool
 
 	^MCPRefactoringTool
@@ -4767,7 +4767,7 @@ extractMethodRefactoringTool
 				withArgumentNames: someArgumentNames
 				replacing: aReplacing ]! !
 
-!MCPRefactoringTools methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
 extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
 
 	"Extract the code the interval covers into a method of its own and send it wherever code
@@ -4800,7 +4800,7 @@ extractMethodFromSimilarCodeIn: aMethodReference at: anInterval to: aMessage
 		replacements: finder replacements)
 ! !
 
-!MCPRefactoringTools methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
+!MCPBaseRefactoringToolBox methodsFor: 'refactorings - private' stamp: 'HAW 22/Sep/2026, 10:06:27 pm (UTC)'!
 newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: someParseNodes sharedAs: aParameterSharing
 
 	"Build the new method the way the applier does for parameterized code. The pieces that
@@ -4834,165 +4834,165 @@ newMethodFor: aMessage using: aParameterizableReplacement notParameterizing: som
 		sharedAs: parameterSharing
 ! !
 
-!MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 24/Aug/2026, 11:26:44 pm (UTC)'!
 noMessageSendErrorDescriptionIn: aCompiledMethod at: anIndex
 
 	^'No message send at character ', anIndex printString, ' of ',
 		aCompiledMethod methodClass name, '>>', aCompiledMethod selector
 ! !
 
-!MCPRefactoringTools class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'error descriptions' stamp: 'HAW 27/Aug/2026, 1:17:48 pm (UTC)'!
 unknownReplacingErrorDescriptionFor: aReplacing
 
 	^'Unknown replacing: ', aReplacing, '. It is one of selection, method, class or hierarchy'
 ! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 addAsSubclassResponsibilityRefactoringToolName
 
 	^'refactor_add_as_subclass_responsibility'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 addInstanceVariableRefactoringToolName
 
 	^'refactor_add_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 addParameterRefactoringToolName
 
 	^'refactor_add_parameter'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 changeKeywordsOrderRefactoringToolName
 
 	^'refactor_change_keywords_order'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractAsParameterRefactoringToolName
 
 	^'refactor_extract_as_parameter'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractMethodFromSimilarCodeRefactoringToolName
 
 	^'refactor_extract_method_from_similar_code'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractMethodRefactoringToolName
 
 	^'refactor_extract_method'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 extractToTemporaryRefactoringToolName
 
 	^'refactor_extract_to_temporary'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 inlineMethodRefactoringToolName
 
 	^'refactor_inline_method'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 inlineTemporaryVariableRefactoringToolName
 
 	^'refactor_inline_temporary_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 insertSuperclassRefactoringToolName
 
 	^'refactor_insert_superclass'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 moveToInstanceOrClassMethodRefactoringToolName
 
 	^'refactor_move_to_instance_or_class_method'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 pushDownInstanceVariableRefactoringToolName
 
 	^'refactor_push_down_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 pushDownMethodToOneSubclassRefactoringToolName
 
 	^'refactor_push_down_method_to_one_subclass'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 pushDownMethodToSubclassesRefactoringToolName
 
 	^'refactor_push_down_method_to_subclasses'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 pushUpInstanceVariableRefactoringToolName
 
 	^'refactor_push_up_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 pushUpMethodRefactoringToolName
 
 	^'refactor_push_up_method'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 removeInstanceVariableRefactoringToolName
 
 	^'refactor_remove_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 removeParameterRefactoringToolName
 
 	^'refactor_remove_parameter'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 removeUnreferencedInstanceVariablesRefactoringToolName
 
 	^'refactor_remove_unreferenced_instance_variables'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 renameClassRefactoringToolName
 
 	^'refactor_rename_class'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 renameGlobalRefactoringToolName
 
 	^'refactor_rename_global'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 renameInstanceVariableRefactoringToolName
 
 	^'refactor_rename_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 renameSelectorRefactoringToolName
 
 	^'refactor_rename_selector'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 renameTemporaryRefactoringToolName
 
 	^'refactor_rename_temporary'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 safelyRemoveClassRefactoringToolName
 
 	^'refactor_safely_remove_class'! !
 
-!MCPRefactoringTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:44:05 pm (UTC)'!
 temporaryToInstanceVariableRefactoringToolName
 
 	^'refactor_temporary_to_instance_variable'! !
 
-!MCPRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:00 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:00 pm (UTC)'!
 senderClassPropertyName
 
 	^'senderClassName'! !
 
-!MCPRefactoringTools class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:04 pm (UTC)'!
+!MCPBaseRefactoringToolBox class methodsFor: 'property names' stamp: 'HAW 9/Sep/2026, 1:23:04 pm (UTC)'!
 senderSelectorPropertyName
 
 	^'senderSelector'! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 implementorsOfTool
 
 	^MCPPluggableTool
@@ -5006,7 +5006,7 @@ implementorsOfTool
 				renderReferencesBySelectorIn: someSelectors
 				foundBy: [ :eachSelector | smalltalk allImplementorsOf: eachSelector ] ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 referencesDescriptionOf: aCollectionOfMethodReferences
 
 	^OrderedDictionary new
@@ -5014,12 +5014,12 @@ referencesDescriptionOf: aCollectionOfMethodReferences
 		put: (aCollectionOfMethodReferences collect: [ :eachReference | eachReference stringVersion ]) asArray sort;
 		yourself! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 referencesTo: aClass
 
 	^smalltalk allCallsOn: (smalltalk associationAt: aClass name)! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:53 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:36:53 pm (UTC)'!
 referencesToClassVariableTool
 
 	^MCPPluggableTool
@@ -5034,7 +5034,7 @@ referencesToClassVariableTool
 			definingClass ifNil: [ self error: (MCPServer classVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
 			self renderReferences: (smalltalk allCallsOn: (definingClass classVarBindingOf: aVariableName asSymbol)) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:33 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:33 pm (UTC)'!
 referencesToClassesTool
 
 	^MCPPluggableTool
@@ -5043,7 +5043,7 @@ referencesToClassesTool
 		properties: { MCPClassesProperty default }
 		executingWith: [ :someClasses | self renderReferencesByClassIn: someClasses ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:13 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:19:13 pm (UTC)'!
 referencesToInstanceVariableTool
 
 	^MCPPluggableTool
@@ -5055,7 +5055,7 @@ referencesToInstanceVariableTool
 				ifFalse: [ self error: (MCPServer instanceVariableNotFoundErrorDescriptionFor: aVariableName in: aClass) ].
 			self renderReferences: (aClass allBroadAccessesTo: aVariableName) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 renderReferences: aCollectionOfMethodReferences
 
 	"Answer the methods a search found in a field of their own, so that a package loaded
@@ -5063,7 +5063,7 @@ renderReferences: aCollectionOfMethodReferences
 
 	^Json render: (self referencesDescriptionOf: aCollectionOfMethodReferences)! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 renderReferencesByClassIn: someClasses
 
 	^Json render: (someClasses
@@ -5074,7 +5074,7 @@ renderReferencesByClassIn: someClasses
 				put: (self referencesDescriptionOf: (self referencesTo: eachClass));
 				yourself ])! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 renderReferencesBySelectorIn: someSelectors foundBy: aSearchBlock
 
 	^Json render: ((self selectorsFrom: someSelectors)
@@ -5085,13 +5085,13 @@ renderReferencesBySelectorIn: someSelectors foundBy: aSearchBlock
 				put: (self referencesDescriptionOf: (aSearchBlock value: eachSelector));
 				yourself ])! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 renderSelectors: someSelectors
 
 	^Json render: (someSelectors collect: [ :eachSelector | eachSelector asString ])
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 searchSelectorsTool
 
 	^MCPPluggableTool
@@ -5101,7 +5101,7 @@ searchSelectorsTool
 		executingWith: [ :aText | self renderSelectors: (self selectorsContaining: aText) ]
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:10:18 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 8/Sep/2026, 9:10:18 pm (UTC)'!
 searchSourceTool
 
 	^MCPPluggableTool
@@ -5110,7 +5110,7 @@ searchSourceTool
 		properties: { MCPPlainProperty named: 'text' describedBy: 'Text the source code contains' }
 		executingWith: [ :aText | self renderReferences: (smalltalk allMethodsWithSourceString: aText matchCase: true) ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 26/Aug/2026, 11:01:30 pm (UTC)'!
 selectorsContaining: aText
 
 	| messageNames |
@@ -5121,13 +5121,13 @@ selectorsContaining: aText
 	^messageNames computeSelectorListFromSearchString
 ! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 selectorsFrom: aCommaSeparatedText
 
 	^(self namesFrom: aCommaSeparatedText)
 		collect: [ :eachName | eachName asSymbol ]! !
 
-!MCPSearchTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 sendersOfTool
 
 	^MCPPluggableTool
@@ -5141,7 +5141,7 @@ sendersOfTool
 				renderReferencesBySelectorIn: someSelectors
 				foundBy: [ :eachSelector | smalltalk allCallsOn: eachSelector ] ]! !
 
-!MCPSearchTools methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:33 pm (UTC)'!
+!MCPSearchToolBox methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:33 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -5153,54 +5153,54 @@ addToolsTo: anMCPServer
 		addTool: self searchSourceTool;
 		addTool: self searchSelectorsTool! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 implementorsOfToolName
 
 	^'implementors_of'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 referencesToClassVariableToolName
 
 	^'references_to_class_variable'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 referencesToClassesToolName
 
 	^'references_to_classes'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 referencesToInstanceVariableToolName
 
 	^'references_to_instance_variable'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 searchSelectorsToolName
 
 	^'search_selectors'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 searchSourceToolName
 
 	^'search_source'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 11/Sep/2026, 2:16:36 pm (UTC)'!
 selectorsPropertyName
 
 	^'selectors'! !
 
-!MCPSearchTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPSearchToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 sendersOfToolName
 
 	^'senders_of'! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 classesNamed: aCommaSeparatedText
 
 	^(self namesFrom: aCommaSeparatedText) collect: [ :eachClassName |
 		(smalltalk classNamed: eachClassName)
 			ifNil: [ self error: (MCPClassProperty classNotFoundErrorDescriptionFor: eachClassName) ] ]! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 28/Aug/2026, 12:36:18 am (UTC)'!
 namesOfTests: someTests
 
 	"A test says its own name, which is the class that holds it and the selector it is run by."
@@ -5208,7 +5208,7 @@ namesOfTests: someTests
 	^(someTests collect: [ :eachTest | eachTest printString ]) asSortedCollection asArray
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 runTestClassTool
 
 	^MCPPluggableTool
@@ -5218,7 +5218,7 @@ runTestClassTool
 		executingWith: [ :aClass | self runTestsIn: (TestSuite forTestCaseClass: aClass) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 3/Sep/2026, 9:30:14 pm (UTC)'!
 runTestMethodTool
 
 	^MCPPluggableTool
@@ -5228,7 +5228,7 @@ runTestMethodTool
 		executingWith: [ :aMethod | self runTestsIn: (TestSuite forTestMethod: aMethod) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 runTestsForClassesTool
 
 	^MCPPluggableTool
@@ -5241,7 +5241,7 @@ runTestsForClassesTool
 				named: someClassNames) ]
 ! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:37 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:43:37 pm (UTC)'!
 runTestsInCategoriesTool
 
 	^MCPPluggableTool
@@ -5250,7 +5250,7 @@ runTestsInCategoriesTool
 		properties: { MCPPlainProperty named: 'categoryNames' describedBy: 'Names of the class categories, separated by commas' }
 		executingWith: [ :someCategoryNames | self runTestsIn: (self suiteForCategoriesNamed: someCategoryNames) ]! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 suiteForCategoriesNamed: someCategoryNames
 
 	| suite |
@@ -5261,12 +5261,12 @@ suiteForCategoriesNamed: someCategoryNames
 
 	^suite! !
 
-!MCPTestRunningTools methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tool creation' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
 suiteForCategoryNamed: aCategoryName
 
 	^TestSuite forSystemCategoryNamed: aCategoryName using: smalltalk organization! !
 
-!MCPTestRunningTools methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:37 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'tools' stamp: 'HAW 16/Sep/2026, 2:43:37 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
@@ -5276,7 +5276,7 @@ addToolsTo: anMCPServer
 		addTool: self runTestsForClassesTool
 ! !
 
-!MCPTestRunningTools methodsFor: 'running tests' stamp: 'HAW 3/Sep/2026, 10:26:43 pm (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'running tests' stamp: 'HAW 3/Sep/2026, 10:26:43 pm (UTC)'!
 descriptionOf: aTestResult
 
 	^OrderedDictionary new
@@ -5287,7 +5287,7 @@ descriptionOf: aTestResult
 		at: 'errors' put: (self namesOfTests: aTestResult errors);
 		yourself! !
 
-!MCPTestRunningTools methodsFor: 'running tests' stamp: 'HAW 4/Sep/2026, 11:28:53 am (UTC)'!
+!MCPTestRunningToolBox methodsFor: 'running tests' stamp: 'HAW 4/Sep/2026, 11:28:53 am (UTC)'!
 runTestsIn: aTestSuite
 
 	"The suite runs in a process of its own and this one waits for it. Not for concurrency: a
@@ -5312,27 +5312,27 @@ runTestsIn: aTestSuite
 		ifNil: [ self error: (self class testsDidNotFinishErrorDescriptionFor: aTestSuite) ]
 		ifNotNil: [ :aTestResult | Json render: (self descriptionOf: aTestResult) ]! !
 
-!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
+!MCPTestRunningToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 runTestClassToolName
 
 	^'run_test_class'! !
 
-!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
+!MCPTestRunningToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
 runTestMethodToolName
 
 	^'run_test_method'! !
 
-!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
+!MCPTestRunningToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
 runTestsForClassesToolName
 
 	^'run_tests_for_classes'! !
 
-!MCPTestRunningTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
+!MCPTestRunningToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
 runTestsInCategoriesToolName
 
 	^'run_tests_in_categories'! !
 
-!MCPTestRunningTools class methodsFor: 'error descriptions' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
+!MCPTestRunningToolBox class methodsFor: 'error descriptions' stamp: 'HAW 4/Sep/2026, 11:14:56 am (UTC)'!
 testsDidNotFinishErrorDescriptionFor: aTestSuite
 
 	^'The tests of ', aTestSuite name, ' did not finish: the process running them was terminated before it answered'! !
@@ -5525,10 +5525,10 @@ initializeNamed: aName describedBy: aDescription required: isRequired ifAbsent: 
 	absentBlock := anAbsentBlock.
 	classProperty := aClassProperty! !
 
-!MCPClassesProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 1:58:09 pm (UTC)'!
+!MCPClassesProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 3:08:34 pm (UTC)'!
 valueFor: aCommaSeparatedText
 
-	^(MCPToolGroup namesFrom: aCommaSeparatedText)
+	^(MCPToolBox namesFrom: aCommaSeparatedText)
 		collect: [ :eachName | classProperty valueFor: eachName ]! !
 
 !MCPClassesProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 1:56:49 pm (UTC)'!
@@ -5829,10 +5829,10 @@ selectorIn: aMethodName after: aSeparatorIndex
 
 	^(aMethodName allButFirst: aSeparatorIndex + 1) withBlanksTrimmed copyWithout: $#! !
 
-!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 3:08:38 pm (UTC)'!
 valueFor: aCommaSeparatedText
 
-	^(MCPToolGroup namesFrom: aCommaSeparatedText) collect: [ :eachMethodName |
+	^(MCPToolBox namesFrom: aCommaSeparatedText) collect: [ :eachMethodName |
 		methodProperty valueFrom: (self argumentsNaming: eachMethodName) ]! !
 
 !MCPMethodsProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!

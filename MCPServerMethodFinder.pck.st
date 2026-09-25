@@ -1,26 +1,26 @@
-'From Cuis7.9 [latest update: #8184] on 16 September 2026 at 3:55:39 pm'!
-'Description Name the tools without the smalltalk_ prefix and the multi-item readers in plural'!
-!provides: 'MCPServerMethodFinder' 1 5!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:21 pm'!
+'Description Name the tool groups as tool boxes'!
+!provides: 'MCPServerMethodFinder' 1 6!
 !requires: 'MCPServer' nil nil nil!
 !requires: 'MethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinder!
 
 
-!classDefinition: #MCPMethodFinderTools category: #MCPServerMethodFinder!
-MCPToolGroup subclass: #MCPMethodFinderTools
+!classDefinition: #MCPMethodFinderToolBox category: #MCPServerMethodFinder!
+MCPToolBox subclass: #MCPMethodFinderToolBox
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerMethodFinder'!
-!classDefinition: 'MCPMethodFinderTools class' category: #MCPServerMethodFinder!
-MCPMethodFinderTools class
+!classDefinition: 'MCPMethodFinderToolBox class' category: #MCPServerMethodFinder!
+MCPMethodFinderToolBox class
 	instanceVariableNames: ''!
 
 
-!MCPMethodFinderTools commentStamp: '<historical>' prior: 0!
+!MCPMethodFinderToolBox commentStamp: '<historical>' prior: 0!
 I am the tool that finds a message by an example of what it answers, which is what MethodFinder does. I live in a package of my own so that the ones that search the image by name do not need it.!
 
-!MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPMethodFinderToolBox methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
 findMessagesByExampleTool
 
 	^MCPPluggableTool
@@ -37,7 +37,7 @@ findMessagesByExampleTool
 				expecting: anExpectedSource) ]
 ! !
 
-!MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
+!MCPMethodFinderToolBox methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
 messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpectedSource
 
 	| arguments |
@@ -55,7 +55,7 @@ messagesFrom: aReceiverSource withArguments: anArgumentsSource expecting: anExpe
 		yourself) messageList
 ! !
 
-!MCPMethodFinderTools methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
+!MCPMethodFinderToolBox methodsFor: 'tool creation' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
 renderMessagesFound: someMethodEvaluationReferences
 
 	"Answer each message along with the expression that answers the expected result, which is
@@ -68,12 +68,12 @@ renderMessagesFound: someMethodEvaluationReferences
 			yourself ]) asArray
 ! !
 
-!MCPMethodFinderTools methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:36 pm (UTC)'!
+!MCPMethodFinderToolBox methodsFor: 'tools' stamp: 'HAW 31/Aug/2026, 10:11:36 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer addTool: self findMessagesByExampleTool! !
 
-!MCPMethodFinderTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
+!MCPMethodFinderToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:50 pm (UTC)'!
 findMessagesByExampleToolName
 
 	^'find_messages_by_example'! !
