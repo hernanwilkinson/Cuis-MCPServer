@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:04:36 pm'!
-'Description Extract similar code repeating an expression in several places as one parameter'!
-!provides: 'MCPServer' 1 89!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 11:38:27 am'!
+'Description Refuse the arguments a tool does not declare'!
+!provides: 'MCPServer' 1 90!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -1184,8 +1184,21 @@ requiredNames
 		into: [ :someNames :eachProperty |
 			eachProperty addRequiredNamesTo: someNames ]) asArray! !
 
-!MCPDeclaredProperties methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 1:26:45 pm (UTC)'!
+!MCPDeclaredProperties methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 2:31:05 pm (UTC)'!
+assertDeclares: anArguments
+
+	"An argument no property takes would be ignored, and the tool would answer for a call the client did not mean"
+
+	| declaredNames |
+
+	declaredNames := self propertiesDefinition keys.
+	(anArguments keys difference: declaredNames) ifNotEmpty: [ :additionalArgumentNames |
+		self error: (self class unknownArgumentsErrorDescriptionFor: additionalArgumentNames asSortedCollection among: declaredNames) ]! !
+
+!MCPDeclaredProperties methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
 valuesFrom: anArguments
+
+	self assertDeclares: anArguments.
 
 	^(properties
 		inject: OrderedCollection new
@@ -1196,6 +1209,11 @@ valuesFrom: anArguments
 of: someProperties
 
 	^self new initializeOf: someProperties! !
+
+!MCPDeclaredProperties class methodsFor: 'error descriptions' stamp: 'HAW 25/Sep/2026, 2:31:05 pm (UTC)'!
+unknownArgumentsErrorDescriptionFor: additionalArgumentNames among: declaredNames
+
+	^'Unknown arguments: ' , (', ' join: additionalArgumentNames) , '. The arguments are ' , (', ' join: declaredNames)! !
 
 !MCPHttpSession methodsFor: 'initialization' stamp: ''!
 initializeIdentifiedAs: anIdentifier writingTo: aStream
@@ -2609,10 +2627,10 @@ addedProperties
 	^#()
 ! !
 
-!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 27/Aug/2026, 10:15:22 pm (UTC)'!
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 10:57:22 am (UTC)'!
 decorateeAnswerFor: anArguments
 
-	^ Json readFrom: (decoratee valueWithArguments: anArguments) readStream! !
+	^ Json readFrom: (decoratee valueWithArguments: (self withoutAddedPropertiesIn: anArguments)) readStream! !
 
 !MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 1/Sep/2026, 3:39:14 pm (UTC)'!
 definition
@@ -2641,6 +2659,19 @@ name
 
 	^decoratee name
 ! !
+
+!MCPToolDecorator methodsFor: 'tool' stamp: 'HAW 25/Sep/2026, 10:57:22 am (UTC)'!
+withoutAddedPropertiesIn: anArguments
+
+	"The tool I decorate takes only what it declares, so what I add for myself does not reach it"
+
+	| decorateeArguments |
+
+	decorateeArguments := anArguments copy.
+	(MCPDeclaredProperties of: self addedProperties) propertiesDefinition keysDo: [ :eachName |
+		decorateeArguments removeKey: eachName ifAbsent: [] ].
+
+	^decorateeArguments! !
 
 !MCPToolDecorator methodsFor: 'batch' stamp: 'HAW 15/Sep/2026, 7:28:24 pm (UTC)'!
 stopsBatchWhenAnswering: anAnswer
@@ -3046,7 +3077,7 @@ listCategoriesTool
 		executingWith: [ Json render: SystemOrganization categories asArray sorted ]
 ! !
 
-!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:44:16 pm (UTC)'!
+!MCPModelStructureTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:31:05 pm (UTC)'!
 listClassesTool
 
 	^MCPPluggableTool
@@ -5269,7 +5300,7 @@ type
 	^'string'
 ! !
 
-!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 7/Sep/2026, 11:18:13 pm (UTC)'!
+!MCPToolProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
 addValueFrom: anArguments to: someValues
 
 	someValues add: (self valueFrom: anArguments).
@@ -5503,7 +5534,7 @@ addTo: aProperties
 
 	^variableNameProperty addTo: (classProperty addTo: aProperties)! !
 
-!MCPInstanceVariableProperty methodsFor: 'request arguments' stamp: 'HAW 7/Sep/2026, 11:18:20 pm (UTC)'!
+!MCPInstanceVariableProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
 addValueFrom: anArguments to: someValues
 
 	^variableNameProperty
@@ -5618,7 +5649,7 @@ assert: aSelector isImplementedBy: aClass
 		ifFalse: [ self error: (self class methodNotFoundErrorDescriptionFor: aSelector in: aClass) ]
 ! !
 
-!MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 25/Aug/2026, 10:57:50 am (UTC)'!
+!MCPMethodProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
 valueFrom: anArguments
 
 	"Answer the compiled method the class and the selector name. It is one value and not two:
@@ -5630,9 +5661,7 @@ valueFrom: anArguments
 	aSelector := selectorProperty valueFrom: anArguments.
 	self assert: aSelector isImplementedBy: aClass.
 
-	^aClass >> aSelector
-
-! !
+	^aClass >> aSelector! !
 
 !MCPMethodProperty class methodsFor: 'instance creation' stamp: 'HAW 11/Sep/2026, 2:16:22 pm (UTC)'!
 classDescribedBy: aClassDescription selectorDescribedBy: aSelectorDescription
@@ -5720,7 +5749,7 @@ selectorIn: aMethodName after: aSeparatorIndex
 
 	^(aMethodName allButFirst: aSeparatorIndex + 1) withBlanksTrimmed copyWithout: $#! !
 
-!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 11/Sep/2026, 2:42:26 pm (UTC)'!
+!MCPMethodsProperty methodsFor: 'request arguments' stamp: 'HAW 25/Sep/2026, 1:38:32 pm (UTC)'!
 valueFor: aCommaSeparatedText
 
 	^(MCPToolGroup namesFrom: aCommaSeparatedText) collect: [ :eachMethodName |

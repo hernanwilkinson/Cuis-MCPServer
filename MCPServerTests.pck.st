@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 22 September 2026 at 9:43:50 pm'!
-'Description Cover extracting similar code that differs in a measure next to its own temporaries'!
-!provides: 'MCPServerTests' 1 80!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 11:38:31 am'!
+'Description Refuse the arguments a tool does not declare'!
+!provides: 'MCPServerTests' 1 81!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -4514,6 +4514,22 @@ testAddingToolAlreadyAddedFails
 		should: [ server addTool: evaluateTool ]
 		raise: Error
 		withMessageText: (MCPServer toolAlreadyAddedErrorDescriptionFor: MCPImageTools evaluateToolName)! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 12:23:36 pm (UTC)'!
+testCallingAToolWithAnArgumentItDoesNotKnowFails
+
+	self
+		should: [ client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: (MCPDeclaredProperties unknownArgumentsErrorDescriptionFor: #('kode') among: #('code')))! !
+
+!MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 25/Sep/2026, 12:23:36 pm (UTC)'!
+testCallingAToolWithSeveralArgumentsItDoesNotKnowNamesThemAll
+
+	self
+		should: [ client callTool: MCPImageTools evaluateToolName with: (self arguments: 'code' being: '3 + 4' and: 'kode' being: '3 + 4' and: 'extra' being: '') ]
+		raise: Error
+		withMessageText: (self serverErrorTextFor: (MCPDeclaredProperties unknownArgumentsErrorDescriptionFor: #('extra' 'kode') among: #('code')))! !
 
 !MCPServerToolsTest methodsFor: 'tests' stamp: 'HAW 27/Aug/2026, 6:09:02 pm (UTC)'!
 testCallingAnUnknownToolFails
