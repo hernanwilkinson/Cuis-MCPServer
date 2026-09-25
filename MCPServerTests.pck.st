@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:49 pm'!
-'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerTests' 1 83!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:49:34 pm'!
+'Description Name the tool boxes in the comments of their tests'!
+!provides: 'MCPServerTests' 1 84!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -202,10 +202,10 @@ Six of my tests ask each tool what it answers when no debugger is open, which is
 My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
 
 !MCPImageToolsTest commentStamp: '<historical>' prior: 0!
-I am the tests of MCPImageTools: evaluating code, saving the image, and the batch tool that calls several tools in one call. I play the image the server saves, so that saving it in a test writes nothing to disk.!
+I am the tests of MCPImageToolBox: evaluating code, saving the image, and the batch tool that calls several tools in one call. I play the image the server saves, so that saving it in a test writes nothing to disk.!
 
 !MCPModelStructureToolsTest commentStamp: '<historical>' prior: 0!
-I am the tests of MCPMetamodelTools, which read and change classes, their categories, their hierarchy and their methods.!
+I am the tests of MCPModelStructureToolBox, which reads and changes classes, their categories, their hierarchy and their methods.!
 
 !MCPPackageToolsTest commentStamp: '<historical>' prior: 0!
 I test the tools that act on the code packages of the image.
@@ -213,10 +213,10 @@ I test the tools that act on the code packages of the image.
 I work on a package of my own, named after the class category these tests create their classes in, so that what it holds is what a test creates and no package of the image is touched, and I write it to a directory of my own that I take away afterwards.!
 
 !MCPRefactoringToolsTest commentStamp: '<historical>' prior: 0!
-I am the tests of MCPRefactoringTools, the refactorings that come with the image.!
+I am the tests of MCPBaseRefactoringToolBox, the refactorings that come with the image.!
 
 !MCPSearchToolsTest commentStamp: '<historical>' prior: 0!
-I am the tests of MCPSearchTools, which look through the image for who sends, who implements, what names a class or a variable, and what already answers a result.!
+I am the tests of MCPSearchToolBox, which looks through the image for who sends, who implements, what names a class or a variable, and what already answers a result.!
 
 !MCPServerToolsTest commentStamp: '<historical>' prior: 0!
 I am the tests of the tools a server serves itself rather than through a box of them, which are evaluating code and running tests, and of the protocol it answers.!
