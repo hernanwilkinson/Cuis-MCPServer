@@ -1,23 +1,23 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:24 pm'!
-'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerMethodFinderTests' 1 5!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:36 pm'!
+'Description Name the tests after the tool boxes they test'!
+!provides: 'MCPServerMethodFinderTests' 1 6!
 !requires: 'MCPServerTests' nil nil nil!
 !requires: 'MCPServerMethodFinder' nil nil nil!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
 
 
-!classDefinition: #MCPMethodFinderToolsTest category: #MCPServerMethodFinderTests!
-MCPToolsTest subclass: #MCPMethodFinderToolsTest
+!classDefinition: #MCPMethodFinderToolBoxTest category: #MCPServerMethodFinderTests!
+MCPToolBoxTest subclass: #MCPMethodFinderToolBoxTest
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MCPServerMethodFinderTests'!
-!classDefinition: 'MCPMethodFinderToolsTest class' category: #MCPServerMethodFinderTests!
-MCPMethodFinderToolsTest class
+!classDefinition: 'MCPMethodFinderToolBoxTest class' category: #MCPServerMethodFinderTests!
+MCPMethodFinderToolBoxTest class
 	instanceVariableNames: ''!
 
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:27 pm (UTC)'!
 testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
 
 	self
@@ -27,7 +27,7 @@ testFindingMessagesByExampleAnswersNoneWhenNoMessageAnswersTheExpectedResult
 		equals: #()
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:30 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:30 pm (UTC)'!
 testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
 
 	"The block is built out of a message the elements of the collection understand, and it is
@@ -41,7 +41,7 @@ testFindingMessagesByExampleAnswersTheBlockTheEnumeratingMessageNeeds
 
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
 testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheResultWith
 
 	self assert: ((self messagesFoundWith: (self
@@ -49,7 +49,7 @@ testFindingMessagesByExampleAnswersTheEnumeratingMessageACollectionAnswersTheRes
 		and: 'expected' being: '#(1 3)')) includes: 'SequenceableCollection>>#select:')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
 testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
 
 	self assert: ((self expressionsFoundWith: (self
@@ -57,7 +57,7 @@ testFindingMessagesByExampleAnswersTheExpressionThatAnswersTheExpectedResult
 		and: 'expected' being: '''methods''')) includes: '''method'' asPlural')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
 testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
 
 	self assert: ((self messagesFoundWith: (self
@@ -65,7 +65,7 @@ testFindingMessagesByExampleAnswersTheMessageThatAnswersTheExpectedResult
 		and: 'expected' being: '''methods''')) includes: 'CharacterSequence>>#asPlural')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tests' stamp: 'HAW 31/Aug/2026, 10:11:31 pm (UTC)'!
 testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 
 	self assert: ((self messagesFoundWith: (self
@@ -74,14 +74,14 @@ testFindingMessagesByExampleSendsTheArgumentsItIsGiven
 		and: 'arguments' being: '#(4)')) includes: 'SmallInteger>>#+')
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:54 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:54 pm (UTC)'!
 expressionsFoundWith: anArguments
 
 	^(self jsonAnswerOf: MCPMethodFinderToolBox findMessagesByExampleToolName with: anArguments)
 		collect: [ :eachMessageFound | eachMessageFound at: 'expression' ]
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:56 pm (UTC)'!
 messagesFoundWith: anArguments
 
 	"Answer the name of each message the finder found, which is what names it in the image."
@@ -90,12 +90,12 @@ messagesFoundWith: anArguments
 		collect: [ :eachMessageFound | eachMessageFound at: 'message' ]
 ! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
 toolBoxClasses
 
 	^{ MCPMethodFinderToolBox }! !
 
-!MCPMethodFinderToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:22 pm (UTC)'!
+!MCPMethodFinderToolBoxTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:22 pm (UTC)'!
 toolDecoratorClasses
 
 	^#()! !
