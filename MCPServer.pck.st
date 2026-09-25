@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 11:38:27 am'!
-'Description Refuse the arguments a tool does not declare'!
-!provides: 'MCPServer' 1 90!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 12:03:02 pm'!
+'Description Read what a package holds: its classes, its methods, its extensions and its source'!
+!provides: 'MCPServer' 1 91!
 !requires: 'WebClient' nil nil nil!
 !requires: 'JSON' nil nil nil!
 !requires: 'OSProcess' nil nil nil!
@@ -3498,6 +3498,15 @@ listPackagesTool
 			Json render: ((self packagesNamedStartingWith: aPrefix)
 				collect: [ :eachPackage | self summaryOf: eachPackage ]) ]! !
 
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+packageClassesTool
+
+	^MCPPluggableTool
+		named: self class packageClassesToolName
+		describedBy: 'List the classes a package holds, sorted by name.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | Json render: aCodePackage classNames asArray sorted ]! !
+
 !MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:56:43 pm (UTC)'!
 packageDefinitionTool
 
@@ -3506,6 +3515,24 @@ packageDefinitionTool
 		describedBy: 'Read the definition of a code package: what it describes itself as, the file it is written to, whether the image holds changes that file does not, what it requires, and the system categories and classes it holds.'
 		properties: { self packageProperty }
 		executingWith: [ :aCodePackage | Json render: (self definitionOf: aCodePackage) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+packageExtensionsTool
+
+	^MCPPluggableTool
+		named: self class packageExtensionsToolName
+		describedBy: 'List the methods a package adds to classes it does not hold, written as Class>>#selector and sorted, which are the ones filed under a method category naming the package.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | Json render: (self namesOf: aCodePackage extensionMethods) ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+packageMethodsTool
+
+	^MCPPluggableTool
+		named: self class packageMethodsToolName
+		describedBy: 'List every method a package holds, written as Class>>#selector and sorted: the methods of its classes and the ones it adds to classes it does not hold.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | Json render: (self namesOf: aCodePackage methods) ]! !
 
 !MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 7/Sep/2026, 11:15:20 pm (UTC)'!
 packageOfClassTool
@@ -3524,6 +3551,15 @@ packageOfMethodTool
 		describedBy: 'Answer the package a method belongs to, which is the package of its class unless it is filed under a method category naming another one, as an extension of a package is.'
 		properties: { MCPMethodProperty default }
 		executingWith: [ :aMethod | self nameOfPackageOfMethod: aMethod ]! !
+
+!MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+packageSourceCodeTool
+
+	^MCPPluggableTool
+		named: self class packageSourceCodeToolName
+		describedBy: 'Read the whole source of a package in one call: under classes, each class it holds the way class_sources answers it, superclasses first, and under extensions the source of each method it adds to classes it does not hold, under its name as Class>>#selector.'
+		properties: { self packageProperty }
+		executingWith: [ :aCodePackage | Json render: (self sourceCodeOf: aCodePackage) ]! !
 
 !MCPPackageTools methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:58:29 pm (UTC)'!
 savePackageTool
@@ -3631,6 +3667,11 @@ nameOfPackageOfMethod: aMethod
 		ifNil: [ self class notInAnyPackageDescription ]
 		ifNotNil: [ :aCodePackage | aCodePackage packageName ]! !
 
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+namesOf: aCollectionOfMethods
+
+	^(aCollectionOfMethods collect: [ :aMethod | aMethod classAndSelector ]) asArray sorted! !
+
 !MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:06 pm (UTC)'!
 packagesNamedStartingWith: aPrefix
 
@@ -3673,6 +3714,21 @@ save: aCodePackage
 
 	^aCodePackage fullFileName! !
 
+!MCPPackageTools methodsFor: 'packages' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+sourceCodeOf: aCodePackage
+
+	| modelStructureTools classSources |
+
+	modelStructureTools := MCPModelStructureTools for: smalltalk.
+	classSources := OrderedDictionary new.
+	aCodePackage classesInSafeOrderDo: [ :aClass |
+		classSources at: aClass name put: (modelStructureTools classSourceOf: aClass) ].
+
+	^OrderedDictionary new
+		at: 'classes' put: classSources;
+		at: 'extensions' put: (modelStructureTools sourcesOfMethods: aCodePackage extensionMethods);
+		yourself! !
+
 !MCPPackageTools methodsFor: 'packages' stamp: 'HAW 1/Sep/2026, 1:57:11 pm (UTC)'!
 summaryOf: aCodePackage
 
@@ -3693,12 +3749,16 @@ packageProperty
 		describedBy: 'Name of the package'
 		in: smalltalk! !
 
-!MCPPackageTools methodsFor: 'tools' stamp: 'HAW 1/Sep/2026, 2:00:23 pm (UTC)'!
+!MCPPackageTools methodsFor: 'tools' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
 		addTool: self listPackagesTool;
 		addTool: self packageDefinitionTool;
+		addTool: self packageClassesTool;
+		addTool: self packageMethodsTool;
+		addTool: self packageExtensionsTool;
+		addTool: self packageSourceCodeTool;
 		addTool: self unsavedPackagesTool;
 		addTool: self packageOfClassTool;
 		addTool: self packageOfMethodTool;
@@ -3727,10 +3787,25 @@ listPackagesToolName
 
 	^'list_packages'! !
 
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:47 pm (UTC)'!
+packageClassesToolName
+
+	^'package_classes'! !
+
 !MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 packageDefinitionToolName
 
 	^'package_definition'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+packageExtensionsToolName
+
+	^'package_extensions'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+packageMethodsToolName
+
+	^'package_methods'! !
 
 !MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 packageOfClassToolName
@@ -3741,6 +3816,11 @@ packageOfClassToolName
 packageOfMethodToolName
 
 	^'package_of_method'! !
+
+!MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 25/Sep/2026, 2:41:49 pm (UTC)'!
+packageSourceCodeToolName
+
+	^'package_source_code'! !
 
 !MCPPackageTools class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 savePackageToolName

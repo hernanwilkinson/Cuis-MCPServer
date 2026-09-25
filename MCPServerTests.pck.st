@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 11:38:31 am'!
-'Description Refuse the arguments a tool does not declare'!
-!provides: 'MCPServerTests' 1 81!
+'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 12:03:06 pm'!
+'Description Read what a package holds: its classes, its methods, its extensions and its source'!
+!provides: 'MCPServerTests' 1 82!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -273,6 +273,17 @@ classNames
 	^(SystemOrganization classesAt: classCategory asSymbol)
 		collect: [ :aClass | aClass name asString ]! !
 
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+classesDo: aBlock
+
+	(SystemOrganization classesAt: classCategory asSymbol) do: aBlock! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+classesInSafeOrderDo: aBlock
+
+	((SystemOrganization classesAt: classCategory asSymbol) asSortedCollection: [ :aClass :anotherClass | aClass name <= anotherClass name ])
+		do: aBlock! !
+
 !MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:13 pm (UTC)'!
 description
 
@@ -288,6 +299,17 @@ description: aDescription
 extensionMethodCount
 
 	^0! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+extensionMethods
+
+	"The methods of classes I do not hold, filed under a category naming me"
+
+	^Array streamContents: [ :aStream |
+		Smalltalk allClassesDo: [ :aClass |
+			(self includesClass: aClass) ifFalse: [
+				self addExtensionMethodsOf: aClass to: aStream.
+				self addExtensionMethodsOf: aClass class to: aStream ]]]! !
 
 !MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:26 pm (UTC)'!
 featureSpec
@@ -318,6 +340,15 @@ hasUnsavedChanges: aBoolean
 includesClass: aClass
 
 	^aClass category = classCategory asSymbol! !
+
+!MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+methods
+
+	^Array streamContents: [ :aStream |
+		self classesDo: [ :aClass |
+			self addCoreMethodsOf: aClass to: aStream.
+			self addCoreMethodsOf: aClass class to: aStream ].
+		aStream nextPutAll: self extensionMethods ]! !
 
 !MCPCodePackageSimulator methodsFor: 'code package protocol' stamp: 'HAW 8/Sep/2026, 2:47:11 pm (UTC)'!
 packageFileName
@@ -354,6 +385,26 @@ systemCategories
 savedCount
 
 	^savedCount! !
+
+!MCPCodePackageSimulator methodsFor: 'private' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+addCoreMethodsOf: aClassOrMetaclass to: aStream
+
+	aClassOrMetaclass organization categories do: [ :aMethodCategory |
+		(aMethodCategory beginsWith: '*') ifFalse: [
+			self addMethodsOf: aClassOrMetaclass in: aMethodCategory to: aStream ]]! !
+
+!MCPCodePackageSimulator methodsFor: 'private' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+addExtensionMethodsOf: aClassOrMetaclass to: aStream
+
+	aClassOrMetaclass organization categories do: [ :aMethodCategory |
+		(aMethodCategory asLowercase beginsWith: ('*' , name) asLowercase) ifTrue: [
+			self addMethodsOf: aClassOrMetaclass in: aMethodCategory to: aStream ]]! !
+
+!MCPCodePackageSimulator methodsFor: 'private' stamp: 'HAW 25/Sep/2026, 2:53:04 pm (UTC)'!
+addMethodsOf: aClassOrMetaclass in: aMethodCategory to: aStream
+
+	(aClassOrMetaclass organization listAtCategoryNamed: aMethodCategory) do: [ :aSelector |
+		aStream nextPut: (MethodReference class: aClassOrMetaclass selector: aSelector) ]! !
 
 !MCPCodePackageSimulator class methodsFor: 'instance creation' stamp: 'HAW 8/Sep/2026, 2:46:51 pm (UTC)'!
 named: aPackageName holdingTheClassCategory: aClassCategory
@@ -2386,6 +2437,11 @@ tearDown
 	MCPCodePackageSimulator forgetTheInstalledPackages.
 	super tearDown! !
 
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+answerOf: aToolName forTestPackage: aKey
+
+	^(self jsonAnswerOf: aToolName with: self testPackageArgument) at: aKey! !
+
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:50 pm (UTC)'!
 changeDescriptionTo: aDescription
 
@@ -2394,10 +2450,33 @@ changeDescriptionTo: aDescription
 			arguments: 'packageName' being: self class packageNameOfTestData
 			and: 'description' being: aDescription)! !
 
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 2:53:02 pm (UTC)'!
+defineExtensionOfTestPackage
+
+	"An extension is a method of a class the package does not hold, filed under a category naming the package"
+
+	classCategories add: self otherClassCategoryOfTestData.
+	self defineClassWith: 'Object subclass: #MCPTestExtended
+	instanceVariableNames: ''''
+	classVariableNames: ''''
+	poolDictionaries: ''''
+	category: ''' , self otherClassCategoryOfTestData , ''''.
+	self
+		defineMethodIn: 'MCPTestExtended'
+		source: self extensionMethodSource
+		category: '*' , self class packageNameOfTestData! !
+
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 1/Sep/2026, 2:03:37 pm (UTC)'!
 definitionOfTestPackage
 
 	^self jsonAnswerOf: MCPPackageTools packageDefinitionToolName with: self testPackageArgument! !
+
+!MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+extensionMethodSource
+
+	^'mcpExtension
+
+	^1'! !
 
 !MCPPackageToolsTest methodsFor: 'test support' stamp: 'HAW 8/Sep/2026, 2:47:57 pm (UTC)'!
 fileNameOfTestPackage
@@ -2591,6 +2670,57 @@ testTheClassOfAPackageIsAnsweredWithThatPackage
 	self assert: (self packageOfClassNamed: 'MCPTestSubject')
 		equals: self class packageNameOfTestData! !
 
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+testThePackageClassesAreTheOnesItHolds
+
+	self defineTestSubjectClass.
+
+	self
+		assert: (self jsonAnswerOf: MCPPackageTools packageClassesToolName with: self testPackageArgument) asArray
+		equals: #('MCPTestSubject')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+testThePackageExtensionsAreTheMethodsItAddsToClassesItDoesNotHold
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+	self defineExtensionOfTestPackage.
+
+	self
+		assert: (self jsonAnswerOf: MCPPackageTools packageExtensionsToolName with: self testPackageArgument) asArray
+		equals: #('MCPTestExtended>>#mcpExtension')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+testThePackageMethodsAreTheOnesOfItsClassesAndItsExtensions
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+	self defineExtensionOfTestPackage.
+
+	self
+		assert: (self jsonAnswerOf: MCPPackageTools packageMethodsToolName with: self testPackageArgument) asArray
+		equals: #('MCPTestExtended>>#mcpExtension' 'MCPTestSubject>>#saludo')! !
+
+!MCPPackageToolsTest methodsFor: 'tests - what a package holds' stamp: 'HAW 25/Sep/2026, 2:41:51 pm (UTC)'!
+testThePackageSourceCodeCarriesItsClassesAndItsExtensions
+
+	| classSources extensionSources |
+
+	self defineTestSubjectClass.
+	self defineTestSubjectMethod.
+	self defineExtensionOfTestPackage.
+
+	classSources := self answerOf: MCPPackageTools packageSourceCodeToolName forTestPackage: 'classes'.
+	extensionSources := self answerOf: MCPPackageTools packageSourceCodeToolName forTestPackage: 'extensions'.
+
+	self assert: classSources keys asArray equals: #('MCPTestSubject').
+	self
+		assert: ((((classSources at: 'MCPTestSubject') at: 'methods') at: 'as yet unclassified') at: 'saludo')
+		equals: self subjectMethodSource.
+	self
+		assert: ((extensionSources at: 'MCPTestExtended>>#mcpExtension') at: 'source')
+		equals: self extensionMethodSource! !
+
 !MCPPackageToolsTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:30 pm (UTC)'!
 toolDecoratorClasses
 
@@ -2607,6 +2737,18 @@ classNamed: aClassName
 	^aClassName = #CodePackage
 		ifTrue: [ MCPCodePackageSimulator ]
 		ifFalse: [ Smalltalk classNamed: aClassName ]! !
+
+!MCPPackageToolsTest methodsFor: 'test data' stamp: 'HAW 25/Sep/2026, 2:53:02 pm (UTC)'!
+allClassCategoriesOfTestData
+
+	^Array with: self classCategoryOfTestData with: self otherClassCategoryOfTestData! !
+
+!MCPPackageToolsTest methodsFor: 'test data' stamp: 'HAW 25/Sep/2026, 2:53:02 pm (UTC)'!
+otherClassCategoryOfTestData
+
+	"A class held by no package under test, which is what an extension of the package is written on"
+
+	^'__MCPServerOtherTestData__'! !
 
 !MCPPackageToolsTest class methodsFor: 'test data' stamp: 'HAW 1/Sep/2026, 2:03:13 pm (UTC)'!
 packageNameOfTestData

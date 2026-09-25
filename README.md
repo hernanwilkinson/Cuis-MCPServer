@@ -557,9 +557,33 @@ List the code packages installed in the image, each with what it describes itsel
 | --- | --- | --- |
 | `prefix` | optional | Optional prefix to filter package names |
 
+##### `package_classes`
+
+List the classes a package holds, sorted by name.
+
+| Parameter | | |
+| --- | --- | --- |
+| `packageName` | required | Name of the package |
+
 ##### `package_definition`
 
 Read the definition of a code package: what it describes itself as, the file it is written to, whether the image holds changes that file does not, what it requires, and the system categories and classes it holds.
+
+| Parameter | | |
+| --- | --- | --- |
+| `packageName` | required | Name of the package |
+
+##### `package_extensions`
+
+List the methods a package adds to classes it does not hold, written as Class>>#selector and sorted, which are the ones filed under a method category naming the package.
+
+| Parameter | | |
+| --- | --- | --- |
+| `packageName` | required | Name of the package |
+
+##### `package_methods`
+
+List every method a package holds, written as Class>>#selector and sorted: the methods of its classes and the ones it adds to classes it does not hold.
 
 | Parameter | | |
 | --- | --- | --- |
@@ -581,6 +605,14 @@ Answer the package a method belongs to, which is the package of its class unless
 | --- | --- | --- |
 | `className` | required | Name of the class that implements the method |
 | `selector` | required | Selector of the method |
+
+##### `package_source_code`
+
+Read the whole source of a package in one call: under classes, each class it holds the way class_sources answers it, superclasses first, and under extensions the source of each method it adds to classes it does not hold, under its name as Class>>#selector.
+
+| Parameter | | |
+| --- | --- | --- |
+| `packageName` | required | Name of the package |
 
 ##### `save_package`
 
