@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:40 pm'!
-'Description Name the tests after the tool boxes they test'!
-!provides: 'MCPServerTests' 1 85!
+'From Cuis7.9 [latest update: #8184] on 26 September 2026 at 11:46:03 am'!
+'Description Test extracting code after other code of the same method was extracted'!
+!provides: 'MCPServerTests' 1 86!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -834,6 +834,18 @@ applyRefactoring: aToolName with: anArguments
 	^client callTool: aToolName with: anArguments
 ! !
 
+!MCPBaseRefactoringToolBoxTest methodsFor: 'test support' stamp: 'HAW 26/Sep/2026, 12:48:37 pm (UTC)'!
+defineHolidayTestSubject
+
+	self defineClassWith: (self
+		definitionOf: 'MCPTestSubject'
+		subclassOf: 'Object'
+		instanceVariableNames: 'weekdayHolidays monthdayHolidays'
+		classVariableNames: '').
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpIsHoliday: aPotentialHoliday
+
+	^(weekdayHolidays includes: aPotentialHoliday day) or: [ monthdayHolidays includes: aPotentialHoliday dayOfMonth ]'! !
+
 !MCPBaseRefactoringToolBoxTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:02 pm (UTC)'!
 defineTestSubjectChildReadingAnInstanceVariable
 
@@ -862,6 +874,17 @@ defineTestSubjectSiblingImplementingProbe
 differentImplementationWarning
 
 	^PushUpMethod methodWithDifferentImplementationInSuperclass: { 'mcpProbe' }! !
+
+!MCPBaseRefactoringToolBoxTest methodsFor: 'test support' stamp: 'HAW 26/Sep/2026, 12:48:47 pm (UTC)'!
+extractFromHolidayTestSubjectTo: aNewSelector text: aText
+
+	^self
+		applyRefactoring: MCPBaseRefactoringToolBox extractMethodRefactoringToolName
+		with: (self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpIsHoliday:'
+			and: 'newSelector' being: aNewSelector
+			and: 'text' being: aText)! !
 
 !MCPBaseRefactoringToolBoxTest methodsFor: 'test support' stamp: 'HAW 9/Sep/2026, 3:29:24 pm (UTC)'!
 instanceVariableWarning
@@ -1920,6 +1943,20 @@ testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
+
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 12:48:37 pm (UTC)'!
+testExtractMethodRefactoringExtractsAPieceAfterAnotherPieceOfTheMethodWasExtracted
+
+	| isHolidaySource |
+
+	self defineHolidayTestSubject.
+	self extractFromHolidayTestSubjectTo: 'mcpIsWeekdayHoliday:' text: 'weekdayHolidays includes: aPotentialHoliday day'.
+	self extractFromHolidayTestSubjectTo: 'mcpIsMonthdayHoliday:' text: 'monthdayHolidays includes: aPotentialHoliday dayOfMonth'.
+
+	isHolidaySource := self createdClassInTest sourceCodeAt: 'mcpIsHoliday:' asSymbol.
+	self assert: (isHolidaySource
+		includesSubstring: '(self mcpIsWeekdayHoliday: aPotentialHoliday) or: [ self mcpIsMonthdayHoliday: aPotentialHoliday ]'
+		caseSensitive: true)! !
 
 !MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
