@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 26 September 2026 at 11:46:03 am'!
-'Description Test extracting code after other code of the same method was extracted'!
-!provides: 'MCPServerTests' 1 86!
+'From Cuis7.9 [latest update: #8184] on 28 September 2026 at 1:30:07 pm'!
+'Description Name the code to extract in the tests instead of the piece'!
+!provides: 'MCPServerTests' 1 87!
 !requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
 !requires: 'MCPServer' nil nil nil!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1847,8 +1847,8 @@ MCPTestSubject>>#mcpProbeCaller
 MCPTestSubject>>#mcpProbe'
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
-testExtractAsParameterRefactoringGivesTheSendersThePieceToPass
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractAsParameterRefactoringGivesTheSendersTheCodeToPass
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -1944,8 +1944,8 @@ testExtractMethodRefactoringCreatesTheMethodAndSendsItInstead
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 12:48:37 pm (UTC)'!
-testExtractMethodRefactoringExtractsAPieceAfterAnotherPieceOfTheMethodWasExtracted
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractMethodRefactoringExtractsCodeAfterOtherCodeOfTheMethodWasExtracted
 
 	| isHolidaySource |
 
@@ -1958,8 +1958,8 @@ testExtractMethodRefactoringExtractsAPieceAfterAnotherPieceOfTheMethodWasExtract
 		includesSubstring: '(self mcpIsWeekdayHoliday: aPotentialHoliday) or: [ self mcpIsMonthdayHoliday: aPotentialHoliday ]'
 		caseSensitive: true)! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
-testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractMethodRefactoringInTheClassLeavesTheCodeInTheSubclassesAlone
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -1984,8 +1984,8 @@ testExtractMethodRefactoringInTheClassLeavesThePieceInTheSubclassesAlone
 
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
-testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractMethodRefactoringInTheHierarchyReplacesTheCodeInTheSubclassesToo
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -2009,8 +2009,8 @@ testExtractMethodRefactoringInTheHierarchyReplacesThePieceInTheSubclassesToo
 		includesSubstring: 'self mcpExtracted' caseSensitive: true)
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
-testExtractMethodRefactoringWithinTheMethodReplacesEverySamePiece
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractMethodRefactoringWithinTheMethodReplacesEverySameCode
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
@@ -2056,8 +2056,8 @@ mcpProbe
 
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
-testExtractToTemporaryRefactoringExtractsThePieceNamedByItsText
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 26/Sep/2026, 2:46:51 pm (UTC)'!
+testExtractToTemporaryRefactoringExtractsTheCodeNamedByItsText
 
 	self defineTestSubjectClass.
 	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
