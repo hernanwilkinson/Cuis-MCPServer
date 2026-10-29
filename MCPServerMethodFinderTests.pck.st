@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:36 pm'!
 'Description Name the tests after the tool boxes they test'!
-!provides: 'MCPServerMethodFinderTests' 1 6!
-!requires: 'MCPServerTests' nil nil nil!
-!requires: 'MCPServerMethodFinder' nil nil nil!
+!provides: 'MCPServerMethodFinderTests' '1.6.0'!
+!requires: 'MCPServerTests' '0.0.0' '*.*.*'!
+!requires: 'MCPServerMethodFinder' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerMethodFinderTests!
 
 

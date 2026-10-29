@@ -1,10 +1,10 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:14 pm'!
 'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerExtraLiveTypingRefactorings' 1 16!
-!requires: 'ExtraRefactoringsLiveTyping' nil nil nil!
-!requires: 'MCPServer' nil nil nil!
-!requires: 'MCPServerExtraRefactoring' nil nil nil!
-!requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
+!provides: 'MCPServerExtraLiveTypingRefactorings' '1.16.0'!
+!requires: 'ExtraRefactoringsLiveTyping' '0.0.0' '*.*.*'!
+!requires: 'MCPServer' '0.0.0' '*.*.*'!
+!requires: 'MCPServerExtraRefactoring' '0.0.0' '*.*.*'!
+!requires: 'MCPServerLiveTypingRefactorings' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerExtraLiveTypingRefactorings!
 
 

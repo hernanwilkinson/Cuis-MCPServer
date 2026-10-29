@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:26 pm'!
 'Description Name the tests after the tool boxes they test'!
-!provides: 'MCPServerExtraRefactoringTest' 1 16!
-!requires: 'MCPServerTests' nil nil nil!
-!requires: 'MCPServerExtraRefactoring' nil nil nil!
+!provides: 'MCPServerExtraRefactoringTest' '1.16.0'!
+!requires: 'MCPServerTests' '0.0.0' '*.*.*'!
+!requires: 'MCPServerExtraRefactoring' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerExtraRefactoringTest!
 
 

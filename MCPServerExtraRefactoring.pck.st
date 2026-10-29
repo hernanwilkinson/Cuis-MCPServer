@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:07 pm'!
 'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerExtraRefactoring' 1 19!
-!requires: 'MCPServer' nil nil nil!
-!requires: 'ExtraRefactorings' nil nil nil!
+!provides: 'MCPServerExtraRefactoring' '1.19.0'!
+!requires: 'MCPServer' '0.0.0' '*.*.*'!
+!requires: 'ExtraRefactorings' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerExtraRefactoring!
 
 

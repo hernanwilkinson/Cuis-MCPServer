@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:29 pm'!
 'Description Name the tests after the tool boxes they test'!
-!provides: 'MCPServerLiveTypingRefactoringsTests' 1 19!
-!requires: 'MCPServerTests' nil nil nil!
-!requires: 'MCPServerLiveTypingRefactorings' nil nil nil!
+!provides: 'MCPServerLiveTypingRefactoringsTests' '1.19.0'!
+!requires: 'MCPServerTests' '0.0.0' '*.*.*'!
+!requires: 'MCPServerLiveTypingRefactorings' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerLiveTypingRefactoringsTests!
 
 

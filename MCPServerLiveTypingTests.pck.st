@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 4:24:33 pm'!
 'Description Name the tests after the tool boxes they test'!
-!provides: 'MCPServerLiveTypingTests' 1 21!
-!requires: 'MCPServerTests' nil nil nil!
-!requires: 'MCPServerLiveTyping' nil nil nil!
+!provides: 'MCPServerLiveTypingTests' '1.21.0'!
+!requires: 'MCPServerTests' '0.0.0' '*.*.*'!
+!requires: 'MCPServerLiveTyping' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerLiveTypingTests!
 
 

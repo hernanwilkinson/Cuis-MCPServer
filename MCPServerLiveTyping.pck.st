@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:53 pm'!
 'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerLiveTyping' 1 27!
-!requires: 'MCPServer' nil nil nil!
-!requires: 'LiveTyping' nil nil nil!
+!provides: 'MCPServerLiveTyping' '1.27.0'!
+!requires: 'MCPServer' '0.0.0' '*.*.*'!
+!requires: 'LiveTyping' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerLiveTyping!
 
 

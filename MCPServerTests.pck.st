@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 28 September 2026 at 1:30:07 pm'!
 'Description Name the code to extract in the tests instead of the piece'!
-!provides: 'MCPServerTests' 1 87!
-!requires: 'DynamicallyCodeCreatingTestSupport' 1 7 nil!
-!requires: 'MCPServer' nil nil nil!
+!provides: 'MCPServerTests' '1.87.0'!
+!requires: 'DynamicallyCodeCreatingTestSupport' '1.7.0' '1.*.*'!
+!requires: 'MCPServer' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerTests!
 
 

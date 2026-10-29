@@ -1,8 +1,8 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:48:21 pm'!
 'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServerMethodFinder' 1 6!
-!requires: 'MCPServer' nil nil nil!
-!requires: 'MethodFinder' nil nil nil!
+!provides: 'MCPServerMethodFinder' '1.6.0'!
+!requires: 'MCPServer' '0.0.0' '*.*.*'!
+!requires: 'MethodFinder' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerMethodFinder!
 
 

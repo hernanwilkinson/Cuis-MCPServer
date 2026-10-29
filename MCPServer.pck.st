@@ -1,9 +1,9 @@
 'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:46 pm'!
 'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServer' 1 92!
-!requires: 'WebClient' nil nil nil!
-!requires: 'JSON' nil nil nil!
-!requires: 'OSProcess' nil nil nil!
+!provides: 'MCPServer' '1.92.0'!
+!requires: 'WebClient' '0.0.0' '*.*.*'!
+!requires: 'JSON' '0.0.0' '*.*.*'!
+!requires: 'OSProcess' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServer!
 
 
