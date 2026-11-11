@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 25 September 2026 at 1:47:46 pm'!
-'Description Name the tool groups as tool boxes'!
-!provides: 'MCPServer' '1.92.0'!
+'From Cuis7.9 [latest update: #8276] on 11 November 2026 at 10:22:38 am'!
+'Description Read the debugged stack and accept a method through the debugger'!
+!provides: 'MCPServer' '1.93.0'!
 !requires: 'WebClient' '0.0.0' '*.*.*'!
 !requires: 'JSON' '0.0.0' '*.*.*'!
 !requires: 'OSProcess' '0.0.0' '*.*.*'!
@@ -953,6 +953,11 @@ record: aBlock of: aToolName with: anArguments
 
 	^aBlock value! !
 
+!MCPDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+accept: aSourceCode in: aClass
+
+	^self subclassResponsibility! !
+
 !MCPDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 finish
 
@@ -970,6 +975,11 @@ restart
 
 	^self subclassResponsibility
 ! !
+
+!MCPDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+stack
+
+	^self subclassResponsibility! !
 
 !MCPDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 stepInto
@@ -1017,6 +1027,11 @@ finishCurrent
 	^answer
 ! !
 
+!MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+accept: aSourceCode in: aClass
+
+	^self class noDebuggerErrorDescriptionFor: 'accept'! !
+
 !MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:31:43 pm (UTC)'!
 finish
 
@@ -1034,6 +1049,11 @@ restart
 
 	^self class noDebuggerErrorDescriptionFor: 'restart'
 ! !
+
+!MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+stack
+
+	^self class noDebuggerErrorDescriptionFor: 'stack'! !
 
 !MCPNoDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 stepInto
@@ -1065,6 +1085,19 @@ initializeDebugger: aDebugger
 	debugger := aDebugger
 ! !
 
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 11:32:50 am (UTC)'!
+accept: aSourceCode in: aClass
+
+	| selector index |
+
+	selector := aClass parserClass selectorFrom: aSourceCode.
+	index := self indexOfContextRunning: selector of: aClass.
+	index = 0 ifTrue: [
+		^self class noContextRunningErrorDescriptionFor: selector of: aClass ].
+	self selectContextAt: index.
+
+	^self acceptInSelectedContext: aSourceCode! !
+
 !MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 28/Aug/2026, 7:10:24 pm (UTC)'!
 closeDebuggerWindow
 
@@ -1088,13 +1121,15 @@ finish
 
 	^'Finished'! !
 
-!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 24/Aug/2026, 3:32:13 pm (UTC)'!
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 11:26:48 am (UTC)'!
 proceed
 
-	debugger proceed.
+	"Proceeding closes the window, which has to be up for that: it is put up by the process that
+	draws morphs, so proceeding is done there too, after it. See finish."
 
-	^'Proceeded'
-! !
+	UISupervisor waitToDone: [ debugger proceed ].
+
+	^'Proceeded'! !
 
 !MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 restart
@@ -1103,6 +1138,14 @@ restart
 
 	^self topOfStackDescription
 ! !
+
+!MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+stack
+
+	^String streamContents: [ :aStream |
+		debugger contextStackList
+			do: [ :aContextDescription | aStream nextPutAll: aContextDescription ]
+			separatedBy: [ aStream newLine ] ]! !
 
 !MCPOpenDebuggingSession methodsFor: 'debugging' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 stepInto
@@ -1134,6 +1177,35 @@ topOfStackDescription
 	^debugger contextStackList first printString
 ! !
 
+!MCPOpenDebuggingSession methodsFor: 'accepting' stamp: 'HAW 6/Nov/2026, 11:32:50 am (UTC)'!
+acceptInSelectedContext: aSourceCode
+
+	^[ debugger contents: aSourceCode notifying: nil.
+	self topOfStackDescription ]
+		on: SyntaxErrorNotification, Error
+		do: [ :anError | self notAccepted: anError ]! !
+
+!MCPOpenDebuggingSession methodsFor: 'accepting' stamp: 'HAW 6/Nov/2026, 11:29:25 am (UTC)'!
+indexOfContextRunning: aSelector of: aClass
+
+	^debugger interruptedContext contextStack
+		findFirst: [ :aContext | aContext isRunning: aSelector of: aClass ]! !
+
+!MCPOpenDebuggingSession methodsFor: 'accepting' stamp: 'HAW 6/Nov/2026, 11:33:20 am (UTC)'!
+notAccepted: anError
+
+	| description |
+
+	description := self class notAcceptedErrorDescriptionBecause: anError messageText.
+
+	^anError return: description! !
+
+!MCPOpenDebuggingSession methodsFor: 'accepting' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+selectContextAt: anIndex
+
+	debugger fullyExpandStack.
+	debugger contextStackIndex: anIndex oldContextWas: debugger selectedContext! !
+
 !MCPOpenDebuggingSession class methodsFor: 'instance creation' stamp: 'HAW 21/Aug/2026, 11:07:04 am (UTC)'!
 debuggerLabel
 
@@ -1150,6 +1222,16 @@ debugging: aProcess at: aSignalerContext
 
 	^self new initializeDebugger: debugger
 ! !
+
+!MCPOpenDebuggingSession class methodsFor: 'error descriptions' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+noContextRunningErrorDescriptionFor: aSelector of: aClass
+
+	^'Error: no context on the stack is running ', aClass name, '>>', aSelector! !
+
+!MCPOpenDebuggingSession class methodsFor: 'error descriptions' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+notAcceptedErrorDescriptionBecause: anErrorDescription
+
+	^'Error: the method was not accepted because ', anErrorDescription! !
 
 !MCPDeclaredProperties methodsFor: 'initialization' stamp: 'HAW 11/Sep/2026, 1:23:20 pm (UTC)'!
 initializeOf: someProperties
@@ -2730,6 +2812,17 @@ namesFrom: aCommaSeparatedText
 
 	^(aCommaSeparatedText findTokens: $,) collect: [ :eachName | eachName withBlanksTrimmed ]! !
 
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+debuggerAcceptMethodTool
+
+	^MCPPluggableTool
+		named: self class debuggerAcceptMethodToolName
+		describedBy: 'It accepts a new source for a method that a context of the debugged stack is running, as accepting it in the code pane of the Debugger does: the method is compiled, and that context is restarted from the beginning with the new version, so that proceeding runs it. A context keeps running the version of the method it started with, so a method changed with define_methods while it is on the stack takes effect only when it is accepted here. Returns the print string of the top of the stack, which is the restarted context'
+		properties: {
+			MCPClassProperty default.
+			MCPPlainProperty named: 'source' describedBy: 'Full method source including selector, which must be the one of a method on the stack' }
+		executingWith: [ :aClass :aSource | MCPDebuggingSession current accept: aSource in: aClass ]! !
+
 !MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 1/Sep/2026, 1:27:24 pm (UTC)'!
 debuggerProceedTool
 
@@ -2749,6 +2842,15 @@ debuggerRestartTool
 		properties: #()
 		executingWith: [ MCPDebuggingSession current restart ]
 ! !
+
+!MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+debuggerStackTool
+
+	^MCPPluggableTool
+		named: self class debuggerStackToolName
+		describedBy: 'It answers the stack of the debugger created by evaluate_to_debug_on_error, one context per line from the top, as the Debugger lists them'
+		properties: #()
+		executingWith: [ MCPDebuggingSession current stack ]! !
 
 !MCPDebugToolBox methodsFor: 'tool creation' stamp: 'HAW 16/Sep/2026, 2:41:23 pm (UTC)'!
 debuggerStepIntoTool
@@ -2800,18 +2902,24 @@ finishDebuggingTool
 		executingWith: [ MCPDebuggingSession finishCurrent ]
 ! !
 
-!MCPDebugToolBox methodsFor: 'tools' stamp: 'HAW 26/Aug/2026, 11:02:00 pm (UTC)'!
+!MCPDebugToolBox methodsFor: 'tools' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
 addToolsTo: anMCPServer
 
 	anMCPServer
 		addTool: self evaluateToDebugOnErrorTool;
+		addTool: self debuggerStackTool;
 		addTool: self debuggerStepIntoTool;
 		addTool: self debuggerStepOverTool;
 		addTool: self debuggerThroughTool;
 		addTool: self debuggerProceedTool;
 		addTool: self debuggerRestartTool;
-		addTool: self finishDebuggingTool
-! !
+		addTool: self debuggerAcceptMethodTool;
+		addTool: self finishDebuggingTool! !
+
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+debuggerAcceptMethodToolName
+
+	^'debugger_accept_method'! !
 
 !MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerProceedToolName
@@ -2822,6 +2930,11 @@ debuggerProceedToolName
 debuggerRestartToolName
 
 	^'debugger_restart'! !
+
+!MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+debuggerStackToolName
+
+	^'debugger_stack'! !
 
 !MCPDebugToolBox class methodsFor: 'tool names' stamp: 'HAW 16/Sep/2026, 2:43:49 pm (UTC)'!
 debuggerStepIntoToolName
@@ -6555,6 +6668,11 @@ descriptionForClient
 waitsForUser
 
 	^true! !
+
+!MethodContext methodsFor: '*MCPServer' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+isRunning: aSelector of: aClass
+
+	^self isExecutingBlock not and: [ method methodClass == aClass and: [ method selector == aSelector ] ]! !
 
 !UISupervisor class methodsFor: '*MCPServer' stamp: 'HAW 28/Aug/2026, 6:40:03 pm (UTC)'!
 waitToDone: aBlock

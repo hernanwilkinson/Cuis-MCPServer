@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8184] on 28 September 2026 at 1:30:07 pm'!
-'Description Name the code to extract in the tests instead of the piece'!
-!provides: 'MCPServerTests' '1.87.0'!
+'From Cuis7.9 [latest update: #8276] on 11 November 2026 at 10:22:40 am'!
+'Description Read the debugged stack and accept a method through the debugger'!
+!provides: 'MCPServerTests' '1.88.0'!
 !requires: 'DynamicallyCodeCreatingTestSupport' '1.7.0' '1.*.*'!
 !requires: 'MCPServer' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerTests!
@@ -2660,12 +2660,24 @@ tearDown
 
 	super tearDown! !
 
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+answerOfAccepting: aSource in: aClassName
+
+	^client
+		callTool: MCPDebugToolBox debuggerAcceptMethodToolName
+		with: (self methodIn: aClassName source: aSource)! !
+
 !MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 answerOfEvaluatingToDebug: aCodeString
 
 	^client
 		callTool: MCPDebugToolBox evaluateToDebugOnErrorToolName
 		with: (self arguments: 'code' being: aCodeString)! !
+
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 11:32:50 am (UTC)'!
+debuggedProcessHasEnded
+
+	^Smalltalk includesKey: self class sideEffectGlobalName! !
 
 !MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:20:11 pm (UTC)'!
 debuggerWindowsOnScreen
@@ -2680,6 +2692,16 @@ failingCode
 	^'nil error: ''boom'''
 ! !
 
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+failingSubjectMethodSource
+
+	^'m1 ^self error: ''boom'''! !
+
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+healedSubjectMethodSource
+
+	^'m1 ^Smalltalk at: #', self class sideEffectGlobalName, ' put: 42'! !
+
 !MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:51:26 pm (UTC)'!
 openADebugger
 
@@ -2690,6 +2712,24 @@ openADebugger
 	
 	^answer 
 ! !
+
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+openADebuggerOnTheSubjectMethod
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: self failingSubjectMethodSource.
+	self answerOfEvaluatingToDebug: 'MCPTestSubject new m1'.
+	self waitForTheDebuggerWindow! !
+
+!MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 6/Nov/2026, 11:32:50 am (UTC)'!
+waitForTheDebuggedProcessToEnd
+
+	| attempts |
+
+	attempts := 0.
+	[ self debuggedProcessHasEnded not and: [ attempts < 200 ] ] whileTrue: [
+		attempts := attempts + 1.
+		(Delay forMilliseconds: 20) wait ]! !
 
 !MCPDebugToolBoxTest methodsFor: 'test support' stamp: 'HAW 24/Aug/2026, 2:23:18 pm (UTC)'!
 waitForTheDebuggerWindow
@@ -2706,6 +2746,13 @@ waitForTheDebuggerWindow
 		attempts := attempts + 1.
 		(Delay forMilliseconds: 20) wait ]
 ! !
+
+!MCPDebugToolBoxTest methodsFor: 'tests without a debugger' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+testAcceptingAMethodWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOfAccepting: 'm1 ^42' in: 'Object')
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'accept')! !
 
 !MCPDebugToolBoxTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testFinishingWithoutADebuggerSaysThereIsNone
@@ -2731,6 +2778,13 @@ testProceedingWithoutADebuggerSaysThereIsNone
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'proceed')
 ! !
 
+!MCPDebugToolBoxTest methodsFor: 'tests without a debugger' stamp: 'HAW 6/Nov/2026, 10:58:41 am (UTC)'!
+testReadingTheStackWithoutADebuggerSaysThereIsNone
+
+	self
+		assert: (self answerOf: MCPDebugToolBox debuggerStackToolName)
+		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stack')! !
+
 !MCPDebugToolBoxTest methodsFor: 'tests without a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testRestartingWithoutADebuggerSaysThereIsNone
 
@@ -2754,6 +2808,45 @@ testSteppingOverWithoutADebuggerSaysThereIsNone
 		assert: (self answerOf: MCPDebugToolBox debuggerStepOverToolName)
 		equals: (MCPNoDebuggingSession noDebuggerErrorDescriptionFor: 'stepOver')
 ! !
+
+!MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 6/Nov/2026, 11:29:25 am (UTC)'!
+testAcceptingAMethodOfNoContextOnTheStackSaysSo
+
+	| expectedAnswer |
+
+	self openADebuggerOnTheSubjectMethod.
+	expectedAnswer := MCPOpenDebuggingSession
+		noContextRunningErrorDescriptionFor: #m2
+		of: self createdClassInTest.
+
+	self assert: (self answerOfAccepting: 'm2 ^42' in: 'MCPTestSubject') equals: expectedAnswer! !
+
+!MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 6/Nov/2026, 10:59:19 am (UTC)'!
+testAcceptingAMethodRestartsItsContextWithTheNewVersionWhenProceeding
+
+	| answer |
+
+	self openADebuggerOnTheSubjectMethod.
+	answer := self answerOfAccepting: self healedSubjectMethodSource in: 'MCPTestSubject'.
+
+	self assert: answer equals: 'MCPTestSubject>>m1' printString.
+	self answerOf: MCPDebugToolBox debuggerProceedToolName.
+	self waitForTheDebuggedProcessToEnd.
+	self assert: (Smalltalk at: self class sideEffectGlobalName) equals: 42! !
+
+!MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 6/Nov/2026, 11:33:20 am (UTC)'!
+testAcceptingAMethodThatDoesNotCompileSaysWhy
+
+	| answer expectedStart |
+
+	self openADebuggerOnTheSubjectMethod.
+	answer := self answerOfAccepting: 'm1 ^[' in: 'MCPTestSubject'.
+
+	expectedStart := MCPOpenDebuggingSession notAcceptedErrorDescriptionBecause: ''.
+	self assert: (answer beginsWith: expectedStart).
+	self
+		assert: (self createdClassInTest >> #m1) sourceCode
+		equals: self failingSubjectMethodSource! !
 
 !MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 24/Aug/2026, 2:15:08 pm (UTC)'!
 testEvaluatingCodeThatDoesNotFailAnswersItsResult
@@ -2839,6 +2932,16 @@ testGoingThroughDrivesTheDebuggerLeftByAFailure
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
+!MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 6/Nov/2026, 11:26:48 am (UTC)'!
+testProceedingClosesTheDebuggerWindowThatIsNotOnScreenYet
+
+	self answerOfEvaluatingToDebug: self failingCode.
+
+	self answerOf: MCPDebugToolBox debuggerProceedToolName.
+
+	UISupervisor waitToDone: [ ].
+	self assert: self debuggerWindowsOnScreen isEmpty! !
+
 !MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testProceedingRunsTheDebuggedProcessToItsEnd
 
@@ -2846,6 +2949,17 @@ testProceedingRunsTheDebuggedProcessToItsEnd
 
 	self assert: (self answerOf: MCPDebugToolBox debuggerProceedToolName) equals: 'Proceeded'
 ! !
+
+!MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 6/Nov/2026, 10:59:19 am (UTC)'!
+testReadingTheStackAnswersTheContextsOfTheDebuggerLeftByAFailure
+
+	| stack |
+
+	self openADebugger.
+	stack := self answerOf: MCPDebugToolBox debuggerStackToolName.
+
+	self assert: stack lines first equals: 'UndefinedObject(Object)>>error:'.
+	self assert: (stack lines anySatisfy: [ :aLine | aLine includesSubString: 'UndefinedObject>>DoIt' ])! !
 
 !MCPDebugToolBoxTest methodsFor: 'tests with a debugger' stamp: 'HAW 25/Sep/2026, 3:08:49 pm (UTC)'!
 testRestartingDrivesTheDebuggerLeftByAFailure
@@ -2880,10 +2994,10 @@ testSteppingOverDrivesTheDebuggerLeftByAFailure
 	self assert: answer equals: MCPDebuggingSession current topOfStackDescription
 ! !
 
-!MCPDebugToolBoxTest methodsFor: 'tools under test' stamp: 'HAW 25/Sep/2026, 3:09:17 pm (UTC)'!
+!MCPDebugToolBoxTest methodsFor: 'tools under test' stamp: 'HAW 6/Nov/2026, 10:59:19 am (UTC)'!
 toolBoxClasses
 
-	^{ MCPDebugToolBox }! !
+	^{ MCPDebugToolBox. MCPModelStructureToolBox }! !
 
 !MCPDebugToolBoxTest methodsFor: 'tools under test' stamp: 'HAW 7/Sep/2026, 8:49:15 pm (UTC)'!
 toolDecoratorClasses
