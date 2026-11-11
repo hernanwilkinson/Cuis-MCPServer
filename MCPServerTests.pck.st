@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8276] on 11 November 2026 at 10:22:40 am'!
-'Description Read the debugged stack and accept a method through the debugger'!
-!provides: 'MCPServerTests' '1.88.0'!
+'From Cuis7.9 [latest update: #8340] on 11 November 2026 at 6:12:46 pm'!
+'Description Expect the variable of extract to temporary without parentheses'!
+!provides: 'MCPServerTests' '1.88.1'!
 !requires: 'DynamicallyCodeCreatingTestSupport' '1.7.0' '1.*.*'!
 !requires: 'MCPServer' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerTests!
@@ -177,51 +177,51 @@ MCPTransportTextTest class
 	instanceVariableNames: ''!
 
 
-!MCPTestInputStream commentStamp: '<historical>' prior: 0!
+!MCPTestInputStream commentStamp: '<historical>'!
 I am a stream on text that reports itself closed once it is exhausted.
 
 A stream on a collection answers false to closed forever, while MCPTransportText waits for input until the input says it is closed, the way a non blocking standard input does. Being closed at the end is what lets a script of requests end the serving loop.!
 
-!MCPCodePackageSimulator commentStamp: '<historical>' prior: 0!
+!MCPCodePackageSimulator commentStamp: '<historical>'!
 I stand in for a CodePackage while a test runs.
 
 My class side plays the part of the CodePackage class: it holds the packages a test installed, and answers them to whoever asks which packages there are. Where a class or a method lives is still asked of the real CodePackage, so a test about the packages of the running image is answered by the image itself.
 
 Saving me writes nothing to disk. I count how many times I was asked to save, which is what a test asserts on instead of looking for a file.!
 
-!MCPToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPToolBoxTest commentStamp: '<historical>'!
 I am the fixture a test of the tools a server serves runs in: a server over a mock transport and a mock client sending it requests the way a real one does, with no socket in between.
 
 I hold no test of my own. Each box of tools is tested by a subclass of mine, and the classes and methods a test makes are made through the server, in a class category I take away when the test ends.!
 
-!MCPBaseRefactoringToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPBaseRefactoringToolBoxTest commentStamp: '<historical>'!
 I am the tests of MCPBaseRefactoringToolBox, the refactorings that come with the image.!
 
-!MCPDebugToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPDebugToolBoxTest commentStamp: '<historical>'!
 I test the seven tools that drive a debugger.
 
 Six of my tests ask each tool what it answers when no debugger is open, which is what a client sees when it drives one out of turn. The rest let a real failure leave a real debugger open and drive that, so what they exercise is the debugger the server really opens.
 
 My tearDown always finishes the session, so a test that fails does not leave a debugger behind.!
 
-!MCPImageToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPImageToolBoxTest commentStamp: '<historical>'!
 I am the tests of MCPImageToolBox: evaluating code, saving the image, and the batch tool that calls several tools in one call. I play the image the server saves, so that saving it in a test writes nothing to disk.!
 
-!MCPModelStructureToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPModelStructureToolBoxTest commentStamp: '<historical>'!
 I am the tests of MCPModelStructureToolBox, which reads and changes classes, their categories, their hierarchy and their methods.!
 
-!MCPPackageToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPPackageToolBoxTest commentStamp: '<historical>'!
 I test the tools that act on the code packages of the image.
 
 I work on a package of my own, named after the class category these tests create their classes in, so that what it holds is what a test creates and no package of the image is touched, and I write it to a directory of my own that I take away afterwards.!
 
-!MCPSearchToolBoxTest commentStamp: '<historical>' prior: 0!
+!MCPSearchToolBoxTest commentStamp: '<historical>'!
 I am the tests of MCPSearchToolBox, which looks through the image for who sends, who implements, what names a class or a variable, and what already answers a result.!
 
-!MCPServerTest commentStamp: '<historical>' prior: 0!
+!MCPServerTest commentStamp: '<historical>'!
 I am the tests of the tools a server serves itself rather than through a box of them, which are evaluating code and running tests, and of the protocol it answers.!
 
-!MCPTransportTextTest commentStamp: '<historical>' prior: 0!
+!MCPTransportTextTest commentStamp: '<historical>'!
 I test MCPTransportText by serving it a script of requests and reading what it writes out.
 
 The server, the tools and the JSON are the real ones; only the streams are in memory, so what I exercise is the loop a real standard input would drive.!
@@ -2077,7 +2077,7 @@ testExtractToTemporaryRefactoringExtractsTheCodeNamedByItsText
 		includesSubstring: '^aNumber + 1' caseSensitive: true)
 ! !
 
-!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 11/Nov/2026, 5:15:40 pm (UTC)'!
 testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
 
 	self defineTestSubjectClass.
@@ -2097,7 +2097,7 @@ testExtractToTemporaryRefactoringReplacingAllReplacesEverySameExpression
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'aNumber := 42 + 1' caseSensitive: true).
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
-		includesSubstring: '^(aNumber) * (aNumber)' caseSensitive: true)! !
+		includesSubstring: '^aNumber * aNumber' caseSensitive: true)! !
 
 !MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testInlineMethodRefactoringAnswersTheMethodsItChanged
@@ -3581,7 +3581,7 @@ testClassSourceAnswersEveryClassNamed
 	self assert: ((answer at: 'MCPTestSubjectChild') at: 'definition') equals: (Smalltalk classNamed: 'MCPTestSubjectChild') definition.
 	self assert: ((answer at: 'MCPTestSubject') at: 'definition') equals: self createdClassInTest definition! !
 
-!MCPModelStructureToolBoxTest methodsFor: 'tests - reading a class' stamp: 'HAW 25/Sep/2026, 3:08:51 pm (UTC)'!
+!MCPModelStructureToolBoxTest methodsFor: 'tests - reading a class' stamp: 'HAW 11/Nov/2026, 9:11:20 pm (UTC)'!
 testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 
 	| answer |
@@ -3589,7 +3589,7 @@ testClassSourceAnswersTheDefinitionTheCommentAndTheMethodsOfBothSides
 	self defineTestSubjectClass.
 	self defineTestSubjectMethodIn: 'saludos'.
 	self defineMethodIn: 'MCPTestSubject class' source: self subjectClassSideMethodSource category: 'saludos'.
-	self createdClassInTest comment: 'Un sujeto de prueba'.
+	self createdClassInTest classComment: 'Un sujeto de prueba'.
 
 	answer := (self jsonAnswerOf: MCPModelStructureToolBox classSourcesToolName
 		with: (self arguments: 'classNames' being: 'MCPTestSubject')) at: 'MCPTestSubject'.
