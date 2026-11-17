@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8340] on 11 November 2026 at 6:12:46 pm'!
-'Description Expect the variable of extract to temporary without parentheses'!
-!provides: 'MCPServerTests' '1.88.1'!
+'From Cuis7.9 [latest update: #8340] on 17 November 2026 at 10:24:13 pm'!
+'Description Test that a temporary read inside an argument alike in similar code is a parameter'!
+!provides: 'MCPServerTests' '1.88.2'!
 !requires: 'DynamicallyCodeCreatingTestSupport' '1.7.0' '1.*.*'!
 !requires: 'MCPServer' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1901,6 +1901,44 @@ testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
 		includesSubstring: 'self mcpExtracted: 2' caseSensitive: true).
 	self deny: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
 		includesSubstring: 'mcpFoo' caseSensitive: true)! !
+
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 17/Nov/2026, 6:04:01 pm (UTC)'!
+testExtractMethodFromSimilarCodeParameterizesTheTemporaryReadInsideAnArgumentThatDoesNotDiffer
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpAssert: aSize equals: anExpectedSize
+
+	^aSize = anExpectedSize'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	| agents |
+
+	agents := OrderedCollection new.
+	self mcpAssert: agents size equals: 0.
+	^agents'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpOther
+
+	| agents |
+
+	agents := OrderedCollection with: 1 with: 2.
+	self mcpAssert: agents size equals: 1 + 1.
+	^agents'.
+
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpAssertSizeOf:is:'
+			and: 'argumentNames' being: 'aCollection, anExpectedSize')
+				at: 'text' put: 'self mcpAssert: agents size equals: 0';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpAssertSizeOf:is:' asSymbol)
+		includesSubstring: 'self mcpAssert: aCollection size equals: anExpectedSize' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: 'self mcpAssertSizeOf: agents is: 0' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOther' asSymbol)
+		includesSubstring: 'self mcpAssertSizeOf: agents is: 1 + 1' caseSensitive: true)! !
 
 !MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:06 pm (UTC)'!
 testExtractMethodRefactoringAnswersTheMethodItCreatedAndTheOneItChanged
