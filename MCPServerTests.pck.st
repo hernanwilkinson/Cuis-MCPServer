@@ -1,6 +1,6 @@
-'From Cuis7.9 [latest update: #8340] on 17 November 2026 at 10:24:13 pm'!
-'Description Test that a temporary read inside an argument alike in similar code is a parameter'!
-!provides: 'MCPServerTests' '1.88.2'!
+'From Cuis7.9 [latest update: #8340] on 19 November 2026 at 7:48:12 pm'!
+'Description Test that a literal ending the method keeps its spacing when extracted from similar code'!
+!provides: 'MCPServerTests' '1.88.3'!
 !requires: 'DynamicallyCodeCreatingTestSupport' '1.7.0' '1.*.*'!
 !requires: 'MCPServer' '0.0.0' '*.*.*'!
 SystemOrganization addCategory: #MCPServerTests!
@@ -1869,6 +1869,36 @@ testExtractAsParameterRefactoringGivesTheSendersTheCodeToPass
 	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbeCaller' asSymbol)
 		includesSubstring: 'self mcpProbe: 42' caseSensitive: true)
 ! !
+
+!MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 17/Nov/2026, 9:36:01 pm (UTC)'!
+testExtractMethodFromSimilarCodeKeepsTheSpacingOfALiteralThatEndsTheMethod
+
+	self defineTestSubjectClass.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpFoo: aNumber
+
+	^aNumber'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpProbe
+
+	^self mcpFoo: 1'.
+	self defineMethodIn: 'MCPTestSubject' source: 'mcpOther
+
+	^self mcpFoo: 2'.
+
+	self applyRefactoring: MCPBaseRefactoringToolBox extractMethodFromSimilarCodeRefactoringToolName
+		with: ((self
+			arguments: 'className' being: 'MCPTestSubject'
+			and: 'selector' being: 'mcpProbe'
+			and: 'newSelector' being: 'mcpExtracted:'
+			and: 'argumentNames' being: 'aNumber')
+				at: 'text' put: 'self mcpFoo: 1';
+				yourself).
+
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpExtracted:' asSymbol)
+		includesSubstring: 'self mcpFoo: aNumber' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpProbe' asSymbol)
+		includesSubstring: '^self mcpExtracted: 1' caseSensitive: true).
+	self assert: ((self createdClassInTest sourceCodeAt: 'mcpOther' asSymbol)
+		includesSubstring: '^self mcpExtracted: 2' caseSensitive: true)! !
 
 !MCPBaseRefactoringToolBoxTest methodsFor: 'tests - extraction' stamp: 'HAW 25/Sep/2026, 3:46:05 pm (UTC)'!
 testExtractMethodFromSimilarCodeMakesWhatDiffersAParameter
